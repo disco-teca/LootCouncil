@@ -303,7 +303,6 @@ function widget:Create(parent)
             "Response",
             "ItemLevel",
             "BiS",
-            "Votes",
 
         }
 
@@ -325,6 +324,57 @@ function widget:Create(parent)
                 })
 
         end
+
+        ---------------------------------------------------
+        -- Vote Button
+        ---------------------------------------------------
+
+        row.cells.Vote =
+            LootCouncil.UI.Widgets.Button:Create(
+
+                frame,
+
+                {
+
+                    width = 50,
+                    height = 18,
+                    text = "Vote",
+
+                }
+
+            )
+
+        row.cells.Vote:SetPoint(
+
+            "LEFT",
+
+            playerCell,
+
+            "LEFT",
+
+            frame.columns.Votes.x -
+            frame.columns.Player.x,
+
+            0
+
+        )
+
+        ---------------------------------------------------
+        -- Vote Count
+        ---------------------------------------------------
+
+        row.cells.Votes =
+            LootCouncil.UI.Widgets:CreateLabel(frame, {
+
+                point = "LEFT",
+
+                relativeTo = row.cells.Vote,
+                relativePoint = "RIGHT",
+
+                x = 6,
+                y = 0,
+
+            })
 
         ---------------------------------------------------
         -- Award Button
@@ -471,11 +521,78 @@ function widget:Refresh(frame, applicants)
             )
 
             ---------------------------------------------------
-            -- Placeholders
+            -- BiS
             ---------------------------------------------------
 
             row.cells.BiS:SetText("")
-            row.cells.Votes:SetText("")
+
+            ---------------------------------------------------
+            -- Vote
+            ---------------------------------------------------
+
+            local councilMember =
+                UnitName("player")
+
+            local hasVoted = false
+
+            for _, voter in ipairs(
+                row.applicant:GetVotes()
+            ) do
+
+                if voter == councilMember then
+
+                    hasVoted = true
+                    break
+
+                end
+
+            end
+
+            if hasVoted then
+
+                row.cells.Vote:SetText(
+                    "Voted"
+                )
+
+            else
+
+                row.cells.Vote:SetText(
+                    "Vote"
+                )
+
+            end
+
+            row.cells.Votes:SetText(
+                tostring(
+                    row.applicant:GetVoteCount()
+                )
+            )
+
+            row.cells.Vote:Show()
+
+            row.cells.Vote:SetScript(
+
+                "OnClick",
+
+                function()
+
+                    if not item then
+                        return
+                    end
+
+                    LootCouncil.Session:ToggleVote(
+
+                        UnitName("player"),
+
+                        row.applicant:GetPlayer():GetName(),
+
+                        LootCouncil.Session:GetSelectedIndex()
+
+                    )
+
+                end
+
+            )
 
             ---------------------------------------------------
             -- Award Button
@@ -549,15 +666,20 @@ function widget:Refresh(frame, applicants)
 
             for key, cell in pairs(row.cells) do
 
-                if key ~= "Award" then
+                if key ~= "Award" and
+                   key ~= "Vote" then
+
                     cell:SetText("")
+
                 end
 
             end
 
             ---------------------------------------------------
-            -- Hide Award Button
+            -- Hide Buttons
             ---------------------------------------------------
+
+            row.cells.Vote:Hide()
 
             row.cells.Award:Hide()
 

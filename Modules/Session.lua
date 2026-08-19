@@ -920,6 +920,72 @@ function LootCouncil.Session:SetVote(
 
 end
 
+function LootCouncil.Session:ToggleVote(
+
+    councilMember,
+
+    playerName,
+
+    itemIndex
+
+)
+
+    local item =
+        self:GetItem(itemIndex)
+
+    if not item then
+        return nil
+    end
+
+    local applicant =
+        item:FindApplicant(playerName)
+
+    if not applicant then
+        return nil
+    end
+
+    ---------------------------------------------------
+    -- Check Existing Vote
+    ---------------------------------------------------
+
+    for _, voter in ipairs(
+        applicant:GetVotes()
+    ) do
+
+        if voter == councilMember then
+
+            local removed =
+                applicant:RemoveVote(
+                    councilMember
+                )
+
+            if removed then
+                LootCouncil.UI.TabManager:Refresh()
+            end
+
+            return false
+
+        end
+
+    end
+
+    ---------------------------------------------------
+    -- Add Vote
+    ---------------------------------------------------
+
+    local added =
+        applicant:AddVote(
+            councilMember
+        )
+
+    if added then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+
+    return true
+
+end
+
 ---------------------------------------------------
 -- Selected Item
 ---------------------------------------------------

@@ -90,6 +90,27 @@ function Applicant:AddVote(councilMember)
 
 end
 
+function Applicant:RemoveVote(councilMember)
+
+    for i, voter in ipairs(self.votes) do
+
+        if voter == councilMember then
+
+            table.remove(
+                self.votes,
+                i
+            )
+
+            return true
+
+        end
+
+    end
+
+    return false
+
+end
+
 function Applicant:GetVoteCount()
 
     return #self.votes
