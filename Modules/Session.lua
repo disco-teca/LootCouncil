@@ -959,9 +959,46 @@ function LootCouncil.Session:ToggleVote(
                     councilMember
                 )
 
-            if removed then
-                LootCouncil.UI.TabManager:Refresh()
+            if not removed then
+                return nil
             end
+
+            ---------------------------------------------------
+            -- Refresh Local UI
+            ---------------------------------------------------
+
+            LootCouncil.UI.TabManager:Refresh()
+
+            ---------------------------------------------------
+            -- Broadcast Vote Removal
+            ---------------------------------------------------
+
+            local message =
+                LootCouncil.Message:New(
+
+                    "VOTE",
+
+                    {
+
+                        councilMember = councilMember,
+
+                        player = playerName,
+
+                        itemIndex = itemIndex,
+
+                        action = "REMOVE",
+
+                    }
+
+                )
+
+            LootCouncil.MessageBus:Route(
+
+                message,
+
+                UnitName("player")
+
+            )
 
             return false
 
@@ -978,9 +1015,46 @@ function LootCouncil.Session:ToggleVote(
             councilMember
         )
 
-    if added then
-        LootCouncil.UI.TabManager:Refresh()
+    if not added then
+        return nil
     end
+
+    ---------------------------------------------------
+    -- Refresh Local UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.TabManager:Refresh()
+
+    ---------------------------------------------------
+    -- Broadcast Vote Addition
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "VOTE",
+
+            {
+
+                councilMember = councilMember,
+
+                player = playerName,
+
+                itemIndex = itemIndex,
+
+                action = "ADD",
+
+            }
+
+        )
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        UnitName("player")
+
+    )
 
     return true
 
@@ -1558,6 +1632,16 @@ function LootCouncil.Session:Initialize()
 
     LootCouncil.MessageBus:Register(
 
+        "VOTE",
+
+        self,
+
+        self.OnVoteMessage
+
+    )
+
+    LootCouncil.MessageBus:Register(
+
         "AWARD",
 
         self,
@@ -1571,5 +1655,60 @@ function LootCouncil.Session:Initialize()
         "Session message handlers registered."
 
     )
+
+end
+
+function LootCouncil.Session:OnVoteMessage(
+
+    message,
+
+    sender
+
+)
+
+    local payload =
+        message:GetPayload()
+
+    if not payload then
+        return
+    end
+
+    local item =
+        self:GetItem(
+            payload.itemIndex
+        )
+
+    if not item then
+        return
+    end
+
+    local applicant =
+        item:FindApplicant(
+            payload.player
+        )
+
+    if not applicant then
+        return
+    end
+
+    if payload.action == "ADD" then
+
+        applicant:AddVote(
+            payload.councilMember
+        )
+
+    elseif payload.action == "REMOVE" then
+
+        applicant:RemoveVote(
+            payload.councilMember
+        )
+
+    else
+
+        return
+
+    end
+
+    LootCouncil.UI.TabManager:Refresh()
 
 end
