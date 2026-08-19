@@ -1135,7 +1135,11 @@ function LootCouncil.Session:OnGearRequestMessage(
     end
 
     local slots = {}
+
     local items = {}
+
+    local links = {}
+
     local responseItems = {}
 
     for _, slotID in ipairs(payload.slots or {}) do
@@ -1154,6 +1158,12 @@ function LootCouncil.Session:OnGearRequestMessage(
         if itemID then
 
             items[slotID] = itemID
+
+            links[slotID] =
+                GetInventoryItemLink(
+                    "player",
+                    slotID
+                )
 
             table.insert(
                 responseItems,
@@ -1202,7 +1212,11 @@ function LootCouncil.Session:OnGearRequestMessage(
 
                 itemIndex = payload.itemIndex,
 
-                items = items
+                slots = payload.slots,
+
+                items = items,
+
+                links = links
 
             }
 
@@ -1240,26 +1254,93 @@ function LootCouncil.Session:OnGearResponseMessage(
 )
 
     local payload =
-
         message:GetPayload()
 
     if not payload then
         return
     end
 
+    ---------------------------------------------------
+    -- Find Loot Item
+    ---------------------------------------------------
+
     local item =
-        self:GetItem(payload.itemIndex)
+        self:GetItem(
+            payload.itemIndex
+        )
 
     if not item then
+
+        LootCouncil:Print(
+            "GEAR_RESPONSE: Item not found. Index: " ..
+            tostring(payload.itemIndex)
+        )
+
         return
+
     end
+
+    ---------------------------------------------------
+    -- Find Applicant
+    ---------------------------------------------------
 
     local applicant =
-        item:FindApplicant(payload.player)
+        item:FindApplicant(
+            payload.player
+        )
 
     if not applicant then
+
+        LootCouncil:Print(
+            "GEAR_RESPONSE: Applicant not found: " ..
+            tostring(payload.player)
+        )
+
         return
+
     end
+
+    ---------------------------------------------------
+    -- Clear Requested Gear
+    ---------------------------------------------------
+
+    for _, slotID in ipairs(
+        payload.slots or {}
+    ) do
+
+        applicant.gear[slotID] = nil
+
+    end
+
+    ---------------------------------------------------
+    -- Store Current Gear
+    ---------------------------------------------------
+
+    for slotID, itemID in pairs(
+        payload.items or {}
+    ) do
+
+        applicant.gear[slotID] = {
+
+            itemID = itemID,
+
+            link =
+                payload.links and
+                payload.links[slotID]
+
+        }
+
+    end
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.VotingTab:Refresh()
+
+    ---------------------------------------------------
+    -- Debug
+    ---------------------------------------------------
 
     LootCouncil:Print(
         "GEAR_RESPONSE received. Player: " ..
@@ -1268,17 +1349,17 @@ function LootCouncil.Session:OnGearResponseMessage(
         tostring(payload.itemIndex)
     )
 
-    for slotID, itemID in pairs(payload.items or {}) do
-
-        if itemID then
-            applicant.gear[slotID] = itemID
-        end
+    for slotID, gear in pairs(
+        applicant.gear
+    ) do
 
         LootCouncil:Print(
             "GEAR_RESPONSE slot " ..
             tostring(slotID) ..
             ": item ID " ..
-            tostring(itemID)
+            tostring(gear.itemID) ..
+            ", link " ..
+            tostring(gear.link)
         )
 
     end

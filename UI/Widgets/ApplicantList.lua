@@ -442,7 +442,7 @@ function widget:Refresh(frame, applicants)
 
                 row.icon,
 
-                row.applicant:GetEquippedIcon()
+                row.applicant:GetEquippedIcon(item)
 
             )
 
@@ -450,7 +450,7 @@ function widget:Refresh(frame, applicants)
 
                 row.icon,
 
-                row.applicant:GetEquippedLink()
+                row.applicant:GetEquippedLink(item)
 
             )
 

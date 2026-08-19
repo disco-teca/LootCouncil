@@ -98,59 +98,18 @@ end
 
 LootCouncil.Applicant = Applicant
 
-function Applicant:GetEquippedIcon()
-
-    local comparison =
-        LootCouncil.Inspect:GetComparisonSlot(
-            LootCouncil.Session:GetSelectedItem():GetLink()
-        )
-
-    if not comparison then
-        return nil
-    end
-
-    local playerData =
-        LootCouncil.PlayerData:GetPlayerData(
-            self.player:GetName()
-        )
-
-    if not playerData then
-        return nil
-    end
-
-    local equipped =
-        playerData.equipped[comparison]
-
-    if not equipped then
-        return nil
-    end
-
-    return equipped.icon
-
-end
-
-function Applicant:GetEquippedLink()
-
-    local item =
-        LootCouncil.Session:GetSelectedItem()
+function Applicant:GetEquippedIcon(item)
 
     if not item then
         return nil
     end
 
     local slots =
-        LootCouncil.Comparison:GetComparisonSlots(item)
-
-    if #slots == 0 then
-        return nil
-    end
-
-    local playerData =
-        LootCouncil.PlayerData:GetPlayerData(
-            self.player:GetName()
+        LootCouncil.Comparison:GetComparisonSlots(
+            item
         )
 
-    if not playerData then
+    if #slots == 0 then
         return nil
     end
 
@@ -160,28 +119,63 @@ function Applicant:GetEquippedLink()
 
     for _, slotID in ipairs(slots) do
 
-        local slotName
+        local gear =
+            self.gear[slotID]
 
-        for name, id in pairs(
-            LootCouncil.Constants.InventorySlot
-        ) do
+        if gear and gear.itemID then
 
-            if id == slotID then
-                slotName = name
-                break
+            local name,
+                  link,
+                  quality,
+                  itemLevel,
+                  requiredLevel,
+                  itemType,
+                  itemSubType,
+                  itemStackCount,
+                  itemEquipLoc,
+                  itemTexture =
+                GetItemInfo(
+                    gear.itemID
+                )
+
+            if itemTexture then
+                return itemTexture
             end
 
         end
 
-        if slotName then
+    end
 
-            local equipped =
-                playerData.equipped[slotName]
+    return nil
 
-            if equipped and equipped.link then
-                return equipped.link
-            end
+end
 
+function Applicant:GetEquippedLink(item)
+
+    if not item then
+        return nil
+    end
+
+    local slots =
+        LootCouncil.Comparison:GetComparisonSlots(
+            item
+        )
+
+    if #slots == 0 then
+        return nil
+    end
+
+    ---------------------------------------------------
+    -- Return First Matching Slot
+    ---------------------------------------------------
+
+    for _, slotID in ipairs(slots) do
+
+        local gear =
+            self.gear[slotID]
+
+        if gear and gear.link then
+            return gear.link
         end
 
     end

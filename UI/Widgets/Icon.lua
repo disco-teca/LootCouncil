@@ -47,10 +47,6 @@ function widget:SetItem(button, itemLink)
 
     button:SetScript("OnEnter", function(self)
 
-        LootCouncil:Print(
-            tostring(self.itemLink)
-        )
-
         if not self.itemLink then
             return
         end

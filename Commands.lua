@@ -326,6 +326,43 @@ local function TestGearRequestPacket()
 
 end
 
+local function TestItemInfo()
+
+    local itemID = 45929
+
+    local name,
+          link,
+          quality,
+          itemLevel,
+          requiredLevel,
+          itemType,
+          itemSubType,
+          itemStackCount,
+          itemEquipLoc,
+          itemTexture =
+        GetItemInfo(itemID)
+
+    LootCouncil:Print(
+        "GetItemInfo test:"
+    )
+
+    LootCouncil:Print(
+        "Name: " ..
+        tostring(name)
+    )
+
+    LootCouncil:Print(
+        "Link: " ..
+        tostring(link)
+    )
+
+    LootCouncil:Print(
+        "Texture: " ..
+        tostring(itemTexture)
+    )
+
+end
+
 ---------------------------------------------------
 -- Test Hello Packet
 ---------------------------------------------------
@@ -777,6 +814,7 @@ commands["ping"] = Ping
 commands["testadd"] = TestAddPacket
 commands["testhello"] = TestHelloPacket
 commands["cache"] = PrintCache
+commands["testiteminfo"] = TestItemInfo
 
 ---------------------------------------------------
 -- Slash Command
