@@ -1,0 +1,95 @@
+## Interface: 30300
+## Title: LootCouncil
+## Notes: Standalone Loot Council for WoW 3.3.5a
+## Author: Alex
+## Version: 0.4.0
+## SavedVariables: LootCouncilDB
+
+---------------------------------------------------
+-- Addon
+---------------------------------------------------
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceComm-3.0\AceComm-3.0.xml
+Libs\AceSerializer-3.0\AceSerializer-3.0.xml
+
+Core.lua
+
+Constants.lua
+Utils.lua
+Database.lua
+Commands.lua
+
+---------------------------------------------------
+-- Data
+---------------------------------------------------
+
+Data\TestData.lua
+
+---------------------------------------------------
+-- Objects
+---------------------------------------------------
+
+Objects\Player.lua
+Objects\Applicant.lua
+Objects\LootItem.lua
+Objects\InspectRequest.lua
+Objects\Message.lua
+
+---------------------------------------------------
+-- Modules
+---------------------------------------------------
+
+Modules\Loot.lua
+Modules\Session.lua
+Modules\Persistence.lua
+Modules\Roster.lua
+Modules\PlayerData.lua
+Modules\InspectQueue.lua
+Modules\Inspect.lua
+Modules\InspectCache.lua
+Modules\Comparison.lua
+Modules\Attendance.lua
+Modules\History.lua
+Modules\BiS.lua
+Modules\MessageBus.lua
+Modules\Comms.lua
+Modules\ResponseParser.lua
+Modules\Chat.lua
+Modules\TestMode.lua
+
+---------------------------------------------------
+-- Events
+---------------------------------------------------
+
+Events.lua
+
+---------------------------------------------------
+-- UI
+---------------------------------------------------
+
+UI\UI.lua
+
+UI\Widgets\Widgets.lua
+UI\Widgets\Panel.lua
+UI\Widgets\Tab.lua
+UI\Widgets\Tooltip.lua
+UI\Widgets\Label.lua
+UI\Widgets\Icon.lua
+UI\Widgets\Button.lua
+UI\Widgets\ScrollFrame.lua
+UI\Widgets\ApplicantList.lua
+UI\Widgets\ItemSummary.lua
+
+UI\NavigationTabManager.lua
+UI\TabManager.lua
+
+UI\Tabs\VotingTab.lua
+UI\Tabs\PlayersTab.lua
+UI\Tabs\AttendanceTab.lua
+UI\Tabs\HistoryTab.lua
+UI\Tabs\BiSTab.lua
+UI\Tabs\SettingsTab.lua
+
+UI\MainWindow.lua

@@ -1,0 +1,120 @@
+LootCouncil.UI.NavigationTabManager = {}
+
+local manager = LootCouncil.UI.NavigationTabManager
+
+manager.tabs = {}
+manager.selected = "Voting"
+
+---------------------------------------------------
+-- Initialize
+---------------------------------------------------
+
+function manager:Initialize(parent)
+
+    self.parent = parent
+
+    self:CreateTabs()
+
+end
+
+---------------------------------------------------
+-- Create Tabs
+---------------------------------------------------
+
+function manager:CreateTabs()
+
+    local names = {
+        "Voting",
+        "Players",
+        "Attendance",
+        "History",
+        "BiS",
+        "Settings"
+    }
+
+    local previous
+
+    for _, name in ipairs(names) do
+
+        local tab = LootCouncil.UI.Widgets:CreateTab(
+            self.parent,
+            {
+                text = name
+            }
+        )
+
+        if previous then
+
+            tab:SetPoint(
+                "LEFT",
+                previous,
+                "RIGHT",
+                4,
+                0
+            )
+
+        else
+
+            tab:SetPoint(
+                "LEFT",
+                self.parent,
+                "LEFT",
+                0,
+                0
+            )
+
+        end
+
+        tab:SetScript("OnClick", function()
+
+            manager:Select(name)
+
+        end)
+
+        self.tabs[name] = tab
+
+        previous = tab
+
+    end
+
+    self:Refresh()
+
+end
+
+---------------------------------------------------
+-- Select
+---------------------------------------------------
+
+function manager:Select(name)
+
+    self.selected = name
+
+    self:Refresh()
+
+end
+
+---------------------------------------------------
+-- Refresh
+---------------------------------------------------
+
+function manager:Refresh()
+
+    for name, tab in pairs(self.tabs) do
+
+        tab:SetSelected(
+            name == self.selected
+        )
+
+    end
+
+end
+
+---------------------------------------------------
+-- Active Tab
+---------------------------------------------------
+
+function manager:GetSelected()
+
+    return self.selected
+
+end

@@ -1,0 +1,245 @@
+local LootItem = {}
+LootItem.__index = LootItem
+
+---------------------------------------------------
+-- Construction
+---------------------------------------------------
+
+function LootItem:New(data)
+
+    local item = setmetatable({}, LootItem)
+
+    item.id = data.id
+
+    item.link = data.link
+
+    item.name = data.name
+    item.ilvl = data.ilvl
+
+    item.icon = nil
+    item.quality = nil
+    item.equipSlot = nil
+
+    item.applicants = {}
+
+    item.winner = nil
+    item.awarded = false
+    item.locked = false
+
+    return item
+
+end
+
+---------------------------------------------------
+-- Identity
+---------------------------------------------------
+
+function LootItem:GetID()
+
+    return self.id
+
+end
+
+function LootItem:GetName()
+
+    return self.name
+
+end
+
+function LootItem:GetLink()
+
+    return self.link
+
+end
+
+function LootItem:GetQuality()
+
+    return self.quality
+
+end
+
+function LootItem:GetEquipSlot()
+
+    return self.equipSlot
+
+end
+
+function LootItem:GetIcon()
+
+    return self.icon
+
+end
+
+function LootItem:GetItemLevel()
+
+    return self.ilvl
+
+end
+
+function LootItem:SetMetadata(metadata)
+
+    if not metadata then
+        return
+    end
+
+    self.name = metadata.name
+    self.link = metadata.link
+    self.icon = metadata.icon
+    self.quality = metadata.quality
+    self.equipSlot = metadata.equipSlot
+
+    if metadata.itemLevel then
+        self.ilvl = metadata.itemLevel
+    end
+
+end
+
+---------------------------------------------------
+-- Relationships
+---------------------------------------------------
+
+function LootItem:FindApplicant(player)
+
+    if not player then
+        return nil
+    end
+
+    local playerName
+
+    if type(player) == "string" then
+
+        playerName = player
+
+    else
+
+        playerName = player:GetName()
+
+    end
+
+    for _, applicant in ipairs(self.applicants) do
+
+        local applicantPlayer =
+            applicant:GetPlayer()
+
+        if applicantPlayer and
+           applicantPlayer:GetName() ==
+           playerName then
+
+            return applicant
+
+        end
+
+    end
+
+    return nil
+
+end
+
+function LootItem:GetApplicants()
+
+    return self.applicants
+
+end
+
+function LootItem:GetApplicantCount()
+
+    return #self.applicants
+
+end
+
+---------------------------------------------------
+-- Behavior
+---------------------------------------------------
+
+---------------------------------------------------
+-- Applicants
+---------------------------------------------------
+
+function LootItem:AddApplicant(player)
+
+    local existing =
+        self:FindApplicant(player)
+
+    if existing then
+
+        existing:SetPlayer(player)
+
+        return existing
+
+    end
+
+    local applicant =
+        LootCouncil.Applicant:New(player)
+
+    table.insert(
+        self.applicants,
+        applicant
+    )
+
+    return applicant
+
+end
+
+---------------------------------------------------
+-- Awarding
+---------------------------------------------------
+
+function LootItem:IsAwarded()
+
+    return self.awarded
+
+end
+
+function LootItem:SetAwarded(awarded)
+
+    self.awarded = awarded
+
+end
+
+LootCouncil.LootItem = LootItem
+
+---------------------------------------------------
+-- Winner
+---------------------------------------------------
+
+function LootItem:GetWinner()
+
+    return self.winner
+
+end
+
+function LootItem:SetWinner(playerName)
+
+    self.winner = playerName
+
+end
+
+function LootItem:ClearWinner()
+
+    self.winner = nil
+
+end
+
+function LootItem:HasWinner()
+
+    return self.winner ~= nil
+
+end
+
+function LootItem:Award(playerName)
+
+    self:SetWinner(playerName)
+
+    self:SetAwarded(true)
+
+    LootCouncil.Persistence:Save()
+
+end
+
+function LootItem:ClearAward()
+
+    self:SetWinner(nil)
+
+    self:SetAwarded(false)
+
+end

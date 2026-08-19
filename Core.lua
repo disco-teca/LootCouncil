@@ -1,0 +1,42 @@
+LootCouncil = LootCouncil or {}
+
+LootCouncil.Modules = LootCouncil.Modules or {}
+LootCouncil.UI = LootCouncil.UI or {}
+
+LootCouncil.name = "LootCouncil"
+LootCouncil.version = "0.4.0"
+
+function LootCouncil:Print(message)
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootCouncil:|r " .. tostring(message))
+end
+
+function LootCouncil:Initialize()
+
+    self.Database:Initialize()
+
+    self.MessageBus:Initialize()
+
+    self.Session:Initialize()
+
+    self.Persistence:Initialize()
+
+    self.Inspect:Initialize()
+
+    self.InspectCache:Initialize()
+
+    self.PlayerData:RestoreFromInspectCache()
+
+    self.Comms:Initialize()
+
+    ---------------------------------------------------
+    -- Restore Persistent State
+    ---------------------------------------------------
+
+    self.Persistence:Load()
+
+    self:Print(
+        "Initialized v" ..
+        self.version
+    )
+
+end
