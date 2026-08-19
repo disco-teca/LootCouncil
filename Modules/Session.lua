@@ -560,6 +560,50 @@ function LootCouncil.Session:AddItem(data)
 
     self:InitializeApplicants(item)
 
+    if self:IsOwner() then
+
+        local itemIndex =
+            #session.items
+
+        local comparisonSlots =
+            LootCouncil.Comparison:GetComparisonSlots(
+                item
+            )
+
+        for _, applicant in ipairs(item:GetApplicants()) do
+
+            local playerName =
+                applicant:GetPlayer():GetName()
+
+            local message =
+                LootCouncil.Message:New(
+
+                    "GEAR_REQUEST",
+
+                    {
+
+                        target = playerName,
+
+                        itemIndex = itemIndex,
+
+                        slots = comparisonSlots,
+
+                    }
+
+                )
+
+            LootCouncil.MessageBus:Route(
+
+                message,
+
+                UnitName("player")
+
+            )
+
+        end
+
+    end
+
     if not session.selectedItem then
         session.selectedItem = 1
     end
