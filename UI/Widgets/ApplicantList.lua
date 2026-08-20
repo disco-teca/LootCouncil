@@ -22,38 +22,22 @@ local function SortApplicants(applicants)
     local sorted = {}
 
     for i, applicant in ipairs(applicants) do
+
         sorted[i] = applicant
+
     end
 
-    table.sort(sorted, function(a, b)
+    table.sort(
 
-        local aResponse
+        sorted,
 
-            if a:IsAutoPassed() then
+        function(a, b)
 
-                aResponse =
-                    LootCouncil.Constants.Response.AUTO_PASS
+            local aResponse =
+                a:GetResponse()
 
-            else
-
-                aResponse =
-                    a:GetResponse()
-
-            end
-
-            local bResponse
-
-            if b:IsAutoPassed() then
-
-                bResponse =
-                    LootCouncil.Constants.Response.AUTO_PASS
-
-            else
-
-                bResponse =
-                    b:GetResponse()
-
-            end
+            local bResponse =
+                b:GetResponse()
 
             local aOrder =
                 responseOrder[aResponse] or 99
@@ -61,68 +45,50 @@ local function SortApplicants(applicants)
             local bOrder =
                 responseOrder[bResponse] or 99
 
-        ---------------------------------------------------
-        -- Response
-        ---------------------------------------------------
+            ---------------------------------------------------
+            -- Response
+            ---------------------------------------------------
 
-        if aOrder ~= bOrder then
+            if aOrder ~= bOrder then
 
-            return aOrder < bOrder
-
-        end
-
-        ---------------------------------------------------
-        -- Online Status
-        ---------------------------------------------------
-
-        if aOrder >= 5 then
-
-            local aOnline =
-                a:GetPlayer():IsOnline()
-
-            local bOnline =
-                b:GetPlayer():IsOnline()
-
-            if aOnline ~= bOnline then
-
-                return aOnline
+                return aOrder < bOrder
 
             end
 
+            ---------------------------------------------------
+            -- Class
+            ---------------------------------------------------
+
+            local aClass =
+                a:GetPlayer():GetClass()
+
+            local bClass =
+                b:GetPlayer():GetClass()
+
+            local aClassOrder =
+                LootCouncil.Constants.ClassOrder[aClass]
+                or 99
+
+            local bClassOrder =
+                LootCouncil.Constants.ClassOrder[bClass]
+                or 99
+
+            if aClassOrder ~= bClassOrder then
+
+                return aClassOrder < bClassOrder
+
+            end
+
+            ---------------------------------------------------
+            -- Player Name
+            ---------------------------------------------------
+
+            return a:GetPlayer():GetName() <
+                   b:GetPlayer():GetName()
+
         end
 
-        ---------------------------------------------------
-        -- Class
-        ---------------------------------------------------
-
-        local aClass =
-            a:GetPlayer():GetClass()
-
-        local bClass =
-            b:GetPlayer():GetClass()
-
-        local aClassOrder =
-            LootCouncil.Constants.ClassOrder[aClass]
-            or 99
-
-        local bClassOrder =
-            LootCouncil.Constants.ClassOrder[bClass]
-            or 99
-
-        if aClassOrder ~= bClassOrder then
-
-            return aClassOrder < bClassOrder
-
-        end
-
-        ---------------------------------------------------
-        -- Player Name
-        ---------------------------------------------------
-
-        return a:GetPlayer():GetName() <
-               b:GetPlayer():GetName()
-
-    end)
+    )
 
     return sorted
 

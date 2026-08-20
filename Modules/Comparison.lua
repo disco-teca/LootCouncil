@@ -69,6 +69,10 @@ function module:GetComparisonSlots(lootItem)
             Slot.RangedSlot,
         },
 
+        INVTYPE_RANGEDRIGHT = {
+            Slot.RangedSlot,
+        },
+
         INVTYPE_RELIC = {
             Slot.RangedSlot,
         },
