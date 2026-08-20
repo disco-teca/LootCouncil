@@ -55,30 +55,6 @@ function module:Initialize()
     )
 
     ---------------------------------------------------
-    -- Register Listeners
-    ---------------------------------------------------
-
-    LootCouncil.MessageBus:Register(
-
-        "PLAYER_DATA_UPDATED",
-
-        self,
-
-        self.OnPlayerDataUpdated
-
-    )
-
-    LootCouncil.MessageBus:Register(
-
-        "PLAYER_DATA_SYNC",
-
-        self,
-
-        self.OnPlayerDataSync
-
-    )
-
-    ---------------------------------------------------
     -- Ready
     ---------------------------------------------------
 
@@ -292,76 +268,6 @@ function module:Receive(
         message,
 
         sender
-
-    )
-
-end
-
----------------------------------------------------
--- Player Data Updated
----------------------------------------------------
-
-function module:OnPlayerDataUpdated(
-
-    message,
-
-    sender
-
-)
-
-    local playerName =
-
-        message:GetPayload().player
-
-    local exportedData =
-
-        LootCouncil.PlayerData:CreateSyncPacket(
-
-            playerName
-
-        )
-
-    local sync =
-
-        LootCouncil.Message:New(
-
-            "PLAYER_DATA_SYNC",
-
-            {
-
-                player = playerName,
-
-                data = exportedData,
-
-            }
-
-        )
-
-    LootCouncil.MessageBus:Transport(
-
-        sync,
-
-        sender
-
-    )
-
-end
-
----------------------------------------------------
--- Player Data Sync
----------------------------------------------------
-
-function module:OnPlayerDataSync(
-
-    message,
-
-    sender
-
-)
-
-    LootCouncil.PlayerData:ApplySyncPacket(
-
-        message:GetPayload()
 
     )
 
