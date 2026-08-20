@@ -79,8 +79,6 @@ function LootCouncil.TestMode:Stop()
 
     LootCouncil.Session:Destroy()
 
-    LootCouncil.Inspect:ClearQueue()
-
     LootCouncil:Print("Developer test session ended.")
 
 end

@@ -453,54 +453,6 @@ local function DebugSession()
 
 end
 
-local function InspectItem(itemID)
-
-    itemID = tonumber(itemID)
-
-    if not itemID then
-        LootCouncil:Print("Usage: /lc item <itemID>")
-        return
-    end
-
-    GameTooltip:SetHyperlink("item:" .. itemID .. ":0:0:0:0:0:0:0")
-    
-    local
-        name,
-        link,
-        quality,
-        itemLevel,
-        _,
-        _,
-        _,
-        _,
-        equipSlot,
-        icon =
-        GetItemInfo("item:" .. itemID .. ":0:0:0:0:0:0:0")
-
-    LootCouncil:Print("---------- Item Info ----------")
-    LootCouncil:Print("ID: " .. tostring(itemID))
-    LootCouncil:Print("Name: " .. tostring(name))
-    LootCouncil:Print("Link: " .. tostring(link))
-    LootCouncil:Print("Quality: " .. tostring(quality))
-    LootCouncil:Print("Item Level: " .. tostring(itemLevel))
-    LootCouncil:Print("Equip Slot: " .. tostring(equipSlot))
-    LootCouncil:Print("Icon: " .. tostring(icon))
-    LootCouncil:Print("-------------------------------")
-
-end
-
-local function PrintCache()
-
-    LootCouncil:Print("--------------------------------")
-    LootCouncil:Print("Player Data")
-    LootCouncil.InspectCache:DebugPrint()
-
-    LootCouncil:Print("--------------------------------")
-    LootCouncil:Print("Inspect Queue")
-    LootCouncil.InspectQueue:DebugPrint()
-
-end
-
 local function SaveSession()
 
     LootCouncil.Persistence:Save()
@@ -516,22 +468,6 @@ local function PrintHelp()
     LootCouncil:Print("/lc item <itemID> - Display Blizzard item information")
     LootCouncil:Print("/lc roster - Print the current party/raid roster")
     LootCouncil:Print("Cache command registered.")
-
-end
-
-local function InspectPlayer(playerName)
-
-    playerName = playerName or ""
-
-    if playerName == "" then
-        playerName = UnitName("player")
-    end
-
-    LootCouncil:Print(
-        "Queueing inspection for " .. playerName
-    )
-
-    LootCouncil.Inspect:InspectPlayer(playerName)
 
 end
 
@@ -802,9 +738,7 @@ commands["start"] = StartSession
 commands["end"] = EndSession
 commands["save"] = SaveSession
 commands["debug"] = DebugSession
-commands["item"] = InspectItem
 commands["help"] = PrintHelp
-commands["inspect"] = InspectPlayer
 commands["compare"] = CompareItem
 commands["response"] = ResponsePlayer
 commands["award"] = AwardItem
@@ -813,7 +747,6 @@ commands["add"] = AddItem
 commands["ping"] = Ping
 commands["testadd"] = TestAddPacket
 commands["testhello"] = TestHelloPacket
-commands["cache"] = PrintCache
 commands["testiteminfo"] = TestItemInfo
 
 ---------------------------------------------------
@@ -844,13 +777,5 @@ SlashCmdList["LOOTCOUNCIL"] = function(msg)
         LootCouncil:Print("Unknown command: " .. command)
         PrintHelp()
     end
-
-end
-
-SLASH_LOOTCOUNCILCACHE1 = "/lc cache"
-
-SlashCmdList["LOOTCOUNCILCACHE"] = function()
-
-    LootCouncil.InspectCache:DebugPrint()
 
 end
