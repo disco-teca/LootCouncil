@@ -13,7 +13,8 @@ function module:GetComparisonSlots(lootItem)
         return {}
     end
 
-    local equipSlot = lootItem:GetEquipSlot()
+    local equipSlot =
+        lootItem:GetEquipSlot()
 
     ---------------------------------------------------
     -- Single Slot Items
@@ -77,67 +78,64 @@ function module:GetComparisonSlots(lootItem)
             Slot.RangedSlot,
         },
 
-        INVTYPE_SHIELD = {
-            Slot.OffHand,
-        },
-
-        INVTYPE_HOLDABLE = {
-            Slot.OffHand,
-        },
-
         INVTYPE_2HWEAPON = {
             Slot.MainHand,
+            Slot.OffHand,
         },
 
     }
 
     if singleSlots[equipSlot] then
+
         return singleSlots[equipSlot]
+
     end
 
     ---------------------------------------------------
-    -- Multi Slot Items
+    -- Rings
     ---------------------------------------------------
 
     if equipSlot == "INVTYPE_FINGER" then
 
         return {
+
             Slot.Finger1,
             Slot.Finger2,
+
         }
 
     end
+
+    ---------------------------------------------------
+    -- Trinkets
+    ---------------------------------------------------
 
     if equipSlot == "INVTYPE_TRINKET" then
 
         return {
+
             Slot.Trinket1,
             Slot.Trinket2,
+
         }
 
     end
 
-    if equipSlot == "INVTYPE_WEAPON" then
+    ---------------------------------------------------
+    -- Weapons / Offhands
+    ---------------------------------------------------
+
+    if equipSlot == "INVTYPE_WEAPON"
+    or equipSlot == "INVTYPE_WEAPONMAINHAND"
+    or equipSlot == "INVTYPE_WEAPONOFFHAND"
+    or equipSlot == "INVTYPE_SHIELD"
+    or equipSlot == "INVTYPE_HOLDABLE" then
 
         return {
+
             Slot.MainHand,
             Slot.OffHand,
-        }
 
-    end
-
-    if equipSlot == "INVTYPE_WEAPONMAINHAND" then
-
-        return {
-            Slot.MainHand,
-        }
-
-    end
-
-    if equipSlot == "INVTYPE_WEAPONOFFHAND" then
-
-        return {
-            Slot.OffHand,
         }
 
     end

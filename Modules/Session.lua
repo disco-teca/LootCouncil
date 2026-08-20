@@ -40,6 +40,10 @@ function LootCouncil.Session:Serialize()
 
         responses = self:SerializeResponses(),
 
+        votes = self:SerializeVotes(),
+
+        gear = self:SerializeGear(),
+
     }
 
 end
@@ -48,13 +52,23 @@ function LootCouncil.Session:SerializePlayers()
 
     local players = {}
 
-    for _, player in ipairs(self:GetPlayers()) do
+    for _, player in ipairs(
+        self:GetPlayers()
+    ) do
 
         table.insert(
 
             players,
 
-            player:GetName()
+            {
+
+                name =
+                    player:GetName(),
+
+                class =
+                    player:GetClass(),
+
+            }
 
         )
 
@@ -102,16 +116,18 @@ function LootCouncil.Session:SerializeResponses()
 
     local responses = {}
 
-    for itemIndex, item in ipairs(self:GetItems()) do
+    for itemIndex, item in ipairs(
+        self:GetItems()
+    ) do
 
         responses[itemIndex] = {}
 
-        for _, applicant in ipairs(item:GetApplicants()) do
+        for _, applicant in ipairs(
+            item:GetApplicants()
+        ) do
 
             responses[itemIndex][
-
                 applicant:GetPlayer():GetName()
-
             ] = applicant:GetResponse()
 
         end
@@ -121,6 +137,211 @@ function LootCouncil.Session:SerializeResponses()
     return responses
 
 end
+
+---------------------------------------------------
+-- Vote Persistence
+---------------------------------------------------
+
+function LootCouncil.Session:SerializeVotes()
+
+    local votes = {}
+
+    for itemIndex, item in ipairs(
+        self:GetItems()
+    ) do
+
+        votes[itemIndex] = {}
+
+        for _, applicant in ipairs(
+            item:GetApplicants()
+        ) do
+
+            votes[itemIndex][
+                applicant:GetPlayer():GetName()
+            ] = {}
+
+            for _, voter in ipairs(
+                applicant:GetVotes()
+            ) do
+
+                table.insert(
+
+                    votes[itemIndex][
+                        applicant:GetPlayer():GetName()
+                    ],
+
+                    voter
+
+                )
+
+            end
+
+        end
+
+    end
+
+    return votes
+
+end
+
+---------------------------------------------------
+-- Deserialize Votes
+---------------------------------------------------
+
+function LootCouncil.Session:DeserializeVotes(data)
+
+    if not data then
+        return
+    end
+
+    for itemIndex, itemVotes in pairs(data) do
+
+        local item =
+            self:GetItem(itemIndex)
+
+        if item then
+
+            for playerName, voters in pairs(itemVotes) do
+
+                local player =
+                    self:FindPlayer(playerName)
+
+                if player then
+
+                    local applicant =
+                        item:FindApplicant(player)
+
+                    if applicant then
+
+                        for _, voter in ipairs(voters) do
+
+                            applicant:AddVote(
+                                voter
+                            )
+
+                        end
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+end
+
+---------------------------------------------------
+-- Gear Persistence
+---------------------------------------------------
+
+function LootCouncil.Session:SerializeGear()
+
+    local gear = {}
+
+    for itemIndex, item in ipairs(
+        self:GetItems()
+    ) do
+
+        gear[itemIndex] = {}
+
+        for _, applicant in ipairs(
+            item:GetApplicants()
+        ) do
+
+            local playerName =
+                applicant:GetPlayer():GetName()
+
+            gear[itemIndex][playerName] = {}
+
+            for slotID, slotGear in pairs(
+                applicant.gear
+            ) do
+
+                gear[itemIndex][playerName][slotID] = {
+
+                    itemID =
+                        slotGear.itemID,
+
+                    link =
+                        slotGear.link,
+
+                }
+
+            end
+
+        end
+
+    end
+
+    return gear
+
+end
+
+---------------------------------------------------
+-- Deserialize Gear
+---------------------------------------------------
+
+function LootCouncil.Session:DeserializeGear(data)
+
+    if not data then
+        return
+    end
+
+    for itemIndex, itemGear in pairs(data) do
+
+        local item =
+            self:GetItem(itemIndex)
+
+        if item then
+
+            for playerName, gearData in pairs(itemGear) do
+
+                local player =
+                    self:FindPlayer(playerName)
+
+                if player then
+
+                    local applicant =
+                        item:FindApplicant(player)
+
+                    if applicant then
+
+                        applicant.gear = {}
+
+                        for slotID, slotGear in pairs(
+                            gearData
+                        ) do
+
+                            applicant.gear[slotID] = {
+
+                                itemID =
+                                    slotGear.itemID,
+
+                                link =
+                                    slotGear.link,
+
+                            }
+
+                        end
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+end
+
+---------------------------------------------------
+-- Loading
+---------------------------------------------------
 
 function LootCouncil.Session:Deserialize(data)
 
@@ -144,14 +365,51 @@ function LootCouncil.Session:Deserialize(data)
 
     if data.players then
 
-        for _, playerName in ipairs(data.players) do
+        for _, playerData in ipairs(data.players) do
 
-            local player =
-                LootCouncil.Player:New(
-                    playerName
-                )
+            local playerName
+            local playerClass
 
-            self:AddPlayer(player)
+            ---------------------------------------------------
+            -- New Format
+            ---------------------------------------------------
+
+            if type(playerData) == "table" then
+
+                playerName =
+                    playerData.name
+
+                playerClass =
+                    playerData.class
+
+            ---------------------------------------------------
+            -- Legacy Format
+            ---------------------------------------------------
+
+            else
+
+                playerName =
+                    playerData
+
+                playerClass =
+                    "UNKNOWN"
+
+            end
+
+            if playerName then
+
+                local player =
+                    LootCouncil.Player:New(
+
+                        playerName,
+
+                        playerClass
+
+                    )
+
+                self:AddPlayer(player)
+
+            end
 
         end
 
@@ -210,8 +468,17 @@ function LootCouncil.Session:Deserialize(data)
     -- Restore Responses
     ---------------------------------------------------
 
-    self:DeserializeResponses(data.responses)
+    self:DeserializeResponses(
+        data.responses
+    )
 
+    self:DeserializeVotes(
+        data.votes
+    )
+
+    self:DeserializeGear(
+        data.gear
+    )
     ---------------------------------------------------
     -- Restore Selected Item
     ---------------------------------------------------
@@ -964,6 +1231,12 @@ function LootCouncil.Session:ToggleVote(
             end
 
             ---------------------------------------------------
+            -- Save Persistence
+            ---------------------------------------------------
+
+            LootCouncil.Persistence:Save()
+
+            ---------------------------------------------------
             -- Refresh Local UI
             ---------------------------------------------------
 
@@ -1018,6 +1291,12 @@ function LootCouncil.Session:ToggleVote(
     if not added then
         return nil
     end
+
+    ---------------------------------------------------
+    -- Save Persistence
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
 
     ---------------------------------------------------
     -- Refresh Local UI
@@ -1254,6 +1533,61 @@ end
 -- GEAR_REQUEST Message
 ---------------------------------------------------
 
+local function EncodeGearLink(link)
+
+    if not link then
+        return nil
+    end
+
+    local encoded = {}
+
+    for i = 1, string.len(link) do
+
+        encoded[i] =
+            string.format(
+                "%02X",
+                string.byte(link, i)
+            )
+
+    end
+
+    return table.concat(encoded)
+
+end
+
+local function DecodeGearLink(encoded)
+
+    if not encoded then
+        return nil
+    end
+
+    local decoded = {}
+
+    for i = 1, string.len(encoded), 2 do
+
+        local byte =
+            tonumber(
+                string.sub(
+                    encoded,
+                    i,
+                    i + 1
+                ),
+                16
+            )
+
+        if not byte then
+            return nil
+        end
+
+        decoded[#decoded + 1] =
+            string.char(byte)
+
+    end
+
+    return table.concat(decoded)
+
+end
+
 function LootCouncil.Session:OnGearRequestMessage(
 
     message,
@@ -1263,7 +1597,6 @@ function LootCouncil.Session:OnGearRequestMessage(
 )
 
     local payload =
-
         message:GetPayload()
 
     if not payload then
@@ -1299,11 +1632,22 @@ function LootCouncil.Session:OnGearRequestMessage(
 
             items[slotID] = itemID
 
-            links[slotID] =
+            ---------------------------------------------------
+            -- Encode Live Item Link
+            ---------------------------------------------------
+
+            local link =
                 GetInventoryItemLink(
                     "player",
                     slotID
                 )
+
+            if link then
+
+                links[slotID] =
+                    EncodeGearLink(link)
+
+            end
 
             table.insert(
                 responseItems,
@@ -1466,7 +1810,9 @@ function LootCouncil.Session:OnGearResponseMessage(
 
             link =
                 payload.links and
-                payload.links[slotID]
+                DecodeGearLink(
+                    payload.links[slotID]
+                )    
 
         }
 
@@ -1691,6 +2037,10 @@ function LootCouncil.Session:OnVoteMessage(
         return
     end
 
+    ---------------------------------------------------
+    -- Apply Vote
+    ---------------------------------------------------
+
     if payload.action == "ADD" then
 
         applicant:AddVote(
@@ -1708,6 +2058,16 @@ function LootCouncil.Session:OnVoteMessage(
         return
 
     end
+
+    ---------------------------------------------------
+    -- Save Persistence
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
 
     LootCouncil.UI.TabManager:Refresh()
 

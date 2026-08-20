@@ -232,29 +232,40 @@ function widget:Create(parent)
             })
 
         ---------------------------------------------------
-        -- Equipped Icon
+        -- Equipped Icons
         ---------------------------------------------------
 
-        row.icon =
-            LootCouncil.UI.Widgets.Icon:Create(
-                frame,
-                20
+        row.icons = {}
+
+        for iconIndex = 1, 2 do
+
+            local icon =
+                LootCouncil.UI.Widgets.Icon:Create(
+                    frame,
+                    20
+                )
+
+            icon:SetPoint(
+
+                "LEFT",
+
+                playerCell,
+
+                "LEFT",
+
+                frame.columns.Equipped.x -
+                frame.columns.Player.x +
+                ((iconIndex - 1) * 24),
+
+                0
+
             )
 
-        row.icon:SetPoint(
+            icon:Hide()
 
-            "LEFT",
+            row.icons[iconIndex] = icon
 
-            playerCell,
-
-            "LEFT",
-
-            frame.columns.Equipped.x -
-            frame.columns.Player.x,
-
-            0
-
-        )
+        end
 
         ---------------------------------------------------
         -- Text Cells
@@ -343,6 +354,33 @@ function widget:Create(parent)
                 y = 0,
 
             })
+
+        ---------------------------------------------------
+        -- Vote Count Tooltip Target
+        ---------------------------------------------------
+
+        row.cells.VotesTooltip =
+            CreateFrame(
+                "Button",
+                nil,
+                frame
+            )
+
+        row.cells.VotesTooltip:SetWidth(30)
+        row.cells.VotesTooltip:SetHeight(18)
+
+        row.cells.VotesTooltip:SetPoint(
+
+            "LEFT",
+
+            row.cells.Votes,
+
+            "LEFT",
+
+            -3,
+            0
+
+        )
 
         ---------------------------------------------------
         -- Award Button
@@ -453,24 +491,87 @@ function widget:Refresh(frame, applicants)
             )
 
             ---------------------------------------------------
-            -- Equipped Icon
+            -- Equipped Icons
             ---------------------------------------------------
 
-            LootCouncil.UI.Widgets.Icon:SetTexture(
+            local comparisonSlots = {}
 
-                row.icon,
+            if item then
 
-                row.applicant:GetEquippedIcon(item)
+                comparisonSlots =
+                    LootCouncil.Comparison:GetComparisonSlots(
+                        item
+                    )
 
-            )
+            end
 
-            LootCouncil.UI.Widgets.Icon:SetItem(
+            for iconIndex = 1, 2 do
 
-                row.icon,
+                local icon =
+                    row.icons[iconIndex]
 
-                row.applicant:GetEquippedLink(item)
+                local slotID =
+                    comparisonSlots[iconIndex]
 
-            )
+                if slotID then
+
+                    local iconTexture =
+                        row.applicant:GetEquippedIconForSlot(
+                            slotID
+                        )
+
+                    local iconLink =
+                        row.applicant:GetEquippedLinkForSlot(
+                            slotID
+                        )
+
+                    if iconTexture then
+
+                        LootCouncil.UI.Widgets.Icon:SetTexture(
+                            icon,
+                            iconTexture
+                        )
+
+                        LootCouncil.UI.Widgets.Icon:SetItem(
+                            icon,
+                            iconLink
+                        )
+
+                        icon:Show()
+
+                    else
+
+                        LootCouncil.UI.Widgets.Icon:SetTexture(
+                            icon,
+                            nil
+                        )
+
+                        LootCouncil.UI.Widgets.Icon:SetItem(
+                            icon,
+                            nil
+                        )
+
+                        icon:Hide()
+
+                    end
+
+                else
+
+                    LootCouncil.UI.Widgets.Icon:SetTexture(
+                        icon,
+                        nil
+                    )
+
+                    LootCouncil.UI.Widgets.Icon:SetItem(
+                        icon,
+                        nil
+                    )
+
+                    icon:Hide()
+
+                end
+
+            end
 
             ---------------------------------------------------
             -- Response
@@ -530,13 +631,76 @@ function widget:Refresh(frame, applicants)
 
             end
 
+            ---------------------------------------------------
+            -- Vote Count
+            ---------------------------------------------------
+
             row.cells.Votes:SetText(
                 tostring(
                     row.applicant:GetVoteCount()
                 )
             )
 
+            ---------------------------------------------------
+            -- Vote Tooltip
+            ---------------------------------------------------
+
+            row.cells.VotesTooltip:SetScript(
+
+                "OnEnter",
+
+                function()
+
+                    local votes =
+                        row.applicant:GetVotes()
+
+                    if #votes == 0 then
+                        return
+                    end
+
+                    GameTooltip:SetOwner(
+
+                        row.cells.VotesTooltip,
+
+                        "ANCHOR_RIGHT"
+
+                    )
+
+                    GameTooltip:SetText(
+                        "Votes"
+                    )
+
+                    for _, voter in ipairs(votes) do
+
+                        GameTooltip:AddLine(
+                            voter
+                        )
+
+                    end
+
+                    GameTooltip:Show()
+
+                end
+
+            )
+
+            row.cells.VotesTooltip:SetScript(
+
+                "OnLeave",
+
+                function()
+
+                    GameTooltip:Hide()
+
+                end
+
+            )
+
             row.cells.Vote:Show()
+
+            ---------------------------------------------------
+            -- Vote Button
+            ---------------------------------------------------
 
             row.cells.Vote:SetScript(
 
@@ -609,24 +773,27 @@ function widget:Refresh(frame, applicants)
         else
 
             ---------------------------------------------------
-            -- Clear Icon
+            -- Clear Icons
             ---------------------------------------------------
 
-            LootCouncil.UI.Widgets.Icon:SetTexture(
+            for iconIndex = 1, 2 do
 
-                row.icon,
+                local icon =
+                    row.icons[iconIndex]
 
-                nil
+                LootCouncil.UI.Widgets.Icon:SetTexture(
+                    icon,
+                    nil
+                )
 
-            )
+                LootCouncil.UI.Widgets.Icon:SetItem(
+                    icon,
+                    nil
+                )
 
-            LootCouncil.UI.Widgets.Icon:SetItem(
+                icon:Hide()
 
-                row.icon,
-
-                nil
-
-            )
+            end
 
             ---------------------------------------------------
             -- Clear Text
@@ -642,6 +809,20 @@ function widget:Refresh(frame, applicants)
                 end
 
             end
+
+            ---------------------------------------------------
+            -- Clear Vote Tooltip
+            ---------------------------------------------------
+
+            row.cells.VotesTooltip:SetScript(
+                "OnEnter",
+                nil
+            )
+
+            row.cells.VotesTooltip:SetScript(
+                "OnLeave",
+                nil
+            )
 
             ---------------------------------------------------
             -- Hide Buttons
@@ -665,29 +846,33 @@ function widget:Clear(frame)
 
     for i = 1, #frame.rows do
 
-        local row = frame.rows[i]
+        local row =
+            frame.rows[i]
 
         row.applicant = nil
 
         ---------------------------------------------------
-        -- Clear Equipped Icon
+        -- Clear Equipped Icons
         ---------------------------------------------------
 
-        LootCouncil.UI.Widgets.Icon:SetTexture(
+        for iconIndex = 1, 2 do
 
-            row.icon,
+            local icon =
+                row.icons[iconIndex]
 
-            nil
+            LootCouncil.UI.Widgets.Icon:SetTexture(
+                icon,
+                nil
+            )
 
-        )
+            LootCouncil.UI.Widgets.Icon:SetItem(
+                icon,
+                nil
+            )
 
-        LootCouncil.UI.Widgets.Icon:SetItem(
+            icon:Hide()
 
-            row.icon,
-
-            nil
-
-        )
+        end
 
         ---------------------------------------------------
         -- Clear Text
@@ -695,15 +880,20 @@ function widget:Clear(frame)
 
         for key, cell in pairs(row.cells) do
 
-            if key ~= "Award" then
+            if key ~= "Award" and
+               key ~= "Vote" then
+
                 cell:SetText("")
+
             end
 
         end
 
         ---------------------------------------------------
-        -- Hide Award Button
+        -- Hide Buttons
         ---------------------------------------------------
+
+        row.cells.Vote:Hide()
 
         row.cells.Award:Hide()
 

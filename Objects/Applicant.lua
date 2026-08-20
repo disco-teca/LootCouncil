@@ -160,7 +160,9 @@ function Applicant:GetEquippedIcon(item)
                 )
 
             if itemTexture then
+
                 return itemTexture
+
             end
 
         end
@@ -196,11 +198,61 @@ function Applicant:GetEquippedLink(item)
             self.gear[slotID]
 
         if gear and gear.link then
+
             return gear.link
+
         end
 
     end
 
     return nil
+
+end
+
+function Applicant:GetEquippedIconForSlot(slotID)
+
+    if not slotID then
+        return nil
+    end
+
+    local gear =
+        self.gear[slotID]
+
+    if not gear or not gear.itemID then
+        return nil
+    end
+
+    local name,
+          link,
+          quality,
+          itemLevel,
+          requiredLevel,
+          itemType,
+          itemSubType,
+          itemStackCount,
+          itemEquipLoc,
+          itemTexture =
+        GetItemInfo(
+            gear.itemID
+        )
+
+    return itemTexture
+
+end
+
+function Applicant:GetEquippedLinkForSlot(slotID)
+
+    if not slotID then
+        return nil
+    end
+
+    local gear =
+        self.gear[slotID]
+
+    if not gear or not gear.link then
+        return nil
+    end
+
+    return gear.link
 
 end
