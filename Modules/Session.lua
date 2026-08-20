@@ -1839,22 +1839,37 @@ function LootCouncil.Session:OnResponseMessage(
 )
 
     local payload =
-
         message:GetPayload()
 
     if not payload then
         return
     end
 
-    self:SetApplicantResponse(
+    local outcome =
+        self:SetApplicantResponse(
 
-        payload.player,
+            payload.player,
 
-        payload.itemIndex,
+            payload.itemIndex,
 
-        payload.response
+            payload.response
 
-    )
+        )
+
+    if not outcome then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Save Persistence
+    ---------------------------------------------------
+
+    if outcome == "RECORDED"
+    or outcome == "CHANGED" then
+
+        LootCouncil.Persistence:Save()
+
+    end
 
 end
 

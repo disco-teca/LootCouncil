@@ -34,7 +34,6 @@ Data\TestData.lua
 Objects\Player.lua
 Objects\Applicant.lua
 Objects\LootItem.lua
-Objects\InspectRequest.lua
 Objects\Message.lua
 
 ---------------------------------------------------
@@ -45,9 +44,6 @@ Modules\Loot.lua
 Modules\Session.lua
 Modules\Persistence.lua
 Modules\Roster.lua
-Modules\InspectQueue.lua
-Modules\Inspect.lua
-Modules\InspectCache.lua
 Modules\Comparison.lua
 Modules\Attendance.lua
 Modules\History.lua
