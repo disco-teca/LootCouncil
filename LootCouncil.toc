@@ -45,7 +45,6 @@ Modules\Loot.lua
 Modules\Session.lua
 Modules\Persistence.lua
 Modules\Roster.lua
-Modules\PlayerData.lua
 Modules\InspectQueue.lua
 Modules\Inspect.lua
 Modules\InspectCache.lua
