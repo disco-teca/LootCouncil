@@ -654,32 +654,6 @@ function LootCouncil.Session:Start()
     LootCouncil.Roster:Refresh()
 
     ---------------------------------------------------
-    -- Queue Inspections
-    ---------------------------------------------------
-
-    if self:IsOwner() then
-
-        LootCouncil:Print(
-            "I am the session owner."
-        )
-
-        for _, player in ipairs(self:GetPlayers()) do
-
-            LootCouncil.Inspect:QueuePlayer(
-                player:GetName()
-            )
-
-        end
-
-    else
-
-        LootCouncil:Print(
-            "Not session owner. Skipping inspection queue."
-        )
-
-    end
-
-    ---------------------------------------------------
     -- Refresh UI
     ---------------------------------------------------
 

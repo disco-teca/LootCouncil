@@ -20,12 +20,6 @@ function LootCouncil:Initialize()
 
     self.Persistence:Initialize()
 
-    self.Inspect:Initialize()
-
-    self.InspectCache:Initialize()
-
-    self.PlayerData:RestoreFromInspectCache()
-
     self.Comms:Initialize()
 
     ---------------------------------------------------
