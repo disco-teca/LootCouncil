@@ -1630,33 +1630,11 @@ function LootCouncil.Session:OnGearRequestMessage(
                 tostring(itemID)
             )
 
-            LootCouncil:Print(
-                "GEAR_REQUEST slot " ..
-                tostring(slotID) ..
-                ": item ID " ..
-                tostring(itemID)
-            )
-
         else
-
-            LootCouncil:Print(
-                "GEAR_REQUEST slot " ..
-                tostring(slotID) ..
-                ": empty"
-            )
 
         end
 
     end
-
-    LootCouncil:Print(
-        "GEAR_REQUEST received. Target: " ..
-        tostring(payload.target) ..
-        ". Item index: " ..
-        tostring(payload.itemIndex) ..
-        ". Slots: " ..
-        table.concat(slots, ", ")
-    )
 
     local response =
 
@@ -1679,15 +1657,6 @@ function LootCouncil.Session:OnGearRequestMessage(
             }
 
         )
-
-    LootCouncil:Print(
-        "GEAR_RESPONSE sending. Player: " ..
-        UnitName("player") ..
-        ". Item index: " ..
-        tostring(payload.itemIndex) ..
-        ". Items: " ..
-        table.concat(responseItems, ", ")
-    )
 
     LootCouncil.MessageBus:Route(
 
@@ -1801,28 +1770,6 @@ function LootCouncil.Session:OnGearResponseMessage(
     ---------------------------------------------------
     -- Debug
     ---------------------------------------------------
-
-    LootCouncil:Print(
-        "GEAR_RESPONSE received. Player: " ..
-        tostring(payload.player) ..
-        ". Item index: " ..
-        tostring(payload.itemIndex)
-    )
-
-    for slotID, gear in pairs(
-        applicant.gear
-    ) do
-
-        LootCouncil:Print(
-            "GEAR_RESPONSE slot " ..
-            tostring(slotID) ..
-            ": item ID " ..
-            tostring(gear.itemID) ..
-            ", link " ..
-            tostring(gear.link)
-        )
-
-    end
 
 end
 

@@ -131,22 +131,6 @@ function module:Route(
         )
 
     ---------------------------------------------------
-    -- Debug
-    ---------------------------------------------------
-
-    LootCouncil:Print(
-
-        "COMMS SEND: " ..
-
-        tostring(message:GetCommand()) ..
-
-        " length=" ..
-
-        tostring(string.len(serialized))
-
-    )
-
-    ---------------------------------------------------
     -- Send
     ---------------------------------------------------
 
@@ -173,17 +157,6 @@ function module:Receive(
     sender
 
 )
-
-    LootCouncil:Print(
-        "COMMS RECEIVE: " ..
-        tostring(prefix) ..
-        " length=" ..
-        tostring(string.len(serialized or "")) ..
-        " sender=" ..
-        tostring(sender) ..
-        " channel=" ..
-        tostring(channel)
-    )
 
     ---------------------------------------------------
     -- Prefix
