@@ -236,6 +236,30 @@ LootCouncil.UI.MainWindow.lootPanel =
     lootPanel
 
 ---------------------------------------------------
+-- Settings Panel
+---------------------------------------------------
+
+local settingsPanel =
+    LootCouncil.UI.Widgets:CreatePanel(
+        workspace
+    )
+
+settingsPanel:SetPoint(
+    "TOPLEFT",
+    workspace,
+    "TOPLEFT"
+)
+
+settingsPanel:SetPoint(
+    "BOTTOMRIGHT",
+    workspace,
+    "BOTTOMRIGHT"
+)
+
+LootCouncil.UI.MainWindow.settingsPanel =
+    settingsPanel
+    
+---------------------------------------------------
 -- Status Bar
 ---------------------------------------------------
 
