@@ -56,7 +56,7 @@ function Applicant:GetItemLevelComparison()
     end
 
     ---------------------------------------------------
-    -- Comparison Slot
+    -- Comparison Slots
     ---------------------------------------------------
 
     local slots =
@@ -69,8 +69,17 @@ function Applicant:GetItemLevelComparison()
     end
 
     ---------------------------------------------------
-    -- Find Equipped Item
+    -- Session Item Level
     ---------------------------------------------------
+
+    local sessionItemLevel =
+        item:GetItemLevel()
+
+    ---------------------------------------------------
+    -- Find Equipped Item Levels
+    ---------------------------------------------------
+
+    local itemLevels = {}
 
     for _, slotID in ipairs(slots) do
 
@@ -89,27 +98,59 @@ function Applicant:GetItemLevelComparison()
 
             if itemLevel then
 
-                local sessionItemLevel =
-                    item:GetItemLevel()
+                table.insert(
+                    itemLevels,
+                    tostring(itemLevel)
+                )
 
-                if sessionItemLevel then
+            else
 
-                    return tostring(itemLevel) ..
-                        " -> " ..
-                        tostring(sessionItemLevel)
-
-                end
-
-                return tostring(itemLevel) ..
-                    " -> ?"
+                table.insert(
+                    itemLevels,
+                    "--"
+                )
 
             end
+
+        else
+
+            table.insert(
+                itemLevels,
+                "--"
+            )
 
         end
 
     end
 
-    return "--"
+    ---------------------------------------------------
+    -- No Equipped Gear
+    ---------------------------------------------------
+
+    if #itemLevels == 0 then
+        return "--"
+    end
+
+    ---------------------------------------------------
+    -- Format Comparison
+    ---------------------------------------------------
+
+    local equippedText =
+        table.concat(
+            itemLevels,
+            " / "
+        )
+
+    if sessionItemLevel then
+
+        return equippedText ..
+            " -> " ..
+            tostring(sessionItemLevel)
+
+    end
+
+    return equippedText ..
+        " -> ?"
 
 end
 
