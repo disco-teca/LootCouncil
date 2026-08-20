@@ -20,6 +20,8 @@ function LootCouncil:Initialize()
 
     self.Persistence:Initialize()
 
+    self.Permissions:Initialize()
+
     self.Comms:Initialize()
 
     ---------------------------------------------------
