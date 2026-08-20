@@ -44,7 +44,72 @@ end
 
 function Applicant:GetItemLevelComparison()
 
-    return LootCouncil.Inspect:GetItemLevelComparison(self)
+    ---------------------------------------------------
+    -- Selected Item
+    ---------------------------------------------------
+
+    local item =
+        LootCouncil.Session:GetSelectedItem()
+
+    if not item then
+        return "--"
+    end
+
+    ---------------------------------------------------
+    -- Comparison Slot
+    ---------------------------------------------------
+
+    local slots =
+        LootCouncil.Comparison:GetComparisonSlots(
+            item
+        )
+
+    if #slots == 0 then
+        return "--"
+    end
+
+    ---------------------------------------------------
+    -- Find Equipped Item
+    ---------------------------------------------------
+
+    for _, slotID in ipairs(slots) do
+
+        local gear =
+            self.gear[slotID]
+
+        if gear and gear.itemID then
+
+            local name,
+                  link,
+                  quality,
+                  itemLevel =
+                GetItemInfo(
+                    gear.itemID
+                )
+
+            if itemLevel then
+
+                local sessionItemLevel =
+                    item:GetItemLevel()
+
+                if sessionItemLevel then
+
+                    return tostring(itemLevel) ..
+                        " -> " ..
+                        tostring(sessionItemLevel)
+
+                end
+
+                return tostring(itemLevel) ..
+                    " -> ?"
+
+            end
+
+        end
+
+    end
+
+    return "--"
 
 end
 
