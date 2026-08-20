@@ -145,14 +145,95 @@ LootCouncil.UI.MainWindow.toolbar = toolbar
 -- Workspace
 ---------------------------------------------------
 
-local workspace = LootCouncil.UI.Widgets:CreatePanel(content)
+---------------------------------------------------
+-- Workspace
+---------------------------------------------------
 
-workspace:SetPoint("TOPLEFT", toolbar, "BOTTOMLEFT", 0, -5)
-workspace:SetPoint("TOPRIGHT", toolbar, "BOTTOMRIGHT", 0, -5)
-workspace:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", 0, 25)
-workspace:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", 0, 25)
+local workspace =
+    LootCouncil.UI.Widgets:CreatePanel(content)
 
-LootCouncil.UI.MainWindow.workspace = workspace
+workspace:SetPoint(
+    "TOPLEFT",
+    toolbar,
+    "BOTTOMLEFT",
+    0,
+    -5
+)
+
+workspace:SetPoint(
+    "TOPRIGHT",
+    toolbar,
+    "BOTTOMRIGHT",
+    0,
+    -5
+)
+
+workspace:SetPoint(
+    "BOTTOMLEFT",
+    content,
+    "BOTTOMLEFT",
+    0,
+    25
+)
+
+workspace:SetPoint(
+    "BOTTOMRIGHT",
+    content,
+    "BOTTOMRIGHT",
+    0,
+    25
+)
+
+LootCouncil.UI.MainWindow.workspace =
+    workspace
+
+---------------------------------------------------
+-- Voting Panel
+---------------------------------------------------
+
+local votingPanel =
+    LootCouncil.UI.Widgets:CreatePanel(
+        workspace
+    )
+
+votingPanel:SetPoint(
+    "TOPLEFT",
+    workspace,
+    "TOPLEFT"
+)
+
+votingPanel:SetPoint(
+    "BOTTOMRIGHT",
+    workspace,
+    "BOTTOMRIGHT"
+)
+
+LootCouncil.UI.MainWindow.votingPanel =
+    votingPanel
+
+---------------------------------------------------
+-- Loot Panel
+---------------------------------------------------
+
+local lootPanel =
+    LootCouncil.UI.Widgets:CreatePanel(
+        workspace
+    )
+
+lootPanel:SetPoint(
+    "TOPLEFT",
+    workspace,
+    "TOPLEFT"
+)
+
+lootPanel:SetPoint(
+    "BOTTOMRIGHT",
+    workspace,
+    "BOTTOMRIGHT"
+)
+
+LootCouncil.UI.MainWindow.lootPanel =
+    lootPanel
 
 ---------------------------------------------------
 -- Status Bar

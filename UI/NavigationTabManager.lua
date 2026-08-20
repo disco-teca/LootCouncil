@@ -1,6 +1,7 @@
 LootCouncil.UI.NavigationTabManager = {}
 
-local manager = LootCouncil.UI.NavigationTabManager
+local manager =
+    LootCouncil.UI.NavigationTabManager
 
 manager.tabs = {}
 manager.selected = "Voting"
@@ -24,24 +25,27 @@ end
 function manager:CreateTabs()
 
     local names = {
+
         "Voting",
-        "Players",
+        "Loot",
         "Attendance",
         "History",
         "BiS",
         "Settings"
+
     }
 
     local previous
 
     for _, name in ipairs(names) do
 
-        local tab = LootCouncil.UI.Widgets:CreateTab(
-            self.parent,
-            {
-                text = name
-            }
-        )
+        local tab =
+            LootCouncil.UI.Widgets:CreateTab(
+                self.parent,
+                {
+                    text = name
+                }
+            )
 
         if previous then
 
@@ -65,11 +69,14 @@ function manager:CreateTabs()
 
         end
 
-        tab:SetScript("OnClick", function()
+        tab:SetScript(
+            "OnClick",
+            function()
 
-            manager:Select(name)
+                manager:Select(name)
 
-        end)
+            end
+        )
 
         self.tabs[name] = tab
 
@@ -99,11 +106,53 @@ end
 
 function manager:Refresh()
 
-    for name, tab in pairs(self.tabs) do
+    for name, tab in pairs(
+        self.tabs
+    ) do
 
         tab:SetSelected(
             name == self.selected
         )
+
+    end
+
+    ---------------------------------------------------
+    -- Hide Workspace Panels
+    ---------------------------------------------------
+
+    local votingPanel =
+        LootCouncil.UI.MainWindow.votingPanel
+
+    local lootPanel =
+        LootCouncil.UI.MainWindow.lootPanel
+
+    if votingPanel then
+        votingPanel:Hide()
+    end
+
+    if lootPanel then
+        lootPanel:Hide()
+    end
+
+    ---------------------------------------------------
+    -- Show Selected Panel
+    ---------------------------------------------------
+
+    if self.selected == "Voting" then
+
+        if votingPanel then
+            votingPanel:Show()
+        end
+
+        LootCouncil.UI.VotingTab:Refresh()
+
+    elseif self.selected == "Loot" then
+
+        if lootPanel then
+            lootPanel:Show()
+        end
+
+        LootCouncil.UI.LootTab:Refresh()
 
     end
 

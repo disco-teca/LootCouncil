@@ -14,7 +14,8 @@ function view:Initialize()
         return
     end
 
-    self.panel = LootCouncil.UI.MainWindow.workspace
+    self.panel =
+        LootCouncil.UI.MainWindow.votingPanel
 
     if not self.panel then
         return

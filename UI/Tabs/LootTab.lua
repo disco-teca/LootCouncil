@@ -14,53 +14,26 @@ function view:Initialize()
         return
     end
 
-    self.panel = LootCouncil.UI.MainWindow.workspace
+    self.panel =
+        LootCouncil.UI.MainWindow.lootPanel
 
     if not self.panel then
         return
     end
 
-    self:CreateWidgets()
+    self.placeholder =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                font = "GameFontNormalLarge",
+                point = "CENTER",
+                relativeTo = self.panel,
+                relativePoint = "CENTER",
+                text = "Loot"
+            }
+        )
 
     self.initialized = true
-
-end
-
----------------------------------------------------
--- Create Widgets
----------------------------------------------------
-
-function view:CreateWidgets()
-
-    self.title = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
-        font = "GameFontNormalLarge",
-        point = "TOPLEFT",
-        relativeTo = self.panel,
-        relativePoint = "TOPLEFT",
-        x = 15,
-        y = -15,
-    })
-
-    self.itemLevel = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
-        point = "TOPLEFT",
-        relativeTo = self.title,
-        relativePoint = "BOTTOMLEFT",
-        y = -15,
-    })
-
-    self.applicants = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
-        point = "TOPLEFT",
-        relativeTo = self.itemLevel,
-        relativePoint = "BOTTOMLEFT",
-        y = -10,
-    })
-
-    self.awarded = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
-        point = "TOPLEFT",
-        relativeTo = self.applicants,
-        relativePoint = "BOTTOMLEFT",
-        y = -10,
-    })
 
 end
 
@@ -75,33 +48,5 @@ function view:Refresh()
     if not self.initialized then
         return
     end
-
-    local item = LootCouncil.Session:GetSelectedItem()
-
-    if not item then
-
-        self.title:SetText("No loot item selected.")
-        self.itemLevel:SetText("")
-        self.applicants:SetText("")
-        self.awarded:SetText("")
-
-        return
-
-    end
-
-    self.title:SetText(item:GetName())
-
-    self.itemLevel:SetText(
-        "Item Level: " .. item:GetItemLevel()
-    )
-
-    self.applicants:SetText(
-        "Applicants: " .. item:GetApplicantCount()
-    )
-
-    self.awarded:SetText(
-        "Awarded: " ..
-        (item:IsAwarded() and "Yes" or "No")
-    )
 
 end
