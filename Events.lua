@@ -14,6 +14,24 @@ handlers.PLAYER_LOGIN = function()
 
     LootCouncil:Initialize()
 
+    LootCouncil.Roster:Refresh()
+
+end
+
+---------------------------------------------------
+-- GROUP_ROSTER_UPDATE
+---------------------------------------------------
+
+handlers.GROUP_ROSTER_UPDATE = function()
+
+    LootCouncil.Roster:Refresh()
+
+    if not LootCouncil.Session:IsActive() then
+
+        LootCouncil.UI.SettingsTab:Refresh()
+
+    end
+
 end
 
 ---------------------------------------------------
@@ -37,6 +55,7 @@ end)
 ---------------------------------------------------
 
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("CHAT_MSG_WHISPER")
 
 ---------------------------------------------------

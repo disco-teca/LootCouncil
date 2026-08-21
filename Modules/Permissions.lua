@@ -26,9 +26,6 @@ function permissions:Initialize()
     LootCouncilDB.Permissions.Players =
         LootCouncilDB.Permissions.Players or {}
 
-    LootCouncilDB.Permissions.Initialized =
-        LootCouncilDB.Permissions.Initialized or false
-
     LootCouncil.MessageBus:Register(
 
         "ROLE_ASSIGN",
@@ -38,84 +35,6 @@ function permissions:Initialize()
         self.ReceiveRoleAssignment
 
     )
-
-end
-
----------------------------------------------------
--- Bootstrap Council
----------------------------------------------------
-
-function permissions:BootstrapCouncil(owner)
-
-    if not owner then
-        return false
-    end
-
-    ---------------------------------------------------
-    -- Only Session Owner Can Bootstrap
-    ---------------------------------------------------
-
-    if owner ~= UnitName("player") then
-        return false
-    end
-
-    local permissionsDB =
-        LootCouncilDB.Permissions
-
-    ---------------------------------------------------
-    -- Already Initialized
-    ---------------------------------------------------
-
-    if permissionsDB.Initialized then
-        return false
-    end
-
-    ---------------------------------------------------
-    -- Establish Council
-    ---------------------------------------------------
-
-    self:SetRole(
-        owner,
-        self.Role.COUNCIL
-    )
-
-    permissionsDB.Initialized = true
-
-    ---------------------------------------------------
-    -- Broadcast Bootstrap
-    ---------------------------------------------------
-
-    local message =
-        LootCouncil.Message:New(
-
-            "ROLE_ASSIGN",
-
-            {
-
-                playerName = owner,
-
-                role = self.Role.COUNCIL,
-
-                bootstrap = true,
-
-            }
-
-        )
-
-    LootCouncil:Print(
-        "Broadcasting ROLE_ASSIGN for " ..
-        owner
-    )
-
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        owner
-
-    )
-
-    return true
 
 end
 
@@ -154,21 +73,42 @@ end
 -- Get Role
 ---------------------------------------------------
 
+---------------------------------------------------
+-- Get Role
+---------------------------------------------------
+
 function permissions:GetRole(playerName)
 
     if not playerName then
         return self.Role.RAIDER
     end
 
+    ---------------------------------------------------
+    -- Active Session
+    ---------------------------------------------------
+
+    if LootCouncil.Session:IsActive() then
+
+        local sessionRole =
+            LootCouncil.Session:GetRole(
+                playerName
+            )
+
+        if sessionRole then
+            return sessionRole
+        end
+
+    end
+
+    ---------------------------------------------------
+    -- Pre-Session Role
+    ---------------------------------------------------
+
     local players =
         LootCouncilDB.Permissions.Players
 
     local player =
         players[playerName]
-
-    ---------------------------------------------------
-    -- Saved Role
-    ---------------------------------------------------
 
     if player and player.role then
 
@@ -317,41 +257,12 @@ function permissions:ReceiveRoleAssignment(
     local role =
         payload.role
 
-    local bootstrap =
-        payload.bootstrap
-
     if not playerName then
         return
     end
 
     if role ~= self.Role.RAIDER
     and role ~= self.Role.COUNCIL then
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Bootstrap Assignment
-    ---------------------------------------------------
-
-    if bootstrap then
-
-        local permissionsDB =
-            LootCouncilDB.Permissions
-
-        if permissionsDB.Initialized then
-            return
-        end
-
-        self:RegisterPlayer(
-            playerName
-        )
-
-        self:SetRole(
-            playerName,
-            role
-        )
 
         return
 
@@ -450,14 +361,150 @@ function permissions:CanViewTab(
 
     if tabName == "Settings" then
 
-        return role == self.Role.COUNCIL
+        return true
 
     end
 
     ---------------------------------------------------
-    -- Future / Unrestricted
+    -- Other Tabs
     ---------------------------------------------------
 
+    if tabName == "Attendance"
+    or tabName == "History"
+    or tabName == "BiS" then
+
+        return true
+
+    end
+
+    ---------------------------------------------------
+    -- Unknown Tabs
+    ---------------------------------------------------
+
+    return false
+
+end
+
+---------------------------------------------------
+-- Can Assign Roles
+---------------------------------------------------
+
+function permissions:CanAssignRoles(playerName)
+
+    if not playerName then
+        return false
+    end
+
+    return self:IsCouncil(playerName)
+
+end
+
+---------------------------------------------------
+-- Can Manage Session
+---------------------------------------------------
+
+function permissions:CanManageSession(playerName)
+
+    if not playerName then
+        return false
+    end
+
+    return self:IsCouncil(playerName)
+
+end
+
+---------------------------------------------------
+-- Can Manage Roles
+---------------------------------------------------
+
+function permissions:CanManageRoles(playerName)
+
+    if not playerName then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Roles Are Locked During Session
+    ---------------------------------------------------
+
+    if LootCouncil.Session:IsActive() then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Before Session
+    ---------------------------------------------------
+
+    return playerName == UnitName("player")
+
+end
+
+---------------------------------------------------
+-- Toggle Council Role
+---------------------------------------------------
+
+function permissions:ToggleCouncil(playerName)
+
+    if not playerName then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Permission
+    ---------------------------------------------------
+
+    if not self:CanManageRoles(
+        UnitName("player")
+    ) then
+
+        return false
+
+    end
+
+    ---------------------------------------------------
+    -- Toggle
+    ---------------------------------------------------
+
+    local currentRole =
+        self:GetRole(playerName)
+
+    if currentRole == self.Role.COUNCIL then
+
+        self:SetRole(
+            playerName,
+            self.Role.RAIDER
+        )
+
+    else
+
+        self:SetRole(
+            playerName,
+            self.Role.COUNCIL
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Save
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
+
     return true
+
+end
+
+---------------------------------------------------
+-- Can Submit Responses
+---------------------------------------------------
+
+function permissions:CanSubmitResponses(playerName)
+
+    if not playerName then
+        return false
+    end
+
+    return self:IsRaider(playerName)
+        or self:IsCouncil(playerName)
 
 end

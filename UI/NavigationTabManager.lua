@@ -4,7 +4,7 @@ local manager =
     LootCouncil.UI.NavigationTabManager
 
 manager.tabs = {}
-manager.selected = "Voting"
+manager.selected = "Loot"
 
 ---------------------------------------------------
 -- Initialize
@@ -94,6 +94,22 @@ end
 
 function manager:Select(name)
 
+    local playerName =
+        UnitName("player")
+
+    ---------------------------------------------------
+    -- Permission
+    ---------------------------------------------------
+
+    if not LootCouncil.Permissions:CanViewTab(
+        playerName,
+        name
+    ) then
+
+        return
+
+    end
+
     self.selected = name
 
     self:Refresh()
@@ -106,9 +122,18 @@ end
 
 function manager:Refresh()
 
+    local playerName =
+        UnitName("player")
+
+    ---------------------------------------------------
+    -- Show All Tabs
+    ---------------------------------------------------
+
     for name, tab in pairs(
         self.tabs
     ) do
+
+        tab:Show()
 
         tab:SetSelected(
             name == self.selected
@@ -140,6 +165,10 @@ function manager:Refresh()
     if settingsPanel then
         settingsPanel:Hide()
     end
+
+    ---------------------------------------------------
+    -- Item Tab Visibility
+    ---------------------------------------------------
 
     LootCouncil.UI.TabManager:SetVisible(
         self.selected == "Voting"

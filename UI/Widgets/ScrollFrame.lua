@@ -10,12 +10,31 @@ function widget:Create(parent, options)
 
     options = options or {}
 
+    ---------------------------------------------------
+    -- Unique Frame Name
+    ---------------------------------------------------
+
+    widget.counter =
+        (widget.counter or 0) + 1
+
+    local frameName =
+        "LootCouncilScrollFrame" ..
+        tostring(widget.counter)
+
+    ---------------------------------------------------
+    -- Scroll Frame
+    ---------------------------------------------------
+
     local scrollFrame = CreateFrame(
         "ScrollFrame",
-        "LootCouncilScrollFrame",
+        frameName,
         parent,
         "UIPanelScrollFrameTemplate"
     )
+
+    ---------------------------------------------------
+    -- Content
+    ---------------------------------------------------
 
     local content = CreateFrame(
         "Frame",
@@ -24,7 +43,7 @@ function widget:Create(parent, options)
     )
 
     content:SetWidth(
-        options.contentWidth or 900
+        options.contentWidth or 500
     )
 
     content:SetHeight(

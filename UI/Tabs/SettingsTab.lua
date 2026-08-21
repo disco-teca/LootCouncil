@@ -66,6 +66,61 @@ function view:CreateWidgets()
             }
         )
 
+    self.councilTitle =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.playerTitle,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 210,
+                y = -2,
+
+                text = "Council"
+            }
+        )
+
+    ---------------------------------------------------
+    -- Roster Scroll Frame
+    ---------------------------------------------------
+
+    self.scrollFrame =
+        LootCouncil.UI.Widgets.ScrollFrame:Create(
+            self.panel,
+            {
+                contentWidth = 500,
+                contentHeight = 1200
+            }
+        )
+
+    self.scrollFrame:SetPoint(
+        "TOPLEFT",
+        self.playerTitle,
+        "BOTTOMLEFT",
+        0,
+        -5
+    )
+
+    self.scrollFrame:SetPoint(
+        "BOTTOMRIGHT",
+        self.panel,
+        "BOTTOMRIGHT",
+        -25,
+        10
+    )
+
+    self.scrollContent =
+        self.scrollFrame.content
+
+    self.scrollContent:SetPoint(
+        "TOPLEFT",
+        self.scrollFrame,
+        "TOPLEFT",
+        0,
+        0
+    )
+
 end
 
 ---------------------------------------------------
@@ -76,8 +131,17 @@ function view:ClearRows()
 
     for _, row in ipairs(self.rows) do
 
-        row.name:Hide()
-        row.role:Hide()
+        if row.name then
+            row.name:Hide()
+        end
+
+        if row.role then
+            row.role:Hide()
+        end
+
+        if row.council then
+            row.council:Hide()
+        end
 
     end
 
@@ -97,13 +161,17 @@ function view:CreateRow(
 
     local row = {}
 
+    ---------------------------------------------------
+    -- Player Name
+    ---------------------------------------------------
+
     row.name =
         LootCouncil.UI.Widgets:CreateLabel(
-            self.panel,
+            self.scrollContent,
             {
                 point = "TOPLEFT",
-                relativeTo = self.playerTitle,
-                relativePoint = "BOTTOMLEFT",
+                relativeTo = self.scrollContent,
+                relativePoint = "TOPLEFT",
 
                 x = 0,
                 y = -(
@@ -114,9 +182,13 @@ function view:CreateRow(
             }
         )
 
+    ---------------------------------------------------
+    -- Active Role
+    ---------------------------------------------------
+
     row.role =
         LootCouncil.UI.Widgets:CreateLabel(
-            self.panel,
+            self.scrollContent,
             {
                 point = "LEFT",
                 relativeTo = row.name,
@@ -128,6 +200,110 @@ function view:CreateRow(
                 text = role
             }
         )
+
+    ---------------------------------------------------
+    -- Council Toggle
+    ---------------------------------------------------
+
+    row.council =
+        LootCouncil.UI.Widgets.Button:Create(
+            self.scrollContent,
+            {
+                width = 20,
+                height = 20,
+                text = ""
+            }
+        )
+
+    row.council:SetPoint(
+        "TOPLEFT",
+        self.scrollContent,
+        "TOPLEFT",
+        220,
+        -(
+            index * 25
+        )
+    )
+
+    ---------------------------------------------------
+    -- Current State
+    ---------------------------------------------------
+
+    local isCouncil =
+        role ==
+        LootCouncil.Permissions.Role.COUNCIL
+
+    if isCouncil then
+
+        row.council:SetText(
+            "✓"
+        )
+
+    else
+
+        row.council:SetText(
+            ""
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Permission
+    ---------------------------------------------------
+
+    local canManage =
+        LootCouncil.Permissions:CanManageRoles(
+            UnitName("player")
+        )
+
+    ---------------------------------------------------
+    -- Owner Lock
+    ---------------------------------------------------
+
+    local isOwner =
+        playerName ==
+        UnitName("player")
+
+    if isOwner then
+
+        row.council:SetText(
+            "✓"
+        )
+
+        row.council:Disable()
+
+        LootCouncil.Permissions:SetRole(
+            playerName,
+            LootCouncil.Permissions.Role.COUNCIL
+        )
+
+    elseif canManage then
+
+        row.council:Enable()
+
+        row.council:SetScript(
+            "OnClick",
+            function()
+
+                local success =
+                    LootCouncil.Permissions:ToggleCouncil(
+                        playerName
+                    )
+
+                if success then
+
+                    view:Refresh()
+
+                end
+
+            end
+        )
+
+    else
+
+        row.council:Disable()
+
+    end
 
     return row
 
@@ -147,21 +323,44 @@ function view:Refresh()
 
     self:ClearRows()
 
-    local players =
-        LootCouncil.Permissions:GetPlayers()
+    ---------------------------------------------------
+    -- Select Roster
+    ---------------------------------------------------
+
+    local players
+
+    if LootCouncil.Session:IsActive() then
+
+        players =
+            LootCouncil.Session:GetPlayers()
+
+    else
+
+        players =
+            LootCouncil.Roster:GetPlayers()
+
+    end
+
+    ---------------------------------------------------
+    -- Sort Names
+    ---------------------------------------------------
 
     local names = {}
 
-    for playerName in pairs(players) do
+    for _, player in ipairs(players) do
 
         table.insert(
             names,
-            playerName
+            player:GetName()
         )
 
     end
 
     table.sort(names)
+
+    ---------------------------------------------------
+    -- Create Rows
+    ---------------------------------------------------
 
     for index, playerName in ipairs(names) do
 
@@ -173,7 +372,7 @@ function view:Refresh()
         local row =
             self:CreateRow(
                 playerName,
-                role or "RAIDER",
+                role or LootCouncil.Permissions.Role.RAIDER,
                 index
             )
 
@@ -183,5 +382,21 @@ function view:Refresh()
         )
 
     end
+
+    ---------------------------------------------------
+    -- Update Content Height
+    ---------------------------------------------------
+
+    local rowHeight = 25
+
+    local contentHeight =
+        math.max(
+            1,
+            (#names + 1) * rowHeight
+        )
+
+    self.scrollContent:SetHeight(
+        contentHeight
+    )
 
 end

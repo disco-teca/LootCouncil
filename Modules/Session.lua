@@ -18,9 +18,13 @@ function LootCouncil.Session:Serialize()
 
             active = false,
 
+            owner = nil,
+
             players = {},
 
             items = {},
+
+            roles = {},
 
             selectedItem = nil,
 
@@ -31,6 +35,8 @@ function LootCouncil.Session:Serialize()
     return {
 
         active = true,
+
+        owner = self:GetOwner(),
 
         players = self:SerializePlayers(),
 
@@ -43,6 +49,8 @@ function LootCouncil.Session:Serialize()
         votes = self:SerializeVotes(),
 
         gear = self:SerializeGear(),
+
+        roles = self:SerializeRoles(),
 
     }
 
@@ -75,6 +83,31 @@ function LootCouncil.Session:SerializePlayers()
     end
 
     return players
+
+end
+
+---------------------------------------------------
+-- Role Persistence
+---------------------------------------------------
+
+function LootCouncil.Session:SerializeRoles()
+
+    if not session then
+        return {}
+    end
+
+    local roles = {}
+
+    for playerName, role in pairs(
+        session.roles or {}
+    ) do
+
+        roles[playerName] =
+            role
+
+    end
+
+    return roles
 
 end
 
@@ -340,6 +373,38 @@ function LootCouncil.Session:DeserializeGear(data)
 end
 
 ---------------------------------------------------
+-- Deserialize Roles
+---------------------------------------------------
+
+function LootCouncil.Session:DeserializeRoles(data)
+
+    if not session then
+        return
+    end
+
+    session.roles = {}
+
+    if not data then
+        return
+    end
+
+    for playerName, role in pairs(data) do
+
+        if role ==
+            LootCouncil.Permissions.Role.COUNCIL
+        or role ==
+            LootCouncil.Permissions.Role.RAIDER then
+
+            session.roles[playerName] =
+                role
+
+        end
+
+    end
+
+end
+
+---------------------------------------------------
 -- Loading
 ---------------------------------------------------
 
@@ -358,6 +423,14 @@ function LootCouncil.Session:Deserialize(data)
     ---------------------------------------------------
 
     self:Create(true)
+
+    if data.owner then
+
+        self:SetOwner(
+            data.owner
+        )
+
+    end
 
     ---------------------------------------------------
     -- Restore Players
@@ -414,6 +487,14 @@ function LootCouncil.Session:Deserialize(data)
         end
 
     end
+
+    ---------------------------------------------------
+    -- Restore Roles
+    ---------------------------------------------------
+
+    self:DeserializeRoles(
+        data.roles
+    )
 
     ---------------------------------------------------
     -- Restore Items
@@ -605,6 +686,8 @@ function LootCouncil.Session:Create(restoring)
 
         players = {},
 
+        roles = {},
+
         items = {},
 
         selectedItem = nil,
@@ -621,11 +704,10 @@ end
 -- Begin
 ---------------------------------------------------
 
-function LootCouncil.Session:Begin(owner)
-
-    LootCouncil:Print(
-        "SESSION BEGIN"
-    )
+function LootCouncil.Session:Begin(
+    owner,
+    roles
+)
 
     self:Create()
 
@@ -636,6 +718,31 @@ function LootCouncil.Session:Begin(owner)
     end
 
     self:Start()
+
+    ---------------------------------------------------
+    -- Apply Owner Roles
+    ---------------------------------------------------
+
+    if roles then
+
+        session.roles = {}
+
+        for playerName, role in pairs(
+            roles
+        ) do
+
+            session.roles[playerName] =
+                role
+
+        end
+
+    end
+
+    ---------------------------------------------------
+    -- Persist Authoritative State
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
 
     LootCouncil.UI:Show()
 
@@ -658,12 +765,26 @@ function LootCouncil.Session:Start()
     LootCouncil.Roster:Refresh()
 
     ---------------------------------------------------
-    -- Bootstrap Permissions
+    -- Copy Roster Into Session
     ---------------------------------------------------
 
-    LootCouncil.Permissions:BootstrapCouncil(
-        self:GetOwner()
-    )
+    self:ClearPlayers()
+
+    for _, player in ipairs(
+        LootCouncil.Roster:GetPlayers()
+    ) do
+
+        self:AddPlayer(player)
+
+    end
+
+    ---------------------------------------------------
+    -- Initialize Roles
+    ---------------------------------------------------
+
+    self:InitializeRoles()
+
+    self:BroadcastState()
 
     ---------------------------------------------------
     -- Refresh UI
@@ -673,6 +794,8 @@ function LootCouncil.Session:Start()
 
     LootCouncil.UI.VotingTab:Refresh()
 
+    LootCouncil.UI.NavigationTabManager:Refresh()
+
     LootCouncil.Persistence:Save()
 
 end
@@ -681,11 +804,30 @@ end
 -- End
 ---------------------------------------------------
 
-function LootCouncil.Session:End()
+function LootCouncil.Session:End(remote)
 
     if not session then
-        return
+        return false
     end
+
+    ---------------------------------------------------
+    -- Only Session Owner Can End Locally
+    ---------------------------------------------------
+
+    if not remote
+    and not self:IsOwner() then
+
+        LootCouncil:Print(
+            "Only the session owner can end the session."
+        )
+
+        return false
+
+    end
+
+    ---------------------------------------------------
+    -- End Session
+    ---------------------------------------------------
 
     session = nil
 
@@ -698,6 +840,8 @@ function LootCouncil.Session:End()
     LootCouncil.UI.TabManager:Refresh()
 
     LootCouncil.UI.VotingTab:Refresh()
+
+    return true
 
 end
 
@@ -720,13 +864,6 @@ function LootCouncil.Session:AddPlayer(player)
     if not session then
         return
     end
-
-    local playerName =
-        player:GetName()
-
-    LootCouncil.Permissions:RegisterPlayer(
-        playerName
-    )
 
     table.insert(
         session.players,
@@ -797,6 +934,109 @@ function LootCouncil.Session:ClearPlayers()
     end
 
     session.players = {}
+
+end
+
+---------------------------------------------------
+-- Initialize Roles
+---------------------------------------------------
+
+function LootCouncil.Session:InitializeRoles()
+
+    if not session then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Clear Existing Roles
+    ---------------------------------------------------
+
+    session.roles = {}
+
+    ---------------------------------------------------
+    -- Initialize From Pre-Session Assignments
+    ---------------------------------------------------
+
+    local permissionsDB =
+        LootCouncilDB.Permissions
+
+    local players =
+        permissionsDB.Players
+
+    for _, player in ipairs(session.players) do
+
+        local playerName =
+            player:GetName()
+
+        local role =
+            LootCouncil.Permissions.Role.RAIDER
+
+        local permissionPlayer =
+            players[playerName]
+
+        if permissionPlayer
+        and permissionPlayer.role then
+
+            role =
+                permissionPlayer.role
+
+        end
+
+        session.roles[playerName] =
+            role
+
+    end
+
+    ---------------------------------------------------
+    -- Session Owner Is Always Council
+    ---------------------------------------------------
+
+    local owner =
+        self:GetOwner()
+
+    if owner then
+
+        session.roles[owner] =
+            LootCouncil.Permissions.Role.COUNCIL
+
+        LootCouncil.Permissions:SetRole(
+            owner,
+            LootCouncil.Permissions.Role.COUNCIL
+        )
+
+    end
+
+end
+
+---------------------------------------------------
+-- Get Role
+---------------------------------------------------
+
+function LootCouncil.Session:GetRole(playerName)
+
+    if not session then
+        return nil
+    end
+
+    if not session.roles then
+        return nil
+    end
+
+    return session.roles[playerName]
+
+end
+
+---------------------------------------------------
+-- Get Roles
+---------------------------------------------------
+
+function LootCouncil.Session:GetRoles()
+
+    if not session then
+        return {}
+    end
+
+    return session.roles or {}
 
 end
 
@@ -1464,13 +1704,15 @@ function LootCouncil.Session:OnStartMessage(
 )
 
     local payload =
-
         message:GetPayload()
 
+    if not payload then
+        return
+    end
+
     self:Begin(
-
-        payload.owner
-
+        payload.owner,
+        payload.roles
     )
 
 end
@@ -1485,7 +1727,15 @@ function LootCouncil.Session:OnEndMessage(
 
 )
 
-    self:End()
+    ---------------------------------------------------
+    -- Apply Authoritative Session End
+    ---------------------------------------------------
+
+    if not self:IsActive() then
+        return
+    end
+
+    self:End(true)
 
 end
 
@@ -1888,6 +2138,16 @@ function LootCouncil.Session:Initialize()
 
     LootCouncil.MessageBus:Register(
 
+        "SESSION_STATE",
+
+        self,
+
+        self.OnSessionStateMessage
+
+    )
+
+    LootCouncil.MessageBus:Register(
+
         "END",
 
         self,
@@ -2030,5 +2290,107 @@ function LootCouncil.Session:OnVoteMessage(
     ---------------------------------------------------
 
     LootCouncil.UI.TabManager:Refresh()
+
+end
+
+---------------------------------------------------
+-- Broadcast Session State
+---------------------------------------------------
+
+function LootCouncil.Session:BroadcastState()
+
+    if not session then
+        return
+    end
+
+    if not self:IsOwner() then
+        return
+    end
+
+    local message =
+        LootCouncil.Message:New(
+            "SESSION_STATE",
+            {
+                owner = self:GetOwner(),
+                roles = self:GetRoles(),
+            }
+        )
+
+    LootCouncil.MessageBus:Route(
+        message,
+        UnitName("player")
+    )
+
+end
+
+---------------------------------------------------
+-- Session State Message
+---------------------------------------------------
+
+function LootCouncil.Session:OnSessionStateMessage(
+
+    message,
+
+    sender
+
+)
+
+    if not session then
+        return
+    end
+
+    local payload =
+        message:GetPayload()
+
+    if not payload then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Authority
+    ---------------------------------------------------
+
+    if payload.owner ~= sender then
+        return
+    end
+
+    if sender ~= self:GetOwner() then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Apply Owner Roles
+    ---------------------------------------------------
+
+    if payload.roles then
+
+        session.roles = {}
+
+        for playerName, role in pairs(
+            payload.roles
+        ) do
+
+            session.roles[playerName] =
+                role
+
+        end
+
+    end
+
+    ---------------------------------------------------
+    -- Persist Corrected Session
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.NavigationTabManager:Refresh()
+
+    LootCouncil.UI.VotingTab:Refresh()
+
+    LootCouncil.UI.SettingsTab:Refresh()
 
 end

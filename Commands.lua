@@ -53,17 +53,12 @@ local function StartSession()
     ---------------------------------------------------
 
     local message =
-
         LootCouncil.Message:New(
-
             "START",
-
             {
-                
-                owner = UnitName("player")
-                
+                owner = UnitName("player"),
+                roles = LootCouncil.Session:GetRoles()
             }
-
         )
 
     ---------------------------------------------------
@@ -95,9 +90,21 @@ local function EndSession()
     if not LootCouncil.Session:IsActive() then
 
         LootCouncil:Print(
-
             "No active session."
+        )
 
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Only Session Owner Can End
+    ---------------------------------------------------
+
+    if not LootCouncil.Session:IsOwner() then
+
+        LootCouncil:Print(
+            "Only the session owner can end the session."
         )
 
         return
@@ -109,11 +116,8 @@ local function EndSession()
     ---------------------------------------------------
 
     local message =
-
         LootCouncil.Message:New(
-
             "END"
-
         )
 
     ---------------------------------------------------
@@ -121,11 +125,8 @@ local function EndSession()
     ---------------------------------------------------
 
     LootCouncil.MessageBus:Route(
-
         message,
-
         UnitName("player")
-
     )
 
 end
@@ -546,6 +547,22 @@ local function AddItem(arguments)
 
         LootCouncil:Print(
             "No active session."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Permission
+    ---------------------------------------------------
+
+    if not LootCouncil.Permissions:CanManageSession(
+        UnitName("player")
+    ) then
+
+        LootCouncil:Print(
+            "You do not have permission to add loot."
         )
 
         return

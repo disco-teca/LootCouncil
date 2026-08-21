@@ -2,11 +2,25 @@ LootCouncil.Roster = {}
 
 local module = LootCouncil.Roster
 
+module.players = {}
+
 ---------------------------------------------------
 -- Initialize
 ---------------------------------------------------
 
 function module:Initialize()
+
+    self.players = {}
+
+end
+
+---------------------------------------------------
+-- Get Players
+---------------------------------------------------
+
+function module:GetPlayers()
+
+    return self.players
 
 end
 
@@ -19,10 +33,10 @@ function module:Refresh()
     LootCouncil:Print("Refreshing roster...")
 
     ---------------------------------------------------
-    -- Reset Session Roster
+    -- Reset Roster
     ---------------------------------------------------
 
-    LootCouncil.Session:ClearPlayers()
+    self.players = {}
 
     ---------------------------------------------------
     -- Raid
@@ -45,7 +59,8 @@ function module:Refresh()
                 class =
                 GetRaidRosterInfo(i)
 
-            LootCouncil.Session:AddPlayer(
+            table.insert(
+                self.players,
                 LootCouncil.Player:New(
                     name,
                     class
@@ -72,7 +87,8 @@ function module:Refresh()
             UnitName("player"),
             select(2, UnitClass("player"))
 
-        LootCouncil.Session:AddPlayer(
+        table.insert(
+            self.players,
             LootCouncil.Player:New(
                 playerName,
                 playerClass
@@ -81,7 +97,8 @@ function module:Refresh()
 
         for i = 1, GetNumPartyMembers() do
 
-            local unit = "party" .. i
+            local unit =
+                "party" .. i
 
             local
                 name,
@@ -89,7 +106,8 @@ function module:Refresh()
                 UnitName(unit),
                 select(2, UnitClass(unit))
 
-            LootCouncil.Session:AddPlayer(
+            table.insert(
+                self.players,
                 LootCouncil.Player:New(
                     name,
                     class
@@ -110,7 +128,8 @@ function module:Refresh()
             UnitName("player"),
             select(2, UnitClass("player"))
 
-        LootCouncil.Session:AddPlayer(
+        table.insert(
+            self.players,
             LootCouncil.Player:New(
                 playerName,
                 playerClass
@@ -122,21 +141,5 @@ function module:Refresh()
         )
 
     end
-
-    ---------------------------------------------------
-    -- Initialize Existing Items
-    ---------------------------------------------------
-
-    for _, item in ipairs(
-        LootCouncil.Session:GetItems()
-    ) do
-
-        LootCouncil.Session:InitializeApplicants(
-            item
-        )
-
-    end
-
-    LootCouncil.UI.VotingTab:Refresh()
 
 end

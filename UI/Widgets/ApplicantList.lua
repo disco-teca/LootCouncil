@@ -466,7 +466,9 @@ function widget:Refresh(frame, applicants)
                 player:GetClass()
 
             local color =
-                LootCouncil.Constants.ClassColors[class]
+                LootCouncil.Constants.ClassColors[
+                    string.upper(class)
+                ]
 
             if color then
 
