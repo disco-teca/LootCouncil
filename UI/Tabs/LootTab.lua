@@ -1,8 +1,11 @@
 LootCouncil.UI.LootTab = {}
 
+LootCouncil:Print("LOOTTAB FILE LOADED")
+
 local view = LootCouncil.UI.LootTab
 
 view.initialized = false
+view.rows = {}
 
 ---------------------------------------------------
 -- Initialize
@@ -21,21 +24,434 @@ function view:Initialize()
         return
     end
 
-    self.placeholder =
-        LootCouncil.UI.Widgets:CreateLabel(
+    ---------------------------------------------------
+    -- Scroll Frame
+    ---------------------------------------------------
+
+    self.scrollFrame =
+        LootCouncil.UI.Widgets.ScrollFrame:Create(
             self.panel,
             {
-                font = "GameFontNormalLarge",
-                point = "CENTER",
-                relativeTo = self.panel,
-                relativePoint = "CENTER",
-                text = "Loot"
+                contentWidth = 750,
+                contentHeight = 100,
             }
         )
+
+    self.scrollFrame:SetPoint(
+        "TOPLEFT",
+        self.panel,
+        "TOPLEFT",
+        5,
+        -5
+    )
+
+    self.scrollFrame:SetPoint(
+        "BOTTOMRIGHT",
+        self.panel,
+        "BOTTOMRIGHT",
+        -25,
+        5
+    )
+
+    ---------------------------------------------------
+    -- Mouse Wheel
+    ---------------------------------------------------
+
+    self.scrollFrame:EnableMouseWheel(true)
+
+    self.scrollFrame:SetScript(
+        "OnMouseWheel",
+        function(frame, delta)
+
+            local current =
+                frame:GetVerticalScroll()
+
+            local range =
+                frame:GetVerticalScrollRange()
+
+            local step = 40
+
+            local newPosition =
+                current - (
+                    delta * step
+                )
+
+            if newPosition < 0 then
+                newPosition = 0
+            end
+
+            if newPosition > range then
+                newPosition = range
+            end
+
+            frame:SetVerticalScroll(
+                newPosition
+            )
+
+        end
+    )
+
+    self.content =
+        self.scrollFrame.content
+
+    ---------------------------------------------------
+    -- Row Settings
+    ---------------------------------------------------
+
+    self.rowHeight = 85
+
+    ---------------------------------------------------
+    -- Widgets
+    ---------------------------------------------------
+
+    self:CreateWidgets()
 
     self.initialized = true
 
 end
+
+---------------------------------------------------
+-- Create Widgets
+---------------------------------------------------
+
+function view:CreateWidgets()
+
+    ---------------------------------------------------
+    -- Item Icon
+    ---------------------------------------------------
+
+    self.icon =
+        LootCouncil.UI.Widgets.Icon:Create(
+            self.panel,
+            48
+        )
+
+    self.icon:SetPoint(
+        "TOPLEFT",
+        self.panel,
+        "TOPLEFT",
+        20,
+        -20
+    )
+
+    ---------------------------------------------------
+    -- Item Name
+    ---------------------------------------------------
+
+    self.title =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                font = "GameFontNormalLarge",
+
+                point = "TOPLEFT",
+                relativeTo = self.icon,
+                relativePoint = "TOPRIGHT",
+
+                x = 12,
+                y = 2,
+            }
+        )
+
+    ---------------------------------------------------
+    -- Item Level
+    ---------------------------------------------------
+
+    self.itemLevel =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.title,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 0,
+                y = -5,
+            }
+        )
+
+    ---------------------------------------------------
+    -- Status
+    ---------------------------------------------------
+
+    self.status =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.currentResponse,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 0,
+                y = -10,
+
+                text = "Waiting for loot."
+            }
+        )
+
+end
+
+---------------------------------------------------
+-- Clear Item
+---------------------------------------------------
+
+function view:ClearItem()
+
+    LootCouncil.UI.Widgets.Icon:SetTexture(
+        self.icon,
+        nil
+    )
+
+    LootCouncil.UI.Widgets.Icon:SetItem(
+        self.icon,
+        nil
+    )
+
+    self.title:SetText(
+        "No loot item selected."
+    )
+
+    self.itemLevel:SetText(
+        ""
+    )
+
+    self.currentResponse:SetText(
+        "Current Response: None"
+    )
+
+    self.status:SetText(
+        "Waiting for loot."
+    )
+
+end
+
+---------------------------------------------------
+-- Clear Rows
+---------------------------------------------------
+
+function view:ClearRows()
+
+    for _, row in ipairs(self.rows) do
+
+        if row.icon then
+            row.icon:Hide()
+        end
+
+        if row.name then
+            row.name:Hide()
+        end
+
+        if row.itemLevel then
+            row.itemLevel:Hide()
+        end
+
+        if row.response then
+            row.response:Hide()
+        end
+
+        if row.buttons then
+
+            for _, button in pairs(
+                row.buttons
+            ) do
+
+                button:Hide()
+
+            end
+
+        end
+
+    end
+
+    self.rows = {}
+
+end
+
+---------------------------------------------------
+-- Create Item Row
+---------------------------------------------------
+
+---------------------------------------------------
+-- Create Item Row
+---------------------------------------------------
+
+function view:CreateItemRow(
+    item,
+    index
+)
+
+    local row = {}
+
+    local yOffset =
+        -(
+            15 +
+            (
+                (index - 1) *
+                self.rowHeight
+            )
+        )
+
+    ---------------------------------------------------
+    -- Icon
+    ---------------------------------------------------
+
+    row.icon =
+        LootCouncil.UI.Widgets.Icon:Create(
+            self.content,
+            40
+        )
+
+    row.icon:SetPoint(
+        "TOPLEFT",
+        self.content,
+        "TOPLEFT",
+        15,
+        yOffset
+    )
+
+    LootCouncil.UI.Widgets.Icon:SetTexture(
+        row.icon,
+        item:GetIcon()
+    )
+
+    LootCouncil.UI.Widgets.Icon:SetItem(
+        row.icon,
+        item:GetLink()
+    )
+
+    ---------------------------------------------------
+    -- Name
+    ---------------------------------------------------
+
+    row.name =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                font = "GameFontNormal",
+
+                point = "TOPLEFT",
+                relativeTo = row.icon,
+                relativePoint = "TOPRIGHT",
+
+                x = 10,
+                y = -2,
+
+                text = item:GetName()
+            }
+        )
+
+    ---------------------------------------------------
+    -- Item Level
+    ---------------------------------------------------
+
+    row.itemLevel =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo = row.name,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 0,
+                y = -4,
+
+                text =
+                    "Item Level: " ..
+                    tostring(
+                        item:GetItemLevel()
+                    )
+            }
+        )
+
+    ---------------------------------------------------
+    -- Response Buttons
+    ---------------------------------------------------
+
+    row.buttons = {}
+
+    local responses = {
+
+        "BIS",
+        "MS",
+        "OS",
+        "PASS",
+
+    }
+
+    local previous
+
+    for _, response in ipairs(
+        responses
+    ) do
+
+        local button =
+            LootCouncil.UI.Widgets.Button:Create(
+                self.content,
+                {
+                    width = 55,
+                    height = 20,
+                    text = response,
+                }
+            )
+
+        if previous then
+
+            button:SetPoint(
+                "LEFT",
+                previous,
+                "RIGHT",
+                5,
+                0
+            )
+
+        else
+
+            button:SetPoint(
+                "LEFT",
+                row.itemLevel,
+                "RIGHT",
+                30,
+                0
+            )
+
+        end
+
+        row.buttons[response] =
+            button
+
+        previous = button
+
+    end
+
+    ---------------------------------------------------
+    -- Current Response
+    ---------------------------------------------------
+
+    row.response =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo =
+                    row.buttons["BIS"],
+                relativePoint =
+                    "BOTTOMLEFT",
+
+                x = 0,
+                y = -4,
+
+                text =
+                    "Your Response: None"
+            }
+        )
+
+    return row
+
+end
+
+---------------------------------------------------
+-- Refresh
+---------------------------------------------------
 
 ---------------------------------------------------
 -- Refresh
@@ -47,6 +463,89 @@ function view:Refresh()
 
     if not self.initialized then
         return
+    end
+
+    self:ClearRows()
+
+    local items =
+        LootCouncil.Session:GetItems()
+
+    if not items or #items == 0 then
+
+        self.status:SetText(
+            "Waiting for loot."
+        )
+
+        self.content:SetHeight(
+            self.scrollFrame:GetHeight()
+        )
+
+        self.scrollFrame:SetVerticalScroll(
+            0
+        )
+
+        return
+
+    end
+
+    self.status:SetText(
+        ""
+    )
+
+    ---------------------------------------------------
+    -- Create Rows
+    ---------------------------------------------------
+
+    for index, item in ipairs(items) do
+
+        local row =
+            self:CreateItemRow(
+                item,
+                index
+            )
+
+        table.insert(
+            self.rows,
+            row
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Content Height
+    ---------------------------------------------------
+
+    local contentHeight =
+        15 +
+        (
+            #items *
+            self.rowHeight
+        ) +
+        15
+
+    self.content:SetHeight(
+        math.max(
+            contentHeight,
+            self.scrollFrame:GetHeight()
+        )
+    )
+
+    ---------------------------------------------------
+    -- Clamp Scroll Position
+    ---------------------------------------------------
+
+    local current =
+        self.scrollFrame:GetVerticalScroll()
+
+    local range =
+        self.scrollFrame:GetVerticalScrollRange()
+
+    if current > range then
+
+        self.scrollFrame:SetVerticalScroll(
+            range
+        )
+
     end
 
 end

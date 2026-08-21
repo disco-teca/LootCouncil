@@ -6,11 +6,13 @@ local widget = LootCouncil.UI.Widgets.ScrollFrame
 -- Create
 ---------------------------------------------------
 
-function widget:Create(parent)
+function widget:Create(parent, options)
+
+    options = options or {}
 
     local scrollFrame = CreateFrame(
         "ScrollFrame",
-        "LootCouncilApplicantScrollFrame",
+        "LootCouncilScrollFrame",
         parent,
         "UIPanelScrollFrameTemplate"
     )
@@ -21,10 +23,17 @@ function widget:Create(parent)
         scrollFrame
     )
 
-    content:SetWidth(900)
-    content:SetHeight(1200)
+    content:SetWidth(
+        options.contentWidth or 900
+    )
 
-    scrollFrame:SetScrollChild(content)
+    content:SetHeight(
+        options.contentHeight or 1200
+    )
+
+    scrollFrame:SetScrollChild(
+        content
+    )
 
     scrollFrame.content = content
 

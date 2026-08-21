@@ -3,6 +3,8 @@ LootCouncil.UI.TabManager = {}
 local manager = LootCouncil.UI.TabManager
 
 manager.tabs = {}
+manager.initialized = false
+manager.visible = true
 
 ---------------------------------------------------
 -- Initialize
@@ -11,6 +13,23 @@ manager.tabs = {}
 function manager:Initialize(parent)
 
     self.parent = parent
+    self.initialized = true
+
+end
+
+---------------------------------------------------
+-- Set Visible
+---------------------------------------------------
+
+function manager:SetVisible(visible)
+
+    self.visible = visible
+
+    if not self.initialized then
+        return
+    end
+
+    self:Refresh()
 
 end
 
@@ -21,7 +40,9 @@ end
 function manager:Clear()
 
     for _, tab in ipairs(self.tabs) do
+
         tab:Hide()
+
     end
 
     self.tabs = {}
@@ -34,12 +55,13 @@ end
 
 function manager:AddTab(text, index)
 
-    local tab = LootCouncil.UI.Widgets:CreateTab(
-        self.parent,
-        {
-            text = text
-        }
-    )
+    local tab =
+        LootCouncil.UI.Widgets:CreateTab(
+            self.parent,
+            {
+                text = text
+            }
+        )
 
     local spacing =
         LootCouncil.Constants.UI.Tab.Spacing
@@ -102,19 +124,28 @@ function manager:AddTab(text, index)
 
     end
 
-    tab:SetScript("OnClick", function()
+    tab:SetScript(
+        "OnClick",
+        function()
 
-        LootCouncil.Session:SetSelectedIndex(index)
+            LootCouncil.Session:SetSelectedIndex(
+                index
+            )
 
-        manager:Refresh()
+            manager:Refresh()
 
-    end)
+        end
+    )
 
-    table.insert(self.tabs, tab)
+    table.insert(
+        self.tabs,
+        tab
+    )
 
     return tab
 
 end
+
 ---------------------------------------------------
 -- Refresh
 ---------------------------------------------------
@@ -123,18 +154,35 @@ function manager:Refresh()
 
     self:Clear()
 
+    if not self.initialized then
+        return
+    end
+
+    if not self.visible then
+        return
+    end
+
     if not LootCouncil.Session:IsActive() then
         return
     end
 
-    local items = LootCouncil.Session:GetItems()
-    local selected = LootCouncil.Session:GetSelectedIndex()
+    local items =
+        LootCouncil.Session:GetItems()
+
+    local selected =
+        LootCouncil.Session:GetSelectedIndex()
 
     for index, item in ipairs(items) do
 
-        local tab = self:AddTab(item:GetName(), index)
+        local tab =
+            self:AddTab(
+                item:GetName(),
+                index
+            )
 
-        tab:SetSelected(index == selected)
+        tab:SetSelected(
+            index == selected
+        )
 
     end
 

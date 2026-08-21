@@ -623,6 +623,10 @@ end
 
 function LootCouncil.Session:Begin(owner)
 
+    LootCouncil:Print(
+        "SESSION BEGIN"
+    )
+
     self:Create()
 
     if owner then
@@ -652,6 +656,14 @@ function LootCouncil.Session:Start()
     ---------------------------------------------------
 
     LootCouncil.Roster:Refresh()
+
+    ---------------------------------------------------
+    -- Bootstrap Permissions
+    ---------------------------------------------------
+
+    LootCouncil.Permissions:BootstrapCouncil(
+        self:GetOwner()
+    )
 
     ---------------------------------------------------
     -- Refresh UI
@@ -867,6 +879,8 @@ function LootCouncil.Session:AddItem(data)
     LootCouncil.UI.TabManager:Refresh()
 
     LootCouncil.UI.VotingTab:Refresh()
+
+    LootCouncil.UI.LootTab:Refresh()
 
     return item
 

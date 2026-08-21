@@ -78,15 +78,15 @@ UI\Widgets\ScrollFrame.lua
 UI\Widgets\ApplicantList.lua
 UI\Widgets\ItemSummary.lua
 
-UI\NavigationTabManager.lua
-UI\TabManager.lua
-
 UI\Tabs\VotingTab.lua
+UI\Tabs\SettingsTab.lua
 UI\Tabs\PlayersTab.lua
 UI\Tabs\AttendanceTab.lua
 UI\Tabs\HistoryTab.lua
 UI\Tabs\BiSTab.lua
-UI\Tabs\SettingsTab.lua
 UI\Tabs\LootTab.lua
+
+UI\NavigationTabManager.lua
+UI\TabManager.lua
 
 UI\MainWindow.lua

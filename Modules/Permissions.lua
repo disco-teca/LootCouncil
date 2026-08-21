@@ -26,6 +26,97 @@ function permissions:Initialize()
     LootCouncilDB.Permissions.Players =
         LootCouncilDB.Permissions.Players or {}
 
+    LootCouncilDB.Permissions.Initialized =
+        LootCouncilDB.Permissions.Initialized or false
+
+    LootCouncil.MessageBus:Register(
+
+        "ROLE_ASSIGN",
+
+        self,
+
+        self.ReceiveRoleAssignment
+
+    )
+
+end
+
+---------------------------------------------------
+-- Bootstrap Council
+---------------------------------------------------
+
+function permissions:BootstrapCouncil(owner)
+
+    if not owner then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Only Session Owner Can Bootstrap
+    ---------------------------------------------------
+
+    if owner ~= UnitName("player") then
+        return false
+    end
+
+    local permissionsDB =
+        LootCouncilDB.Permissions
+
+    ---------------------------------------------------
+    -- Already Initialized
+    ---------------------------------------------------
+
+    if permissionsDB.Initialized then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Establish Council
+    ---------------------------------------------------
+
+    self:SetRole(
+        owner,
+        self.Role.COUNCIL
+    )
+
+    permissionsDB.Initialized = true
+
+    ---------------------------------------------------
+    -- Broadcast Bootstrap
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "ROLE_ASSIGN",
+
+            {
+
+                playerName = owner,
+
+                role = self.Role.COUNCIL,
+
+                bootstrap = true,
+
+            }
+
+        )
+
+    LootCouncil:Print(
+        "Broadcasting ROLE_ASSIGN for " ..
+        owner
+    )
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        owner
+
+    )
+
+    return true
+
 end
 
 ---------------------------------------------------
@@ -86,17 +177,6 @@ function permissions:GetRole(playerName)
     end
 
     ---------------------------------------------------
-    -- Session Owner
-    ---------------------------------------------------
-
-    if playerName == UnitName("player")
-    and LootCouncil.Session:IsOwner() then
-
-        return self.Role.COUNCIL
-
-    end
-
-    ---------------------------------------------------
     -- Default
     ---------------------------------------------------
 
@@ -130,6 +210,183 @@ function permissions:SetRole(
         role
 
     return true
+
+end
+
+---------------------------------------------------
+-- Assign Role
+---------------------------------------------------
+
+function permissions:AssignRole(
+    playerName,
+    role
+)
+
+    if not playerName then
+        return false
+    end
+
+    if role ~= self.Role.RAIDER
+    and role ~= self.Role.COUNCIL then
+
+        return false
+
+    end
+
+    ---------------------------------------------------
+    -- Only Council Can Assign Roles
+    ---------------------------------------------------
+
+    local localPlayer =
+        UnitName("player")
+
+    if not self:IsCouncil(localPlayer) then
+
+        LootCouncil:Print(
+            "You do not have permission to assign roles."
+        )
+
+        return false
+
+    end
+
+    ---------------------------------------------------
+    -- Apply Locally
+    ---------------------------------------------------
+
+    self:SetRole(
+        playerName,
+        role
+    )
+
+    ---------------------------------------------------
+    -- Create Message
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "ROLE_ASSIGN",
+
+            {
+
+                playerName = playerName,
+
+                role = role,
+
+            }
+
+        )
+
+    ---------------------------------------------------
+    -- Broadcast
+    ---------------------------------------------------
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        localPlayer
+
+    )
+
+    return true
+
+end
+
+---------------------------------------------------
+-- Receive Role Assignment
+---------------------------------------------------
+
+function permissions:ReceiveRoleAssignment(
+    message,
+    sender
+)
+
+    LootCouncil:Print(
+        "ROLE_ASSIGN received from " ..
+        tostring(sender)
+    )
+
+    local payload =
+        message:GetPayload()
+
+    local playerName =
+        payload.playerName
+
+    local role =
+        payload.role
+
+    local bootstrap =
+        payload.bootstrap
+
+    if not playerName then
+        return
+    end
+
+    if role ~= self.Role.RAIDER
+    and role ~= self.Role.COUNCIL then
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Bootstrap Assignment
+    ---------------------------------------------------
+
+    if bootstrap then
+
+        local permissionsDB =
+            LootCouncilDB.Permissions
+
+        if permissionsDB.Initialized then
+            return
+        end
+
+        self:RegisterPlayer(
+            playerName
+        )
+
+        self:SetRole(
+            playerName,
+            role
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Normal Assignment
+    ---------------------------------------------------
+
+    if not self:IsCouncil(sender) then
+
+        LootCouncil:Print(
+            "Rejected role assignment from " ..
+            tostring(sender)
+        )
+
+        return
+
+    end
+
+    self:RegisterPlayer(
+        playerName
+    )
+
+    self:SetRole(
+        playerName,
+        role
+    )
+
+    LootCouncil:Print(
+        "Role updated: " ..
+        playerName ..
+        " -> " ..
+        role
+    )
 
 end
 

@@ -76,6 +76,13 @@ function module:Route(
 
 )
 
+    LootCouncil:Print(
+        "COMMS ROUTE: " ..
+        tostring(message:GetCommand()) ..
+        " -> " ..
+        tostring(sender)
+    )
+
     ---------------------------------------------------
     -- Validation
     ---------------------------------------------------

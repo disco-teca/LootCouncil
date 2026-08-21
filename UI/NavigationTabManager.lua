@@ -141,6 +141,10 @@ function manager:Refresh()
         settingsPanel:Hide()
     end
 
+    LootCouncil.UI.TabManager:SetVisible(
+        self.selected == "Voting"
+    )
+
     ---------------------------------------------------
     -- Show Selected Panel
     ---------------------------------------------------
@@ -156,6 +160,8 @@ function manager:Refresh()
         if lootPanel then
             lootPanel:Show()
         end
+
+        LootCouncil.UI.LootTab:Refresh()
 
     elseif self.selected == "Settings" then
 
