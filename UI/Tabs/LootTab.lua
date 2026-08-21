@@ -454,6 +454,75 @@ function view:CreateItemRow(
     end
 
     ---------------------------------------------------
+    -- Button 4
+    ---------------------------------------------------
+
+    row.button4 =
+        LootCouncil.UI.Widgets.Button:Create(
+            self.content,
+            {
+                width = 55,
+                height = 20,
+                text = "Button 4",
+            }
+        )
+
+    row.button4:SetPoint(
+        "LEFT",
+        previous,
+        "RIGHT",
+        5,
+        0
+    )
+
+    ---------------------------------------------------
+    -- Hidden Until Hover
+    ---------------------------------------------------
+
+    row.button4:SetAlpha(0.01)
+
+    ---------------------------------------------------
+    -- Hover
+    ---------------------------------------------------
+
+    row.button4:SetScript(
+        "OnEnter",
+        function()
+
+            row.button4:SetAlpha(1)
+
+        end
+    )
+
+    row.button4:SetScript(
+        "OnLeave",
+        function()
+
+            row.button4:SetAlpha(0.01)
+
+        end
+    )
+
+    ---------------------------------------------------
+    -- Button 4 Click
+    ---------------------------------------------------
+
+    row.button4:SetScript(
+        "OnClick",
+        function()
+
+            row.response:SetText(
+                "Your Response: Troll"
+            )
+
+            DEFAULT_CHAT_FRAME:AddMessage(
+                "No."
+            )
+
+        end
+    )
+
+    ---------------------------------------------------
     -- Current Response
     ---------------------------------------------------
 
