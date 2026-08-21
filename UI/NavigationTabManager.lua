@@ -155,6 +155,8 @@ function manager:Refresh()
             votingPanel:Show()
         end
 
+        LootCouncil.UI.VotingTab:Refresh()
+
     elseif self.selected == "Loot" then
 
         if lootPanel then

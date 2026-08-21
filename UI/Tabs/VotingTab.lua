@@ -55,51 +55,82 @@ function view:CreateWidgets()
     -- Item Information
     ---------------------------------------------------
 
-    self.title = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
+    self.title =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                font = "GameFontNormalLarge",
 
-        font = "GameFontNormalLarge",
+                point = "TOPLEFT",
+                relativeTo = self.icon,
+                relativePoint = "TOPRIGHT",
 
-        point = "TOPLEFT",
-        relativeTo = self.icon,
-        relativePoint = "TOPRIGHT",
+                x = 10,
+                y = 0,
+            }
+        )
 
-        x = 10,
-        y = 0,
+    self.itemLevel =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.title,
+                relativePoint = "BOTTOMLEFT",
 
-    })
+                x = 0,
+                y = -4,
+            }
+        )
 
-    self.itemLevel = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
+    self.applicants =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.itemLevel,
+                relativePoint = "BOTTOMLEFT",
 
-        point = "TOPLEFT",
-        relativeTo = self.title,
-        relativePoint = "BOTTOMLEFT",
+                x = 0,
+                y = -4,
+            }
+        )
 
-        x = 0,
-        y = -4,
+    ---------------------------------------------------
+    -- Your Response
+    ---------------------------------------------------
 
-    })
+    self.response =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.applicants,
+                relativePoint = "BOTTOMLEFT",
 
-    self.applicants = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
+                x = 0,
+                y = -4,
 
-        point = "TOPLEFT",
-        relativeTo = self.itemLevel,
-        relativePoint = "BOTTOMLEFT",
+                text = "Your Response: None"
+            }
+        )
 
-        x = 0,
-        y = -4,
+    ---------------------------------------------------
+    -- Awarded
+    ---------------------------------------------------
 
-    })
+    self.awarded =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "LEFT",
+                relativeTo = self.response,
+                relativePoint = "RIGHT",
 
-    self.awarded = LootCouncil.UI.Widgets:CreateLabel(self.panel, {
-
-        point = "LEFT",
-        relativeTo = self.applicants,
-        relativePoint = "RIGHT",
-
-        x = 30,
-        y = 0,
-
-    })
+                x = 30,
+                y = 0,
+            }
+        )
 
     ---------------------------------------------------
     -- Applicant Scroll Frame
@@ -112,10 +143,10 @@ function view:CreateWidgets()
 
     self.applicantScroll:SetPoint(
         "TOPLEFT",
-        self.icon,
+        self.response,
         "BOTTOMLEFT",
-        0,
-        -20
+        -15,
+        -15
     )
 
     self.applicantScroll:SetPoint(
@@ -187,6 +218,11 @@ function view:Refresh()
         ---------------------------------------------------
 
         self.applicants:SetText("")
+
+        self.response:SetText(
+            "Your Response: None"
+        )
+
         self.awarded:SetText("")
 
         ---------------------------------------------------
@@ -233,11 +269,41 @@ function view:Refresh()
         item:GetApplicantCount()
     )
 
+    ---------------------------------------------------
+    -- Your Response
+    ---------------------------------------------------
+
+    local applicant =
+        item:FindApplicant(
+            UnitName("player")
+        )
+
+    if applicant then
+
+        self.response:SetText(
+            "Your Response: " ..
+            applicant:GetResponse()
+        )
+
+    else
+
+        self.response:SetText(
+            "Your Response: None"
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Awarded
+    ---------------------------------------------------
+
     if item:IsAwarded() then
 
         self.awarded:SetText(
             "Awarded: " ..
-            tostring(item:GetWinner())
+            tostring(
+                item:GetWinner()
+            )
         )
 
     else

@@ -419,6 +419,36 @@ function view:CreateItemRow(
         row.buttons[response] =
             button
 
+        button:SetScript(
+            "OnClick",
+            function()
+
+                local playerName =
+                    UnitName("player")
+
+                local outcome =
+                    LootCouncil.Session:SubmitApplicantResponse(
+
+                        playerName,
+
+                        index,
+
+                        response
+
+                    )
+
+                if outcome == "RECORDED"
+                or outcome == "CHANGED" then
+
+                    LootCouncil.UI.LootTab:Refresh()
+
+                    LootCouncil.UI.VotingTab:Refresh()
+
+                end
+
+            end
+        )
+
         previous = button
 
     end
@@ -426,6 +456,26 @@ function view:CreateItemRow(
     ---------------------------------------------------
     -- Current Response
     ---------------------------------------------------
+
+    local applicant =
+        item:FindApplicant(
+            UnitName("player")
+        )
+
+    local currentResponse
+
+    if applicant then
+
+        currentResponse =
+            "Your Response: " ..
+            applicant:GetResponse()
+
+    else
+
+        currentResponse =
+            "Your Response: None"
+
+    end
 
     row.response =
         LootCouncil.UI.Widgets:CreateLabel(
@@ -440,18 +490,13 @@ function view:CreateItemRow(
                 x = 0,
                 y = -4,
 
-                text =
-                    "Your Response: None"
+                text = currentResponse
             }
         )
 
     return row
 
 end
-
----------------------------------------------------
--- Refresh
----------------------------------------------------
 
 ---------------------------------------------------
 -- Refresh
