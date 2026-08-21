@@ -126,7 +126,7 @@ function manager:Refresh()
     local lootPanel =
         LootCouncil.UI.MainWindow.lootPanel
 
-    local settingsPanel = 
+    local settingsPanel =
         LootCouncil.UI.MainWindow.settingsPanel
 
     if votingPanel then
@@ -151,15 +151,11 @@ function manager:Refresh()
             votingPanel:Show()
         end
 
-        LootCouncil.UI.VotingTab:Refresh()
-
     elseif self.selected == "Loot" then
 
         if lootPanel then
             lootPanel:Show()
         end
-
-        LootCouncil.UI.LootTab:Refresh()
 
     elseif self.selected == "Settings" then
 
@@ -168,6 +164,7 @@ function manager:Refresh()
         end
 
         LootCouncil.UI.SettingsTab:Refresh()
+
     end
 
 end

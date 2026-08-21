@@ -258,7 +258,7 @@ settingsPanel:SetPoint(
 
 LootCouncil.UI.MainWindow.settingsPanel =
     settingsPanel
-    
+
 ---------------------------------------------------
 -- Status Bar
 ---------------------------------------------------
@@ -304,3 +304,8 @@ LootCouncil.UI.TabManager:Refresh()
 frame:Hide()
 
 LootCouncil.UI.frame = frame
+
+LootCouncil:Print(
+    "DEBUG UI.frame = " ..
+    tostring(LootCouncil.UI.frame)
+)

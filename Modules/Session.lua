@@ -709,7 +709,17 @@ function LootCouncil.Session:AddPlayer(player)
         return
     end
 
-    table.insert(session.players, player)
+    local playerName =
+        player:GetName()
+
+    LootCouncil.Permissions:RegisterPlayer(
+        playerName
+    )
+
+    table.insert(
+        session.players,
+        player
+    )
 
 end
 

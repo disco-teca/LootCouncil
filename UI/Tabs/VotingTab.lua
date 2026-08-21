@@ -141,7 +141,7 @@ function view:CreateWidgets()
         "TOPLEFT",
         0,
         0
-    )    
+    )
 
 end
 
@@ -157,7 +157,8 @@ function view:Refresh()
         return
     end
 
-    local item = LootCouncil.Session:GetSelectedItem()
+    local item =
+        LootCouncil.Session:GetSelectedItem()
 
     if not item then
 
@@ -175,7 +176,10 @@ function view:Refresh()
             nil
         )
 
-        self.title:SetText("No loot item selected.")
+        self.title:SetText(
+            "No loot item selected."
+        )
+
         self.itemLevel:SetText("")
 
         ---------------------------------------------------
@@ -202,19 +206,13 @@ function view:Refresh()
     ---------------------------------------------------
 
     LootCouncil.UI.Widgets.Icon:SetTexture(
-
         self.icon,
-
         item:GetIcon()
-
     )
 
     LootCouncil.UI.Widgets.Icon:SetItem(
-
         self.icon,
-
         item:GetLink()
-
     )
 
     self.title:SetText(
@@ -222,7 +220,8 @@ function view:Refresh()
     )
 
     self.itemLevel:SetText(
-        "Item Level: " .. item:GetItemLevel()
+        "Item Level: " ..
+        item:GetItemLevel()
     )
 
     ---------------------------------------------------
@@ -230,7 +229,8 @@ function view:Refresh()
     ---------------------------------------------------
 
     self.applicants:SetText(
-        "Applicants: " .. item:GetApplicantCount()
+        "Applicants: " ..
+        item:GetApplicantCount()
     )
 
     if item:IsAwarded() then
@@ -253,11 +253,8 @@ function view:Refresh()
     ---------------------------------------------------
 
     LootCouncil.UI.Widgets.ApplicantList:Refresh(
-
         self.applicantList,
-
         item:GetApplicants()
-
     )
 
 end

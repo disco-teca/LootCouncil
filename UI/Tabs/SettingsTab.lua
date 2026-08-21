@@ -50,6 +50,19 @@ function view:CreateWidgets()
             }
         )
 
+    self.role =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                point = "TOPLEFT",
+                relativeTo = self.title,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 0,
+                y = -15,
+            }
+        )
+
 end
 
 ---------------------------------------------------
@@ -63,5 +76,17 @@ function view:Refresh()
     if not self.initialized then
         return
     end
+
+    local playerName =
+        UnitName("player")
+
+    local role =
+        LootCouncil.Permissions:GetRole(
+            playerName
+        )
+
+    self.role:SetText(
+        "Your Role: " .. role
+    )
 
 end

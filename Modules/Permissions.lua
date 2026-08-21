@@ -23,8 +23,39 @@ function permissions:Initialize()
     LootCouncilDB.Permissions =
         LootCouncilDB.Permissions or {}
 
-    LootCouncilDB.Permissions.Roles =
-        LootCouncilDB.Permissions.Roles or {}
+    LootCouncilDB.Permissions.Players =
+        LootCouncilDB.Permissions.Players or {}
+
+end
+
+---------------------------------------------------
+-- Register Player
+---------------------------------------------------
+
+function permissions:RegisterPlayer(playerName)
+
+    if not playerName then
+        return
+    end
+
+    local players =
+        LootCouncilDB.Permissions.Players
+
+    if players[playerName] then
+        return
+    end
+
+    players[playerName] = {}
+
+end
+
+---------------------------------------------------
+-- Get Players
+---------------------------------------------------
+
+function permissions:GetPlayers()
+
+    return LootCouncilDB.Permissions.Players
 
 end
 
@@ -38,21 +69,28 @@ function permissions:GetRole(playerName)
         return self.Role.RAIDER
     end
 
-    local roles =
-        LootCouncilDB.Permissions.Roles
+    local players =
+        LootCouncilDB.Permissions.Players
 
-    local role =
-        roles[playerName]
+    local player =
+        players[playerName]
 
-    if role then
-        return role
+    ---------------------------------------------------
+    -- Saved Role
+    ---------------------------------------------------
+
+    if player and player.role then
+
+        return player.role
+
     end
 
     ---------------------------------------------------
     -- Session Owner
     ---------------------------------------------------
 
-    if LootCouncil.Session:IsOwner(playerName) then
+    if playerName == UnitName("player")
+    and LootCouncil.Session:IsOwner() then
 
         return self.Role.COUNCIL
 
@@ -86,7 +124,9 @@ function permissions:SetRole(
 
     end
 
-    LootCouncilDB.Permissions.Roles[playerName] =
+    self:RegisterPlayer(playerName)
+
+    LootCouncilDB.Permissions.Players[playerName].role =
         role
 
     return true
