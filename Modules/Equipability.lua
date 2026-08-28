@@ -96,8 +96,13 @@ function module:CanEquip(
 
     end
 
+    local class =
+        string.upper(
+            playerClass
+        )
+
     local rules =
-        armorTypes[playerClass]
+        armorTypes[class]
 
     if not rules then
         return true

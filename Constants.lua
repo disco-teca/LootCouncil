@@ -56,7 +56,7 @@ LootCouncil.Constants.Response = {
 
     PASS = "PASS",
 
-    AUTO_PASS = "AUTO_PASS",
+    AUTO_PASS = "AUTO PASS",
 
 }
 

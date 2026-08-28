@@ -30,6 +30,8 @@ function LootItem:New(data)
 
     item.icon = nil
     item.quality = nil
+    item.itemType = nil
+    item.itemSubType = nil
     item.equipSlot = nil
 
     item.applicants = {}
@@ -91,23 +93,51 @@ function LootItem:GetEquipSlot()
 
 end
 
-function LootItem:GetItemType()
+function LootItem:SetMetadata(metadata)
 
-    if not self.metadata then
-        return nil
+    if not metadata then
+        return
     end
 
-    return self.metadata.itemType
+    self.name =
+        metadata.name
+
+    self.link =
+        metadata.link
+
+    self.icon =
+        metadata.icon
+
+    self.quality =
+        metadata.quality
+
+    self.itemType =
+        metadata.itemType
+
+    self.itemSubType =
+        metadata.itemSubType
+
+    self.equipSlot =
+        metadata.equipSlot
+
+    if metadata.itemLevel then
+
+        self.ilvl =
+            metadata.itemLevel
+
+    end
+
+end
+
+function LootItem:GetItemType()
+
+    return self.itemType
 
 end
 
 function LootItem:GetItemSubType()
 
-    if not self.metadata then
-        return nil
-    end
-
-    return self.metadata.itemSubType
+    return self.itemSubType
 
 end
 
@@ -120,24 +150,6 @@ end
 function LootItem:GetItemLevel()
 
     return self.ilvl
-
-end
-
-function LootItem:SetMetadata(metadata)
-
-    if not metadata then
-        return
-    end
-
-    self.name = metadata.name
-    self.link = metadata.link
-    self.icon = metadata.icon
-    self.quality = metadata.quality
-    self.equipSlot = metadata.equipSlot
-
-    if metadata.itemLevel then
-        self.ilvl = metadata.itemLevel
-    end
 
 end
 

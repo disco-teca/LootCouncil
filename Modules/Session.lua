@@ -1994,7 +1994,29 @@ function LootCouncil.Session:InitializeApplicants(item)
 
     for _, player in ipairs(session.players) do
 
-        item:AddApplicant(player)
+        local applicant =
+            item:AddApplicant(player)
+
+        if applicant then
+
+            local playerClass =
+                player:GetClass()
+
+            local canEquip =
+                LootCouncil.Equipability:CanEquip(
+                    playerClass,
+                    item
+                )
+
+            if not canEquip then
+
+                applicant:SetResponse(
+                    LootCouncil.Constants.Response.AUTO_PASS
+                )
+
+            end
+
+        end
 
     end
 

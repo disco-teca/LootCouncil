@@ -109,8 +109,7 @@ function module:CreateItem(data)
     end
 
     local lootItem =
-        LootCouncil.LootItem:New(data)
-
+        LootCouncil.LootItem:New(data)   
     ---------------------------------------------------
     -- Populate Metadata
     ---------------------------------------------------
