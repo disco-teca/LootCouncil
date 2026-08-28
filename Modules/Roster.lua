@@ -44,11 +44,6 @@ function module:Refresh()
 
     if GetNumRaidMembers() > 0 then
 
-        LootCouncil:Print(
-            "Raid Members: " ..
-            GetNumRaidMembers()
-        )
-
         for i = 1, GetNumRaidMembers() do
 
             local

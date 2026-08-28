@@ -18,6 +18,8 @@ function LootCouncil.Session:Serialize()
 
             active = false,
 
+            id = nil,
+
             owner = nil,
 
             players = {},
@@ -35,6 +37,8 @@ function LootCouncil.Session:Serialize()
     return {
 
         active = true,
+
+        id = session.id,
 
         owner = self:GetOwner(),
 
@@ -422,7 +426,10 @@ function LootCouncil.Session:Deserialize(data)
     -- Create Session
     ---------------------------------------------------
 
-    self:Create(true)
+    self:Create(
+        true,
+        data.id
+    )
 
     if data.owner then
 
@@ -625,7 +632,23 @@ function LootCouncil.Session:DeserializeResponses(data)
 end
 
 function LootCouncil.Session:Get()
+
     return session
+
+end
+
+---------------------------------------------------
+-- Session ID
+---------------------------------------------------
+
+function LootCouncil.Session:GetID()
+
+    if not session then
+        return nil
+    end
+
+    return session.id
+
 end
 
 ---------------------------------------------------
@@ -672,13 +695,15 @@ end
 -- Lifecycle
 ---------------------------------------------------
 
-function LootCouncil.Session:Create(restoring)
+function LootCouncil.Session:Create(restoring, sessionID)
 
     if session then
         return
     end
 
     session = {
+
+        id = sessionID,
 
         started = time(),
 
@@ -695,6 +720,9 @@ function LootCouncil.Session:Create(restoring)
     }
 
     if not restoring then
+
+        session.id =
+            LootCouncil.Persistence:GetNextSessionID()
 
     end
 

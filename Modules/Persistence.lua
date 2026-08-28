@@ -16,6 +16,31 @@ function module:Initialize()
 end
 
 ---------------------------------------------------
+-- Session ID
+---------------------------------------------------
+
+function module:GetNextSessionID()
+
+    local nextID =
+        LootCouncilDB.Persistence.NextSessionID
+
+    if not nextID then
+
+        nextID = 1
+
+    end
+
+    LootCouncilDB.Persistence.NextSessionID =
+        nextID + 1
+
+    return string.format(
+        "%03d",
+        nextID
+    )
+
+end
+
+---------------------------------------------------
 -- Save
 ---------------------------------------------------
 
