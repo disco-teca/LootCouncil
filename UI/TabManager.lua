@@ -190,22 +190,30 @@ function manager:Refresh()
 
     for index, item in ipairs(items) do
 
-        local tabName =
-            tostring(
-                item:GetNumber()
-            ) ..
-            ". " ..
-            item:GetName()
+        ---------------------------------------------------
+        -- Skip Awarded Items
+        ---------------------------------------------------
 
-        local tab =
-            self:AddTab(
-                tabName,
-                index
+        if not item:IsAwarded() then
+
+            local tabName =
+                tostring(
+                    item:GetNumber()
+                ) ..
+                ". " ..
+                item:GetName()
+
+            local tab =
+                self:AddTab(
+                    tabName,
+                    index
+                )
+
+            tab:SetSelected(
+                index == selected
             )
 
-        tab:SetSelected(
-            index == selected
-        )
+        end
 
     end
 

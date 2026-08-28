@@ -62,12 +62,6 @@ function module:Refresh()
                 )
             )
 
-            LootCouncil:Print(
-                tostring(i) ..
-                ". " ..
-                tostring(name)
-            )
-
         end
 
     ---------------------------------------------------
