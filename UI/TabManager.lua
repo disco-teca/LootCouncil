@@ -185,14 +185,76 @@ function manager:Refresh()
     local items =
         LootCouncil.Session:GetItems()
 
+    ---------------------------------------------------
+    -- Find Valid Selected Item
+    ---------------------------------------------------
+
     local selected =
         LootCouncil.Session:GetSelectedIndex()
 
-    for index, item in ipairs(items) do
+    local selectedItem
+
+    if selected then
+
+        selectedItem =
+            LootCouncil.Session:GetItem(
+                selected
+            )
+
+    end
+
+    if selectedItem and selectedItem:IsAwarded() then
+
+        selected = nil
 
         ---------------------------------------------------
-        -- Skip Awarded Items
+        -- Prefer Next Unawarded Item
         ---------------------------------------------------
+
+        for index, item in ipairs(items) do
+
+            if index > LootCouncil.Session:GetSelectedIndex()
+            and not item:IsAwarded() then
+
+                selected = index
+
+                break
+
+            end
+
+        end
+
+        ---------------------------------------------------
+        -- Otherwise Find Any Unawarded Item
+        ---------------------------------------------------
+
+        if not selected then
+
+            for index, item in ipairs(items) do
+
+                if not item:IsAwarded() then
+
+                    selected = index
+
+                    break
+
+                end
+
+            end
+
+        end
+
+        LootCouncil.Session:SetSelectedIndex(
+            selected
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Create Voting Tabs
+    ---------------------------------------------------
+
+    for index, item in ipairs(items) do
 
         if not item:IsAwarded() then
 
@@ -216,6 +278,10 @@ function manager:Refresh()
         end
 
     end
+
+    ---------------------------------------------------
+    -- Refresh Voting Workspace
+    ---------------------------------------------------
 
     LootCouncil.UI.VotingTab:Refresh()
 
