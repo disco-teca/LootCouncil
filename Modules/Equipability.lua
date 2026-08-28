@@ -115,6 +115,14 @@ function module:CanEquip(
         return true
     end
 
+    ---------------------------------------------------
+    -- Non-Armor Equipment
+    ---------------------------------------------------
+
+    if armorType == "Miscellaneous" then
+        return true
+    end
+
     return rules[armorType] == true
 
 end

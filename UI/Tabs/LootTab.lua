@@ -281,7 +281,8 @@ end
 
 function view:CreateItemRow(
     item,
-    index
+    itemIndex,
+    displayIndex
 )
 
     local row = {}
@@ -290,7 +291,7 @@ function view:CreateItemRow(
         -(
             15 +
             (
-                (index - 1) *
+                (displayIndex - 1) *
                 self.rowHeight
             )
         )
@@ -460,7 +461,7 @@ function view:CreateItemRow(
 
                         playerName,
 
-                        index,
+                        itemIndex,
 
                         response
 
@@ -631,6 +632,50 @@ function view:Refresh()
 
     end
 
+    ---------------------------------------------------
+    -- Create Active Item List
+    ---------------------------------------------------
+
+    local activeItems = {}
+
+    for itemIndex, item in ipairs(items) do
+
+        if not item:IsAwarded() then
+
+            table.insert(
+                activeItems,
+                {
+                    item = item,
+                    index = itemIndex,
+                }
+            )
+
+        end
+
+    end
+
+    ---------------------------------------------------
+    -- No Active Items
+    ---------------------------------------------------
+
+    if #activeItems == 0 then
+
+        self.status:SetText(
+            "Waiting for loot."
+        )
+
+        self.content:SetHeight(
+            self.scrollFrame:GetHeight()
+        )
+
+        self.scrollFrame:SetVerticalScroll(
+            0
+        )
+
+        return
+
+    end
+
     self.status:SetText(
         ""
     )
@@ -639,12 +684,19 @@ function view:Refresh()
     -- Create Rows
     ---------------------------------------------------
 
-    for index, item in ipairs(items) do
+    for displayIndex, entry in ipairs(
+        activeItems
+    ) do
 
         local row =
             self:CreateItemRow(
-                item,
-                index
+
+                entry.item,
+
+                entry.index,
+
+                displayIndex
+
             )
 
         table.insert(
@@ -661,7 +713,7 @@ function view:Refresh()
     local contentHeight =
         15 +
         (
-            #items *
+            #activeItems *
             self.rowHeight
         ) +
         15

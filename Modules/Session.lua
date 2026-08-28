@@ -1910,6 +1910,11 @@ function LootCouncil.Session:SetSelectedIndex(index)
         return
     end
 
+    if not index then
+        session.selectedItem = nil
+        return
+    end
+
     if index < 1 or index > #session.items then
         return
     end
