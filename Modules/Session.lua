@@ -44,15 +44,14 @@ function LootCouncil.Session:Serialize()
 
         owner = self:GetOwner(),
 
-        players = self:SerializePlayers(),
+        players =
+            self:SerializePlayers(),
 
-        items = self:SerializeItems(),
+        items =
+            self:SerializeItems(),
 
         selectedItem =
             self:GetSelectedIndex(),
-
-        nextItemNumber =
-            session.nextItemNumber,
 
         responses =
             self:SerializeResponses(),
@@ -65,6 +64,9 @@ function LootCouncil.Session:Serialize()
 
         roles =
             self:SerializeRoles(),
+
+        nextItemNumber =
+            session.nextItemNumber,
 
     }
 
@@ -449,18 +451,18 @@ function LootCouncil.Session:Deserialize(data)
         data.id
     )
 
+    if data.nextItemNumber then
+
+        session.nextItemNumber =
+            data.nextItemNumber
+
+    end
+
     if data.owner then
 
         self:SetOwner(
             data.owner
         )
-
-        if data.nextItemNumber then
-
-            session.nextItemNumber =
-                data.nextItemNumber
-
-        end
 
     end
 
@@ -720,7 +722,10 @@ end
 -- Lifecycle
 ---------------------------------------------------
 
-function LootCouncil.Session:Create(restoring, sessionID)
+function LootCouncil.Session:Create(
+    restoring,
+    sessionID
+)
 
     if session then
         return
@@ -1134,9 +1139,7 @@ function LootCouncil.Session:AddItem(data)
 
     LootCouncil.Persistence:Save()
 
-    self:InitializeApplicants(
-        item
-    )
+    self:InitializeApplicants(item)
 
     if self:IsOwner() then
 
@@ -1230,15 +1233,11 @@ function LootCouncil.Session:AddRestoredItem(item)
         session.nextItemNumber =
             session.nextItemNumber + 1
 
-    else
+    elseif item:GetNumber()
+    >= session.nextItemNumber then
 
-        if item:GetNumber()
-        >= session.nextItemNumber then
-
-            session.nextItemNumber =
-                item:GetNumber() + 1
-
-        end
+        session.nextItemNumber =
+            item:GetNumber() + 1
 
     end
 

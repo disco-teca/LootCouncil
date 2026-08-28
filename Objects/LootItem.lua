@@ -29,17 +29,12 @@ function LootItem:New(data)
         data.ilvl
 
     item.icon = nil
-
     item.quality = nil
-
     item.equipSlot = nil
 
     item.applicants = {}
-
     item.winner = nil
-
     item.awarded = false
-
     item.locked = false
 
     return item
