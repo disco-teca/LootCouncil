@@ -16,12 +16,6 @@ Bus.transportHandlers = {}
 
 function Bus:Initialize()
 
-    LootCouncil:Print(
-
-        "MessageBus initialized."
-
-    )
-
 end
 
 ---------------------------------------------------

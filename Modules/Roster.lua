@@ -30,8 +30,6 @@ end
 
 function module:Refresh()
 
-    LootCouncil:Print("Refreshing roster...")
-
     ---------------------------------------------------
     -- Reset Roster
     ---------------------------------------------------

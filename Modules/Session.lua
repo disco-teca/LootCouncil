@@ -2593,12 +2593,6 @@ function LootCouncil.Session:Initialize()
 
     )
 
-    LootCouncil:Print(
-
-        "Session message handlers registered."
-
-    )
-
 end
 
 function LootCouncil.Session:OnVoteMessage(
