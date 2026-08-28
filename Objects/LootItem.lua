@@ -228,11 +228,13 @@ end
 
 function LootItem:Award(playerName)
 
-    self:SetWinner(playerName)
+    self:SetWinner(
+        playerName
+    )
 
-    self:SetAwarded(true)
-
-    LootCouncil.Persistence:Save()
+    self:SetAwarded(
+        true
+    )
 
 end
 

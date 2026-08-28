@@ -41,6 +41,27 @@ function module:GetNextSessionID()
 end
 
 ---------------------------------------------------
+-- History
+---------------------------------------------------
+
+function module:SaveHistory()
+
+    LootCouncilDB.Persistence.History = {}
+
+    for _, record in ipairs(
+        LootCouncil.History:GetAll()
+    ) do
+
+        table.insert(
+            LootCouncilDB.Persistence.History,
+            record
+        )
+
+    end
+
+end
+
+---------------------------------------------------
 -- Save
 ---------------------------------------------------
 
@@ -49,7 +70,31 @@ function module:Save()
     local data =
         LootCouncil.Session:Serialize()
 
-    LootCouncilDB.Persistence.Session = data
+    LootCouncilDB.Persistence.Session =
+        data
+
+    self:SaveHistory()
+
+end
+
+---------------------------------------------------
+-- Save History
+---------------------------------------------------
+
+function module:SaveHistory()
+
+    LootCouncilDB.Persistence.History = {}
+
+    for _, record in ipairs(
+        LootCouncil.History:GetAll()
+    ) do
+
+        table.insert(
+            LootCouncilDB.Persistence.History,
+            record
+        )
+
+    end
 
 end
 
@@ -59,15 +104,30 @@ end
 
 function module:Load()
 
+    ---------------------------------------------------
+    -- Load History
+    ---------------------------------------------------
+
+    local history =
+        LootCouncilDB.Persistence.History
+
+    LootCouncil.History:Initialize(
+        history
+    )
+
+    ---------------------------------------------------
+    -- Load Session
+    ---------------------------------------------------
+
     local data =
         LootCouncilDB.Persistence.Session
 
     if not data then
-
         return
-
     end
 
-    LootCouncil.Session:Deserialize(data)
+    LootCouncil.Session:Deserialize(
+        data
+    )
 
 end

@@ -1398,20 +1398,56 @@ function LootCouncil.Session:SetApplicantResponse(
 end
 
 function LootCouncil.Session:SetAward(
-
     playerName,
-
     itemIndex
-
 )
 
-    local item = self:GetItem(itemIndex)
+    local item =
+        self:GetItem(itemIndex)
 
     if not item then
         return nil
     end
 
-    item:Award(playerName)
+    ---------------------------------------------------
+    -- Prevent Duplicate History
+    ---------------------------------------------------
+
+    local wasAwarded =
+        item:IsAwarded()
+
+    ---------------------------------------------------
+    -- Apply Award
+    ---------------------------------------------------
+
+    item:Award(
+        playerName
+    )
+
+    ---------------------------------------------------
+    -- Record History
+    ---------------------------------------------------
+
+    if not wasAwarded
+    and self:IsOwner() then
+
+        LootCouncil.History:Add(
+
+            time(),
+
+            self:GetID(),
+
+            item:GetLink(),
+
+            playerName
+
+        )
+
+    end
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
 
     LootCouncil.UI.TabManager:Refresh()
 
