@@ -192,8 +192,13 @@ function manager:Refresh()
 
         local tab =
             self:AddTab(
+
+                tostring(index) ..
+                ". " ..
                 item:GetName(),
+
                 index
+
             )
 
         tab:SetSelected(

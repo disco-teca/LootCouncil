@@ -233,6 +233,10 @@ function view:ClearRows()
 
     for _, row in ipairs(self.rows) do
 
+        if row.number then
+            row.number:Hide()
+        end
+        
         if row.icon then
             row.icon:Hide()
         end
@@ -292,6 +296,29 @@ function view:CreateItemRow(
         )
 
     ---------------------------------------------------
+    -- Item Number
+    ---------------------------------------------------
+
+    row.number =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                font = "GameFontNormal",
+
+                point = "TOPLEFT",
+                relativeTo = self.content,
+                relativePoint = "TOPLEFT",
+
+                x = 2,
+                y = yOffset - 8,
+
+                text =
+                    tostring(index) ..
+                    "."
+            }
+        )
+
+    ---------------------------------------------------
     -- Icon
     ---------------------------------------------------
 
@@ -305,7 +332,7 @@ function view:CreateItemRow(
         "TOPLEFT",
         self.content,
         "TOPLEFT",
-        15,
+        30,
         yOffset
     )
 
