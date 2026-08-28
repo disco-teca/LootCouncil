@@ -134,8 +134,24 @@ function view:ClearRows()
 
     for _, row in ipairs(self.rows) do
 
-        if row.text then
-            row.text:Hide()
+        if row.session then
+            row.session:Hide()
+        end
+
+        if row.date then
+            row.date:Hide()
+        end
+
+        if row.item then
+            row.item:Hide()
+        end
+
+        if row.awardedTo then
+            row.awardedTo:Hide()
+        end
+
+        if row.delete then
+            row.delete:Hide()
         end
 
     end
@@ -164,34 +180,21 @@ function view:CreateRow(
             )
         )
 
+    ---------------------------------------------------
+    -- Date / Time
+    ---------------------------------------------------
+
     local dateText =
         date(
             "%m/%d/%y %H:%M",
             record.timestamp
         )
 
-    local text =
-        string.format(
+    ---------------------------------------------------
+    -- Session
+    ---------------------------------------------------
 
-            "%-14s %-23s %-35s %s",
-
-            tostring(
-                record.sessionID
-            ),
-
-            dateText,
-
-            tostring(
-                record.itemLink
-            ),
-
-            tostring(
-                record.awardedTo
-            )
-
-        )
-
-    row.text =
+    row.session =
         LootCouncil.UI.Widgets:CreateLabel(
             self.content,
             {
@@ -202,9 +205,110 @@ function view:CreateRow(
                 x = 10,
                 y = yOffset,
 
-                text = text
+                text =
+                    tostring(
+                        record.sessionID
+                    )
             }
         )
+
+    ---------------------------------------------------
+    -- Date / Time
+    ---------------------------------------------------
+
+    row.date =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo = row.session,
+                relativePoint = "TOPRIGHT",
+
+                x = 25,
+                y = 0,
+
+                text = dateText
+            }
+        )
+
+    ---------------------------------------------------
+    -- Item
+    ---------------------------------------------------
+
+    row.item =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo = row.date,
+                relativePoint = "TOPRIGHT",
+
+                x = 25,
+                y = 0,
+
+                text =
+                    tostring(
+                        record.itemLink
+                    )
+            }
+        )
+
+    ---------------------------------------------------
+    -- Awarded To
+    ---------------------------------------------------
+
+    row.awardedTo =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo = row.item,
+                relativePoint = "TOPRIGHT",
+
+                x = 25,
+                y = 0,
+
+                text =
+                    tostring(
+                        record.awardedTo
+                    )
+            }
+        )
+
+    ---------------------------------------------------
+    -- Delete
+    ---------------------------------------------------
+
+    row.delete =
+        LootCouncil.UI.Widgets.Button:Create(
+            self.content,
+            {
+                width = 50,
+                height = 20,
+                text = "Delete",
+            }
+        )
+
+    row.delete:SetPoint(
+        "LEFT",
+        row.awardedTo,
+        "RIGHT",
+        20,
+        0
+    )
+
+    row.delete:SetScript(
+        "OnClick",
+        function()
+
+            LootCouncil.History:Delete(
+                index
+            )
+
+            self:Refresh()
+
+        end
+    )
 
     table.insert(
         self.rows,

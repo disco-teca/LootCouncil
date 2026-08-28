@@ -62,3 +62,28 @@ function module:GetAll()
     return history
 
 end
+
+---------------------------------------------------
+-- Delete
+---------------------------------------------------
+
+function module:Delete(index)
+
+    if not index then
+        return false
+    end
+
+    if not history[index] then
+        return false
+    end
+
+    table.remove(
+        history,
+        index
+    )
+
+    LootCouncil.Persistence:Save()
+
+    return true
+
+end
