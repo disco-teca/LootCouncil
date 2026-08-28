@@ -1495,6 +1495,36 @@ function LootCouncil.Session:SubmitAward(
 )
 
     ---------------------------------------------------
+    -- Get Item
+    ---------------------------------------------------
+
+    local item =
+        self:GetItem(itemIndex)
+
+    if not item then
+        return nil
+    end
+
+    ---------------------------------------------------
+    -- Get Applicant Response
+    ---------------------------------------------------
+
+    local applicant =
+        item:FindApplicant(
+            playerName
+        )
+
+    local response =
+        "UNKNOWN"
+
+    if applicant then
+
+        response =
+            applicant:GetResponse()
+
+    end
+
+    ---------------------------------------------------
     -- Apply Locally
     ---------------------------------------------------
 
@@ -1517,6 +1547,22 @@ function LootCouncil.Session:SubmitAward(
     ---------------------------------------------------
 
     LootCouncil.Persistence:Save()
+
+    ---------------------------------------------------
+    -- Announce Award
+    ---------------------------------------------------
+
+    SendChatMessage(
+
+        item:GetLink() ..
+        " was awarded to " ..
+        playerName ..
+        " for " ..
+        response,
+
+        "RAID_WARNING"
+
+    )
 
     ---------------------------------------------------
     -- Build Message

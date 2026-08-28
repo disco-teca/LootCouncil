@@ -751,25 +751,67 @@ function widget:Refresh(frame, applicants)
             row.cells.Award:Show()
 
             row.cells.Award:SetScript(
-
                 "OnClick",
-
                 function()
 
                     if not item then
                         return
                     end
 
-                    LootCouncil.Session:SubmitAward(
+                    local playerName =
+                        row.applicant:GetPlayer():GetName()
 
-                        row.applicant:GetPlayer():GetName(),
+                    local response =
+                        row.applicant:GetResponse()
 
-                        LootCouncil.Session:GetSelectedIndex()
+                    local itemLink =
+                        item:GetLink()
 
+                    ---------------------------------------------------
+                    -- Confirmation
+                    ---------------------------------------------------
+
+                    StaticPopupDialogs[
+                        "LOOTCOUNCIL_CONFIRM_AWARD"
+                    ] = {
+
+                        text =
+                            "Award " ..
+                            itemLink ..
+                            " to " ..
+                            playerName ..
+                            " for " ..
+                            response ..
+                            "?",
+
+                        button1 = "Award",
+
+                        button2 = "Cancel",
+
+                        OnAccept = function()
+
+                            LootCouncil.Session:SubmitAward(
+                                playerName,
+                                LootCouncil.Session:GetSelectedIndex()
+                            )
+
+                        end,
+
+                        timeout = 0,
+
+                        whileDead = true,
+
+                        hideOnEscape = true,
+
+                        preferredIndex = 3,
+
+                    }
+
+                    StaticPopup_Show(
+                        "LOOTCOUNCIL_CONFIRM_AWARD"
                     )
 
                 end
-
             )
 
         else
