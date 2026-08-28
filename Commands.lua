@@ -627,6 +627,104 @@ local function AddItem(arguments)
 end
 
 ---------------------------------------------------
+-- Remove Item
+---------------------------------------------------
+
+local function RemoveItem(arguments)
+
+    if not LootCouncil.Session:IsActive() then
+
+        LootCouncil:Print(
+            "No active session."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Permission
+    ---------------------------------------------------
+
+    if not LootCouncil.Permissions:CanManageSession(
+        UnitName("player")
+    ) then
+
+        LootCouncil:Print(
+            "You do not have permission to remove loot."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Item Number
+    ---------------------------------------------------
+
+    local number =
+        tonumber(arguments)
+
+    if not number then
+
+        LootCouncil:Print(
+            "Usage: /lc remove <item number>"
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Find Item
+    ---------------------------------------------------
+
+    local item =
+        LootCouncil.Session:GetItemByNumber(
+            number
+        )
+
+    if not item then
+
+        LootCouncil:Print(
+            "No active item with number " ..
+            tostring(number) ..
+            "."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Remove
+    ---------------------------------------------------
+
+    local removed =
+        LootCouncil.Session:RemoveItem(
+            number
+        )
+
+    if not removed then
+
+        LootCouncil:Print(
+            "Unable to remove item."
+        )
+
+        return
+
+    end
+
+    LootCouncil:Print(
+        "Removed item " ..
+        tostring(number) ..
+        ": " ..
+        item:GetName()
+    )
+
+end
+
+---------------------------------------------------
 -- Response
 ---------------------------------------------------
 
@@ -761,6 +859,7 @@ commands["response"] = ResponsePlayer
 commands["award"] = AwardItem
 commands["roster"] = RefreshRoster
 commands["add"] = AddItem
+commands["remove"] = RemoveItem
 commands["ping"] = Ping
 commands["testadd"] = TestAddPacket
 commands["testhello"] = TestHelloPacket

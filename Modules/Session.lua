@@ -1271,8 +1271,139 @@ function LootCouncil.Session:GetItem(index)
 end
 
 ---------------------------------------------------
--- Applicant Responses
+-- Get Item By Number
 ---------------------------------------------------
+
+function LootCouncil.Session:GetItemByNumber(number)
+
+    if not session then
+        return nil
+    end
+
+    if not number then
+        return nil
+    end
+
+    number = tonumber(number)
+
+    if not number then
+        return nil
+    end
+
+    for _, item in ipairs(
+        session.items
+    ) do
+
+        if item:GetNumber() == number then
+
+            return item
+
+        end
+
+    end
+
+    return nil
+
+end
+
+---------------------------------------------------
+-- Remove Item
+---------------------------------------------------
+
+function LootCouncil.Session:RemoveItem(number)
+
+    if not session then
+        return false
+    end
+
+    local item =
+        self:GetItemByNumber(number)
+
+    if not item then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Find Current Array Index
+    ---------------------------------------------------
+
+    local index
+
+    for currentIndex, currentItem in ipairs(
+        session.items
+    ) do
+
+        if currentItem == item then
+
+            index = currentIndex
+
+            break
+
+        end
+
+    end
+
+    if not index then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Remove Item
+    ---------------------------------------------------
+
+    table.remove(
+        session.items,
+        index
+    )
+
+    ---------------------------------------------------
+    -- Selected Item
+    ---------------------------------------------------
+
+    if #session.items == 0 then
+
+        session.selectedItem = nil
+
+    elseif session.selectedItem == index then
+
+        if index > #session.items then
+
+            session.selectedItem =
+                #session.items
+
+        else
+
+            session.selectedItem =
+                index
+
+        end
+
+    elseif session.selectedItem > index then
+
+        session.selectedItem =
+            session.selectedItem - 1
+
+    end
+
+    ---------------------------------------------------
+    -- Save
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.TabManager:Refresh()
+
+    LootCouncil.UI.VotingTab:Refresh()
+
+    LootCouncil.UI.LootTab:Refresh()
+
+    return true
+
+end
 
 ---------------------------------------------------
 -- Submit Applicant Response
