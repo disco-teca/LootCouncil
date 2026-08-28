@@ -190,15 +190,17 @@ function manager:Refresh()
 
     for index, item in ipairs(items) do
 
+        local tabName =
+            tostring(
+                item:GetNumber()
+            ) ..
+            ". " ..
+            item:GetName()
+
         local tab =
             self:AddTab(
-
-                tostring(index) ..
-                ". " ..
-                item:GetName(),
-
+                tabName,
                 index
-
             )
 
         tab:SetSelected(

@@ -313,7 +313,9 @@ function view:CreateItemRow(
                 y = yOffset - 8,
 
                 text =
-                    tostring(index) ..
+                    tostring(
+                        item:GetNumber()
+                    ) ..
                     "."
             }
         )

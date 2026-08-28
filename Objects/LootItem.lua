@@ -7,23 +7,39 @@ LootItem.__index = LootItem
 
 function LootItem:New(data)
 
-    local item = setmetatable({}, LootItem)
+    local item =
+        setmetatable(
+            {},
+            LootItem
+        )
 
-    item.id = data.id
+    item.id =
+        data.id
 
-    item.link = data.link
+    item.number =
+        data.number
 
-    item.name = data.name
-    item.ilvl = data.ilvl
+    item.link =
+        data.link
+
+    item.name =
+        data.name
+
+    item.ilvl =
+        data.ilvl
 
     item.icon = nil
+
     item.quality = nil
+
     item.equipSlot = nil
 
     item.applicants = {}
 
     item.winner = nil
+
     item.awarded = false
+
     item.locked = false
 
     return item
@@ -37,6 +53,22 @@ end
 function LootItem:GetID()
 
     return self.id
+
+end
+
+---------------------------------------------------
+-- Session Number
+---------------------------------------------------
+
+function LootItem:GetNumber()
+
+    return self.number
+
+end
+
+function LootItem:SetNumber(number)
+
+    self.number = number
 
 end
 

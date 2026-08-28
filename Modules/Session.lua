@@ -30,6 +30,8 @@ function LootCouncil.Session:Serialize()
 
             selectedItem = nil,
 
+            nextItemNumber = nil,
+
         }
 
     end
@@ -46,15 +48,23 @@ function LootCouncil.Session:Serialize()
 
         items = self:SerializeItems(),
 
-        selectedItem = self:GetSelectedIndex(),
+        selectedItem =
+            self:GetSelectedIndex(),
 
-        responses = self:SerializeResponses(),
+        nextItemNumber =
+            session.nextItemNumber,
 
-        votes = self:SerializeVotes(),
+        responses =
+            self:SerializeResponses(),
 
-        gear = self:SerializeGear(),
+        votes =
+            self:SerializeVotes(),
 
-        roles = self:SerializeRoles(),
+        gear =
+            self:SerializeGear(),
+
+        roles =
+            self:SerializeRoles(),
 
     }
 
@@ -119,28 +129,36 @@ function LootCouncil.Session:SerializeItems()
 
     local items = {}
 
-    for _, item in ipairs(self:GetItems()) do
+    for _, item in ipairs(
+        self:GetItems()
+    ) do
 
         table.insert(
-
             items,
-
             {
 
-                id = item:GetID(),
+                id =
+                    item:GetID(),
 
-                name = item:GetName(),
+                number =
+                    item:GetNumber(),
 
-                link = item:GetLink(),
+                name =
+                    item:GetName(),
 
-                ilvl = item:GetItemLevel(),
+                link =
+                    item:GetLink(),
 
-                winner = item:GetWinner(),
+                ilvl =
+                    item:GetItemLevel(),
 
-                awarded = item:IsAwarded(),
+                winner =
+                    item:GetWinner(),
+
+                awarded =
+                    item:IsAwarded(),
 
             }
-
         )
 
     end
@@ -437,6 +455,13 @@ function LootCouncil.Session:Deserialize(data)
             data.owner
         )
 
+        if data.nextItemNumber then
+
+            session.nextItemNumber =
+                data.nextItemNumber
+
+        end
+
     end
 
     ---------------------------------------------------
@@ -716,6 +741,8 @@ function LootCouncil.Session:Create(restoring, sessionID)
         items = {},
 
         selectedItem = nil,
+
+        nextItemNumber = 1,
 
     }
 
@@ -1085,11 +1112,31 @@ function LootCouncil.Session:AddItem(data)
         return
     end
 
-    table.insert(session.items, item)
+    ---------------------------------------------------
+    -- Assign Static Session Number
+    ---------------------------------------------------
+
+    item:SetNumber(
+        session.nextItemNumber
+    )
+
+    session.nextItemNumber =
+        session.nextItemNumber + 1
+
+    ---------------------------------------------------
+    -- Add Item
+    ---------------------------------------------------
+
+    table.insert(
+        session.items,
+        item
+    )
 
     LootCouncil.Persistence:Save()
 
-    self:InitializeApplicants(item)
+    self:InitializeApplicants(
+        item
+    )
 
     if self:IsOwner() then
 
@@ -1101,34 +1148,30 @@ function LootCouncil.Session:AddItem(data)
                 item
             )
 
-        for _, applicant in ipairs(item:GetApplicants()) do
+        for _, applicant in ipairs(
+            item:GetApplicants()
+        ) do
 
             local playerName =
                 applicant:GetPlayer():GetName()
 
             local message =
                 LootCouncil.Message:New(
-
                     "GEAR_REQUEST",
-
                     {
-
                         target = playerName,
 
-                        itemIndex = itemIndex,
+                        itemIndex =
+                            itemIndex,
 
-                        slots = comparisonSlots,
-
+                        slots =
+                            comparisonSlots,
                     }
-
                 )
 
             LootCouncil.MessageBus:Route(
-
                 message,
-
                 UnitName("player")
-
             )
 
         end
@@ -1136,7 +1179,9 @@ function LootCouncil.Session:AddItem(data)
     end
 
     if not session.selectedItem then
+
         session.selectedItem = 1
+
     end
 
     LootCouncil:Print(
@@ -1172,7 +1217,35 @@ function LootCouncil.Session:AddRestoredItem(item)
 
     )
 
-    table.insert(session.items, item)
+    ---------------------------------------------------
+    -- Legacy Number Support
+    ---------------------------------------------------
+
+    if not item:GetNumber() then
+
+        item:SetNumber(
+            session.nextItemNumber
+        )
+
+        session.nextItemNumber =
+            session.nextItemNumber + 1
+
+    else
+
+        if item:GetNumber()
+        >= session.nextItemNumber then
+
+            session.nextItemNumber =
+                item:GetNumber() + 1
+
+        end
+
+    end
+
+    table.insert(
+        session.items,
+        item
+    )
 
     return item
 
