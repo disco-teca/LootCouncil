@@ -697,7 +697,7 @@ local function RemoveItem(arguments)
     end
 
     ---------------------------------------------------
-    -- Remove
+    -- Remove Locally
     ---------------------------------------------------
 
     local removed =
@@ -714,6 +714,30 @@ local function RemoveItem(arguments)
         return
 
     end
+
+    ---------------------------------------------------
+    -- Broadcast Removal
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "REMOVE_ITEM",
+
+            {
+                number = number
+            }
+
+        )
+
+    LootCouncil.MessageBus:Route(
+        message,
+        UnitName("player")
+    )
+
+    ---------------------------------------------------
+    -- Confirmation
+    ---------------------------------------------------
 
     LootCouncil:Print(
         "Removed item " ..

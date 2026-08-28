@@ -2045,6 +2045,38 @@ function LootCouncil.Session:OnAddItemMessage(
 end
 
 ---------------------------------------------------
+-- Remove Item Message
+---------------------------------------------------
+
+function LootCouncil.Session:OnRemoveItemMessage(
+
+    message,
+
+    sender
+
+)
+
+    local payload =
+        message:GetPayload()
+
+    if not payload then
+        return
+    end
+
+    local number =
+        payload.number
+
+    if not number then
+        return
+    end
+
+    self:RemoveItem(
+        number
+    )
+
+end
+
+---------------------------------------------------
 -- GEAR_REQUEST Message
 ---------------------------------------------------
 
@@ -2480,6 +2512,16 @@ function LootCouncil.Session:Initialize()
         self,
 
         self.OnAwardMessage
+
+    )
+
+    LootCouncil.MessageBus:Register(
+
+        "REMOVE_ITEM",
+
+        self,
+
+        self.OnRemoveItemMessage
 
     )
 
