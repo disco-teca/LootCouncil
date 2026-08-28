@@ -259,6 +259,30 @@ settingsPanel:SetPoint(
 LootCouncil.UI.MainWindow.settingsPanel =
     settingsPanel
 
+
+---------------------------------------------------
+-- History Panel
+---------------------------------------------------
+
+local historyPanel =
+    LootCouncil.UI.Widgets:CreatePanel(
+        workspace
+    )
+
+historyPanel:SetPoint(
+    "TOPLEFT",
+    workspace,
+    "TOPLEFT"
+)
+
+historyPanel:SetPoint(
+    "BOTTOMRIGHT",
+    workspace,
+    "BOTTOMRIGHT"
+)
+
+LootCouncil.UI.MainWindow.historyPanel =
+    historyPanel
 ---------------------------------------------------
 -- Status Bar
 ---------------------------------------------------

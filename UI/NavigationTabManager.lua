@@ -142,7 +142,7 @@ function manager:Refresh()
     end
 
     ---------------------------------------------------
-    -- Hide Workspace Panels
+    -- Workspace Panels
     ---------------------------------------------------
 
     local votingPanel =
@@ -154,6 +154,9 @@ function manager:Refresh()
     local settingsPanel =
         LootCouncil.UI.MainWindow.settingsPanel
 
+    local historyPanel =
+        LootCouncil.UI.MainWindow.historyPanel
+
     if votingPanel then
         votingPanel:Hide()
     end
@@ -164,6 +167,10 @@ function manager:Refresh()
 
     if settingsPanel then
         settingsPanel:Hide()
+    end
+
+    if historyPanel then
+        historyPanel:Hide()
     end
 
     ---------------------------------------------------
@@ -193,6 +200,14 @@ function manager:Refresh()
         end
 
         LootCouncil.UI.LootTab:Refresh()
+
+    elseif self.selected == "History" then
+
+        if historyPanel then
+            historyPanel:Show()
+        end
+
+        LootCouncil.UI.HistoryTab:Refresh()
 
     elseif self.selected == "Settings" then
 
