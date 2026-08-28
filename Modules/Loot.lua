@@ -135,9 +135,9 @@ function module:GetItemMetadata(itemID)
         link,
         quality,
         itemLevel,
-        _,
-        _,
-        _,
+        requiredLevel,
+        itemType,
+        itemSubType,
         _,
         equipSlot,
         icon =
@@ -150,10 +150,19 @@ function module:GetItemMetadata(itemID)
     return {
 
         name = name,
+
         link = link,
+
         icon = icon,
+
         quality = quality,
+
         itemLevel = itemLevel,
+
+        itemType = itemType,
+
+        itemSubType = itemSubType,
+
         equipSlot = equipSlot,
 
     }

@@ -125,10 +125,6 @@ function module:Refresh()
             )
         )
 
-        LootCouncil:Print(
-            "Solo: " .. playerName
-        )
-
     end
 
 end

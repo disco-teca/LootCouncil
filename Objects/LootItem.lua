@@ -91,6 +91,26 @@ function LootItem:GetEquipSlot()
 
 end
 
+function LootItem:GetItemType()
+
+    if not self.metadata then
+        return nil
+    end
+
+    return self.metadata.itemType
+
+end
+
+function LootItem:GetItemSubType()
+
+    if not self.metadata then
+        return nil
+    end
+
+    return self.metadata.itemSubType
+
+end
+
 function LootItem:GetIcon()
 
     return self.icon

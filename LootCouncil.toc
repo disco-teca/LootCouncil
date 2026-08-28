@@ -41,6 +41,7 @@ Objects\Message.lua
 ---------------------------------------------------
 
 Modules\Permissions.lua
+Modules\Equipability.lua
 Modules\Loot.lua
 Modules\Session.lua
 Modules\Persistence.lua
