@@ -81,6 +81,34 @@ function view:CreateWidgets()
             }
         )
 
+    self.refreshRoster =
+        LootCouncil.UI.Widgets.Button:Create(
+            self.panel,
+            {
+                width = 100,
+                height = 20,
+                text = "Refresh Roster"
+            }
+        )
+
+    self.refreshRoster:SetPoint(
+        "LEFT",
+        self.councilTitle,
+        "RIGHT",
+        20,
+        0
+    )
+
+    self.refreshRoster:SetScript(
+        "OnClick",
+        function()
+
+            LootCouncil.Roster:Refresh()
+
+            view:Refresh()
+
+        end
+    )
     ---------------------------------------------------
     -- Roster Scroll Frame
     ---------------------------------------------------
