@@ -19,14 +19,32 @@ handlers.PLAYER_LOGIN = function()
 end
 
 ---------------------------------------------------
--- GROUP_ROSTER_UPDATE
+-- RAID_ROSTER_UPDATE
 ---------------------------------------------------
 
-handlers.GROUP_ROSTER_UPDATE = function()
+handlers.RAID_ROSTER_UPDATE = function()
 
     LootCouncil.Roster:Refresh()
 
-    if not LootCouncil.Session:IsActive() then
+    if LootCouncil.Session:IsActive() then
+
+        local owner =
+            LootCouncil.Session:GetOwner()
+
+        local present =
+            LootCouncil.Session:IsOwnerPresent()
+
+        LootCouncil:Print(
+            "Session owner: " ..
+            tostring(owner)
+        )
+
+        LootCouncil:Print(
+            "Owner present: " ..
+            tostring(present)
+        )
+
+    else
 
         LootCouncil.UI.SettingsTab:Refresh()
 
@@ -65,7 +83,7 @@ end)
 ---------------------------------------------------
 
 frame:RegisterEvent("PLAYER_LOGIN")
-frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+frame:RegisterEvent("RAID_ROSTER_UPDATE")
 frame:RegisterEvent("CHAT_MSG_WHISPER")
 frame:RegisterEvent("PARTY_LEADER_CHANGED")
 

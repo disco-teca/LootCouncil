@@ -49,6 +49,26 @@ local function StartSession()
     end
 
     ---------------------------------------------------
+    -- Raid Leader Authority
+    ---------------------------------------------------
+
+    local playerName =
+        UnitName("player")
+
+    if GetNumRaidMembers() > 0
+    and not LootCouncil.Session:IsRaidLeader(
+        playerName
+    ) then
+
+        LootCouncil:Print(
+            "Only the raid leader can start a session."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
     -- Create Message
     ---------------------------------------------------
 
@@ -869,6 +889,117 @@ local function AwardItem()
 end
 
 ---------------------------------------------------
+-- Accept Ownership Transfer
+---------------------------------------------------
+
+local function AcceptOwnershipTransfer()
+
+    if LootCouncil.Session:AcceptOwnershipTransfer() then
+
+        LootCouncil:Print(
+            "Ownership transferred."
+        )
+
+    else
+
+        LootCouncil:Print(
+            "No ownership transfer can be accepted."
+        )
+
+    end
+
+end
+
+---------------------------------------------------
+-- Reject Ownership Transfer
+---------------------------------------------------
+
+local function RejectOwnershipTransfer()
+
+    if LootCouncil.Session:RejectOwnershipTransfer() then
+
+        LootCouncil:Print(
+            "Ownership retained."
+        )
+
+    else
+
+        LootCouncil:Print(
+            "No ownership transfer can be rejected."
+        )
+
+    end
+
+end
+
+---------------------------------------------------
+-- TEST: Unauthorized Ownership Change
+---------------------------------------------------
+
+local function TestUnauthorizedOwnershipChange()
+
+    if not LootCouncil.Session:IsActive() then
+
+        LootCouncil:Print(
+            "No active session."
+        )
+
+        return
+
+    end
+
+    local playerName =
+        UnitName("player")
+
+    local currentOwner =
+        LootCouncil.Session:GetOwner()
+
+    if playerName == currentOwner then
+
+        LootCouncil:Print(
+            "You are the session owner. Run this test from another client."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Create Fake Ownership Message
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "SESSION_OWNER_CHANGED",
+
+            {
+
+                owner = playerName,
+
+            }
+
+        )
+
+    ---------------------------------------------------
+    -- Attempt Unauthorized Transfer
+    ---------------------------------------------------
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        playerName
+
+    )
+
+    LootCouncil:Print(
+        "Unauthorized ownership change attempted."
+    )
+
+end
+
+---------------------------------------------------
 -- Command Table
 ---------------------------------------------------
 
@@ -888,6 +1019,8 @@ commands["ping"] = Ping
 commands["testadd"] = TestAddPacket
 commands["testhello"] = TestHelloPacket
 commands["testiteminfo"] = TestItemInfo
+commands["yes"] = AcceptOwnershipTransfer
+commands["no"] = RejectOwnershipTransfer
 
 ---------------------------------------------------
 -- Slash Command
@@ -919,3 +1052,8 @@ SlashCmdList["LOOTCOUNCIL"] = function(msg)
     end
 
 end
+
+SLASH_LCATTACK1 = "/lcattack"
+
+SlashCmdList["LCATTACK"] =
+    TestUnauthorizedOwnershipChange

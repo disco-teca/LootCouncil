@@ -2,6 +2,8 @@ LootCouncil.Session = {}
 
 local session = nil
 
+local pendingOwnershipTransfer = nil
+
 ---------------------------------------------------
 -- State
 ---------------------------------------------------
@@ -59,6 +61,148 @@ function LootCouncil.Session:GetAuthority()
     end
 
     return session.owner
+
+end
+
+---------------------------------------------------
+-- Pending Ownership Transfer
+---------------------------------------------------
+
+function LootCouncil.Session:GetPendingOwnershipTransfer()
+
+    return pendingOwnershipTransfer
+
+end
+
+function LootCouncil.Session:AcceptOwnershipTransfer()
+
+    if not session then
+        return false
+    end
+
+    if self:GetOwner() ~= UnitName("player") then
+        return false
+    end
+
+    local newOwner =
+        pendingOwnershipTransfer
+
+    if not newOwner then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Create Message
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "SESSION_OWNER_CHANGED",
+
+            {
+
+                owner = newOwner,
+
+            }
+
+        )
+
+    ---------------------------------------------------
+    -- Clear Pending Transfer
+    ---------------------------------------------------
+
+    pendingOwnershipTransfer = nil
+
+    ---------------------------------------------------
+    -- Route
+    ---------------------------------------------------
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        UnitName("player")
+
+    )
+
+    return true
+
+end
+
+---------------------------------------------------
+-- Reject Ownership Transfer
+---------------------------------------------------
+
+function LootCouncil.Session:RejectOwnershipTransfer()
+
+    if not session then
+        return false
+    end
+
+    local owner =
+        self:GetOwner()
+
+    if owner ~= UnitName("player") then
+        return false
+    end
+
+    if not pendingOwnershipTransfer then
+        return false
+    end
+
+    ---------------------------------------------------
+    -- Keep Current Owner
+    ---------------------------------------------------
+
+    pendingOwnershipTransfer = nil
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.TabManager:Refresh()
+
+    return true
+
+end
+
+---------------------------------------------------
+-- Owner Presence
+---------------------------------------------------
+
+function LootCouncil.Session:IsOwnerPresent()
+
+    if not session then
+        return false
+    end
+
+    local owner =
+        self:GetOwner()
+
+    if not owner then
+        return false
+    end
+
+    local numRaid =
+        GetNumRaidMembers()
+
+    if numRaid == 0 then
+        return false
+    end
+
+    for i = 1, numRaid do
+
+        local name =
+            GetRaidRosterInfo(i)
+
+        if name == owner then
+            return true
+        end
+
+    end
+
+    return false
 
 end
 
@@ -2132,6 +2276,73 @@ function LootCouncil.Session:OnEndMessage(
 end
 
 ---------------------------------------------------
+-- SESSION_OWNER_CHANGED Message
+---------------------------------------------------
+
+function LootCouncil.Session:OnOwnerChangedMessage(
+
+    message,
+
+    sender
+
+)
+
+    if not self:IsActive() then
+        return
+    end
+
+    local payload =
+        message:GetPayload()
+
+    if not payload then
+        return
+    end
+
+    local newOwner =
+        payload.owner
+
+    if not newOwner then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Authority
+    ---------------------------------------------------
+
+    if sender ~= self:GetOwner() then
+        LootCouncil:Print(
+            "Rejected ownership change from " ..
+            tostring(sender)
+        )
+
+        return
+    end
+
+    ---------------------------------------------------
+    -- Apply
+    ---------------------------------------------------
+
+    self:SetOwner(
+        newOwner
+    )
+
+    pendingOwnershipTransfer = nil
+
+    ---------------------------------------------------
+    -- Persist
+    ---------------------------------------------------
+
+    LootCouncil.Persistence:Save()
+
+    ---------------------------------------------------
+    -- Refresh UI
+    ---------------------------------------------------
+
+    LootCouncil.UI.TabManager:Refresh()
+
+end
+
+---------------------------------------------------
 
 function LootCouncil.Session:OnAddItemMessage(
 
@@ -2217,11 +2428,42 @@ function LootCouncil.Session:OnRaidLeaderChanged()
     local owner =
         self:GetOwner()
 
+    if not raidLeader then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Owner Is Already Raid Leader
+    ---------------------------------------------------
+
+    if raidLeader == owner then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Only Owner Decides
+    ---------------------------------------------------
+
+    if owner ~= UnitName("player") then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Pending Transfer
+    ---------------------------------------------------
+
+    pendingOwnershipTransfer =
+        raidLeader
+
     LootCouncil:Print(
-        "Raid leadership changed: " ..
-        tostring(owner) ..
-        " -> " ..
-        tostring(raidLeader)
+        "Raid leader changed to " ..
+        raidLeader
+    )
+
+    LootCouncil:Print(
+        "Session ownership may transfer to " ..
+        raidLeader ..
+        "."
     )
 
 end
@@ -2672,6 +2914,16 @@ function LootCouncil.Session:Initialize()
         self,
 
         self.OnRemoveItemMessage
+
+    )
+
+    LootCouncil.MessageBus:Register(
+
+        "SESSION_OWNER_CHANGED",
+
+        self,
+
+        self.OnOwnerChangedMessage
 
     )
 
