@@ -423,6 +423,19 @@ local function TestHelloPacket()
 end
 
 ---------------------------------------------------
+-- TEST: Ownership Popup
+---------------------------------------------------
+
+local function TestOwnershipPopup()
+
+    StaticPopup_Show(
+        "LOOTCOUNCIL_OWNERSHIP_TRANSFER",
+        "Grumpyy"
+    )
+
+end
+
+---------------------------------------------------
 -- Debug Session
 ---------------------------------------------------
 
@@ -933,6 +946,44 @@ local function RejectOwnershipTransfer()
 end
 
 ---------------------------------------------------
+-- Transfer Ownership
+---------------------------------------------------
+
+local function TransferOwnership(arguments)
+
+    local target =
+        arguments and arguments:match("^%s*(.-)%s*$")
+
+    if not target or target == "" then
+
+        LootCouncil:Print(
+            "Usage: /lc transfer [player]"
+        )
+
+        return
+
+    end
+
+    if LootCouncil.Session:TransferOwnership(
+        target
+    ) then
+
+        LootCouncil:Print(
+            "Ownership transfer requested for " ..
+            target .. "."
+        )
+
+    else
+
+        LootCouncil:Print(
+            "Unable to transfer ownership."
+        )
+
+    end
+
+end
+
+---------------------------------------------------
 -- TEST: Unauthorized Ownership Change
 ---------------------------------------------------
 
@@ -1000,6 +1051,31 @@ local function TestUnauthorizedOwnershipChange()
 end
 
 ---------------------------------------------------
+-- Show Session Owner
+---------------------------------------------------
+
+local function ShowOwner()
+
+    if not LootCouncil.Session:IsActive() then
+
+        LootCouncil:Print(
+            "No active session."
+        )
+
+        return
+
+    end
+
+    LootCouncil:Print(
+        "Session owner: " ..
+        tostring(
+            LootCouncil.Session:GetOwner()
+        )
+    )
+
+end
+
+---------------------------------------------------
 -- Command Table
 ---------------------------------------------------
 
@@ -1021,6 +1097,9 @@ commands["testhello"] = TestHelloPacket
 commands["testiteminfo"] = TestItemInfo
 commands["yes"] = AcceptOwnershipTransfer
 commands["no"] = RejectOwnershipTransfer
+commands["transfer"] = TransferOwnership
+commands["owner"] = ShowOwner
+commands["testpopup"] = TestOwnershipPopup
 
 ---------------------------------------------------
 -- Slash Command

@@ -26,29 +26,74 @@ handlers.RAID_ROSTER_UPDATE = function()
 
     LootCouncil.Roster:Refresh()
 
-    if LootCouncil.Session:IsActive() then
-
-        local owner =
-            LootCouncil.Session:GetOwner()
-
-        local present =
-            LootCouncil.Session:IsOwnerPresent()
-
-        LootCouncil:Print(
-            "Session owner: " ..
-            tostring(owner)
-        )
-
-        LootCouncil:Print(
-            "Owner present: " ..
-            tostring(present)
-        )
-
-    else
+    if not LootCouncil.Session:IsActive() then
 
         LootCouncil.UI.SettingsTab:Refresh()
 
+        return
+
     end
+
+    ---------------------------------------------------
+    -- Owner Presence
+    ---------------------------------------------------
+
+    if LootCouncil.Session:IsOwnerPresent() then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Determine Raid Leader
+    ---------------------------------------------------
+
+    local raidLeader =
+        LootCouncil.Session:GetRaidLeader()
+
+    if not raidLeader then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Only Raid Leader Performs Fallback
+    ---------------------------------------------------
+
+    local playerName =
+        UnitName("player")
+
+    if raidLeader ~= playerName then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Create Fallback Message
+    ---------------------------------------------------
+
+    local message =
+        LootCouncil.Message:New(
+
+            "SESSION_OWNER_CHANGED",
+
+            {
+
+                owner = raidLeader,
+
+                reason = "FALLBACK",
+
+            }
+
+        )
+
+    ---------------------------------------------------
+    -- Route
+    ---------------------------------------------------
+
+    LootCouncil.MessageBus:Route(
+
+        message,
+
+        playerName
+
+    )
 
 end
 
