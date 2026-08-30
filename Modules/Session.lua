@@ -10,6 +10,58 @@ function LootCouncil.Session:IsActive()
     return session ~= nil
 end
 
+---------------------------------------------------
+-- Raid Leadership
+---------------------------------------------------
+
+function LootCouncil.Session:GetRaidLeader()
+
+    if GetNumRaidMembers() == 0 then
+        return nil
+    end
+
+    for i = 1, GetNumRaidMembers() do
+
+        local name, rank =
+            GetRaidRosterInfo(i)
+
+        if rank == 2 then
+            return name
+        end
+
+    end
+
+    return nil
+
+end
+
+function LootCouncil.Session:IsRaidLeader(
+    playerName
+)
+
+    if not playerName then
+        return false
+    end
+
+    return playerName ==
+        self:GetRaidLeader()
+
+end
+
+---------------------------------------------------
+-- Session Owner
+---------------------------------------------------
+
+function LootCouncil.Session:GetAuthority()
+
+    if not session then
+        return nil
+    end
+
+    return session.owner
+
+end
+
 function LootCouncil.Session:Serialize()
 
     if not session then
@@ -2145,6 +2197,31 @@ function LootCouncil.Session:OnRemoveItemMessage(
 
     self:RemoveItem(
         number
+    )
+
+end
+
+---------------------------------------------------
+-- Raid Leadership Changed
+---------------------------------------------------
+
+function LootCouncil.Session:OnRaidLeaderChanged()
+
+    if not self:IsActive() then
+        return
+    end
+
+    local raidLeader =
+        self:GetRaidLeader()
+
+    local owner =
+        self:GetOwner()
+
+    LootCouncil:Print(
+        "Raid leadership changed: " ..
+        tostring(owner) ..
+        " -> " ..
+        tostring(raidLeader)
     )
 
 end

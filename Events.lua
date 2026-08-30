@@ -35,6 +35,16 @@ handlers.GROUP_ROSTER_UPDATE = function()
 end
 
 ---------------------------------------------------
+-- PARTY_LEADER_CHANGED
+---------------------------------------------------
+
+handlers.PARTY_LEADER_CHANGED = function()
+
+    LootCouncil.Session:OnRaidLeaderChanged()
+
+end
+
+---------------------------------------------------
 -- Dispatcher
 ---------------------------------------------------
 
@@ -57,6 +67,7 @@ end)
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("CHAT_MSG_WHISPER")
+frame:RegisterEvent("PARTY_LEADER_CHANGED")
 
 ---------------------------------------------------
 -- CHAT_MSG_WHISPER
