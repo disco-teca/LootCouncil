@@ -51,6 +51,7 @@ Modules\Attendance.lua
 Modules\History.lua
 Modules\BiS.lua
 Modules\MessageBus.lua
+Modules\Sync.lua
 Modules\Comms.lua
 Modules\ResponseParser.lua
 Modules\Chat.lua
