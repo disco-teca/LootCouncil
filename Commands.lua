@@ -436,6 +436,20 @@ local function TestOwnershipPopup()
 end
 
 ---------------------------------------------------
+-- TEST: Session Sync Request
+---------------------------------------------------
+
+local function TestSyncRequest()
+
+    LootCouncil.Sync:RequestSessionSync()
+
+    LootCouncil:Print(
+        "Sync request sent."
+    )
+
+end
+
+---------------------------------------------------
 -- Debug Session
 ---------------------------------------------------
 
@@ -1100,6 +1114,7 @@ commands["no"] = RejectOwnershipTransfer
 commands["transfer"] = TransferOwnership
 commands["owner"] = ShowOwner
 commands["testpopup"] = TestOwnershipPopup
+commands["testsync"] = TestSyncRequest
 
 ---------------------------------------------------
 -- Slash Command

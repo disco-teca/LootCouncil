@@ -70,10 +70,6 @@ function module:RequestSessionSync()
 
 end
 
----------------------------------------------------
--- Request Handler
----------------------------------------------------
-
 function module:OnSyncRequest(
 
     message,
@@ -82,13 +78,75 @@ function module:OnSyncRequest(
 
 )
 
-    -- Intentionally empty for now.
+    LootCouncil:Print(
+        "Sync request received from " ..
+        tostring(sender)
+    )
+
+    ---------------------------------------------------
+    -- Only Session Owner Responds
+    ---------------------------------------------------
+
+    if not LootCouncil.Session:IsOwner() then
+
+        LootCouncil:Print(
+            "Sync response rejected: local client is not owner."
+        )
+
+        return
+
+    end
+
+    ---------------------------------------------------
+    -- Snapshot
+    ---------------------------------------------------
+
+    local snapshot =
+        LootCouncil.Session:Serialize()
+
+    LootCouncil:Print(
+        "Sync snapshot serialized."
+    )
+
+    ---------------------------------------------------
+    -- Create Response
+    ---------------------------------------------------
+
+    local response =
+        LootCouncil.Message:New(
+
+            RESPONSE,
+
+            {
+
+                responder =
+                    UnitName("player"),
+
+                snapshot =
+                    snapshot,
+
+            }
+
+        )
+
+    LootCouncil:Print(
+        "Sync response broadcasting to " ..
+        tostring(sender)
+    )
+
+    ---------------------------------------------------
+    -- Broadcast
+    ---------------------------------------------------
+
+    LootCouncil.MessageBus:Broadcast(
+
+        response,
+
+        UnitName("player")
+
+    )
 
 end
-
----------------------------------------------------
--- Response Handler
----------------------------------------------------
 
 function module:OnSyncResponse(
 
@@ -98,6 +156,33 @@ function module:OnSyncResponse(
 
 )
 
-    -- Intentionally empty for now.
+    LootCouncil:Print(
+        "Sync response received from " ..
+        tostring(sender)
+    )
+
+    local payload =
+        message:GetPayload()
+
+    if not payload then
+        return
+    end
+
+    if not payload.snapshot then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Apply Snapshot
+    ---------------------------------------------------
+
+    LootCouncil.Session:Deserialize(
+        payload.snapshot
+    )
+
+    LootCouncil:Print(
+        "Sync snapshot applied from " ..
+        tostring(sender)
+    )
 
 end

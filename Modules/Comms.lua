@@ -130,10 +130,19 @@ function module:Route(
 
         )
 
+    if message:GetCommand() == "SESSION_SYNC_RESPONSE" then
+
+        LootCouncil:Print(
+            "SYNC SEND: " ..
+            tostring(string.len(serialized)) ..
+            " bytes"
+        )
+
+    end
     ---------------------------------------------------
     -- Send
     ---------------------------------------------------
-
+    
     self:SendCommMessage(
 
         PREFIX,
@@ -196,13 +205,10 @@ function module:Receive(
 
     if not success then
 
-        LootCouncil:Print("--------------------------------")
-        LootCouncil:Print("DESERIALIZE FAILED")
-        LootCouncil:Print("Sender: " .. tostring(sender))
-        LootCouncil:Print("Channel: " .. tostring(channel))
-        LootCouncil:Print("Prefix: " .. tostring(prefix))
-        LootCouncil:Print("Payload:")
-        LootCouncil:Print(tostring(serialized))
+        LootCouncil:Print(
+            "Failed to deserialize message from " ..
+            tostring(sender)
+        )
 
         return
 
