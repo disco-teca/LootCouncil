@@ -2,187 +2,421 @@ LootCouncil.Sync = {}
 
 local module = LootCouncil.Sync
 
+local syncInProgress = false
+local syncStartTime = nil
+local SYNC_TIMEOUT = 10  -- seconds
+
 ---------------------------------------------------
--- Constants
+-- Message Types
 ---------------------------------------------------
 
-local REQUEST =
-    "SESSION_SYNC_REQUEST"
-
-local RESPONSE =
-    "SESSION_SYNC_RESPONSE"
+local REQUEST_RAIDER = "REQUEST_RAIDER_SYNC"
+local RESPONSE_RAIDER = "RESPONSE_RAIDER_SYNC"
+local REQUEST_COUNCIL = "REQUEST_COUNCIL_SYNC"
+local RESPONSE_COUNCIL = "RESPONSE_COUNCIL_SYNC"
+local QUERY = "SESSION_QUERY"
+local ANNOUNCE = "SESSION_ANNOUNCE"
 
 ---------------------------------------------------
 -- Initialize
 ---------------------------------------------------
 
 function module:Initialize()
-
     LootCouncil.MessageBus:Register(
-
-        REQUEST,
-
+        REQUEST_RAIDER,
         self,
-
-        self.OnSyncRequest
-
+        self.OnRaiderSyncRequest
     )
 
     LootCouncil.MessageBus:Register(
-
-        RESPONSE,
-
+        RESPONSE_RAIDER,
         self,
-
-        self.OnSyncResponse
-
+        self.OnRaiderSyncResponse
     )
 
+    LootCouncil.MessageBus:Register(
+        REQUEST_COUNCIL,
+        self,
+        self.OnCouncilSyncRequest
+    )
+
+    LootCouncil.MessageBus:Register(
+        RESPONSE_COUNCIL,
+        self,
+        self.OnCouncilSyncResponse
+    )
+
+    LootCouncil.MessageBus:Register(
+        QUERY,
+        self,
+        self.OnSessionQuery
+    )
+
+    LootCouncil.MessageBus:Register(
+        ANNOUNCE,
+        self,
+        self.OnSessionAnnounce
+    )
 end
 
 ---------------------------------------------------
--- Request
+-- Utility
 ---------------------------------------------------
 
-function module:RequestSessionSync()
-
-    local message =
-        LootCouncil.Message:New(
-
-            REQUEST,
-
-            {
-
-                requester =
-                    UnitName("player"),
-
-            }
-
-        )
-
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        UnitName("player")
-
-    )
-
+function module:IsSyncStale()
+    if not syncInProgress then
+        return false
+    end
+    if not syncStartTime then
+        return true
+    end
+    return (time() - syncStartTime) > SYNC_TIMEOUT
 end
 
-function module:OnSyncRequest(
+function module:ClearSyncLock()
+    syncInProgress = false
+    syncStartTime = nil
+end
 
-    message,
+---------------------------------------------------
+-- Session Query (Discovery)
+---------------------------------------------------
 
-    sender
-
-)
-
-    LootCouncil:Print(
-        "Sync request received from " ..
-        tostring(sender)
-    )
-
-    ---------------------------------------------------
-    -- Only Session Owner Responds
-    ---------------------------------------------------
-
-    if not LootCouncil.Session:IsOwner() then
-
-        LootCouncil:Print(
-            "Sync response rejected: local client is not owner."
-        )
-
+function module:RequestSessionQuery()
+    if LootCouncil.Session:IsActive() then
+        LootCouncil:Print("You already have an active session.")
         return
-
     end
 
-    ---------------------------------------------------
-    -- Snapshot
-    ---------------------------------------------------
-
-    local snapshot =
-        LootCouncil.Session:Serialize()
-
-    LootCouncil:Print(
-        "Sync snapshot serialized."
+    local message = LootCouncil.Message:New(
+        QUERY,
+        {
+            requester = UnitName("player"),
+            timestamp = time(),
+        }
     )
 
-    ---------------------------------------------------
-    -- Create Response
-    ---------------------------------------------------
-
-    local response =
-        LootCouncil.Message:New(
-
-            RESPONSE,
-
-            {
-
-                responder =
-                    UnitName("player"),
-
-                snapshot =
-                    snapshot,
-
-            }
-
-        )
-
-    LootCouncil:Print(
-        "Sync response broadcasting to " ..
-        tostring(sender)
-    )
-
-    ---------------------------------------------------
-    -- Broadcast
-    ---------------------------------------------------
-
-    LootCouncil.MessageBus:Broadcast(
-
-        response,
-
-        UnitName("player")
-
-    )
-
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+    LootCouncil:Print("Checking for active loot session...")
 end
 
-function module:OnSyncResponse(
+function module:OnSessionQuery(message, sender)
+    -- Only the session owner responds
+    if not LootCouncil.Session:IsOwner() then
+        return
+    end
 
-    message,
+    if not LootCouncil.Session:IsActive() then
+        return
+    end
 
-    sender
+    if sender == UnitName("player") then
+        return
+    end
 
-)
-
-    LootCouncil:Print(
-        "Sync response received from " ..
-        tostring(sender)
+    local announce = LootCouncil.Message:New(
+        ANNOUNCE,
+        {
+            owner = LootCouncil.Session:GetOwner(),
+            timestamp = time(),
+        }
     )
 
-    local payload =
-        message:GetPayload()
+    LootCouncil.MessageBus:Route(announce, sender)
+    LootCouncil:Print("Announced session existence to " .. sender)
+end
 
+function module:OnSessionAnnounce(message, sender)
+    local payload = message:GetPayload()
+    if not payload or not payload.owner then
+        return
+    end
+
+    if LootCouncil.Session:IsActive() then
+        module:ClearSyncLock()
+        return
+    end
+
+    if payload.owner == UnitName("player") then
+        module:ClearSyncLock()
+        return
+    end
+
+    if syncInProgress then
+        LootCouncil:Print("Sync already in progress. Please wait.")
+        return
+    end
+
+    LootCouncil:Print("Session exists! Owner: " .. payload.owner)
+    LootCouncil:Print("Requesting sync...")
+
+    syncInProgress = true
+    syncStartTime = time()
+
+    local role = LootCouncil.Permissions:GetRole(UnitName("player"))
+    if role == LootCouncil.Permissions.Role.COUNCIL then
+        module:RequestCouncilSync()
+    else
+        module:RequestRaiderSync()
+    end
+end
+
+---------------------------------------------------
+-- Manual Sync Entry Point
+---------------------------------------------------
+
+function module:RequestSync()
+    local playerName = UnitName("player")
+
+    if syncInProgress then
+        if module:IsSyncStale() then
+            module:ClearSyncLock()
+            LootCouncil:Print("Cleared stale sync lock.")
+        else
+            LootCouncil:Print("Sync already in progress. Please wait.")
+            return
+        end
+    end
+
+    if LootCouncil.Session:IsOwner() then
+        LootCouncil:Print("You are the session owner. No sync needed.")
+        return
+    end
+
+    if not LootCouncil.Session:IsActive() then
+        syncInProgress = true
+        syncStartTime = time()
+        LootCouncil:Print("No local session. Checking for active session...")
+        module:RequestSessionQuery()
+        return
+    end
+
+    local role = LootCouncil.Permissions:GetRole(playerName)
+    if role == LootCouncil.Permissions.Role.COUNCIL then
+        module:RequestCouncilSync()
+    else
+        module:RequestRaiderSync()
+    end
+end
+
+---------------------------------------------------
+-- Raider Sync
+---------------------------------------------------
+
+function module:RequestRaiderSync()
+    if LootCouncil.Session:IsOwner() then
+        return
+    end
+
+    local message = LootCouncil.Message:New(
+        REQUEST_RAIDER,
+        {
+            requester = UnitName("player"),
+            timestamp = time(),
+        }
+    )
+
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+    LootCouncil:Print("Requesting raider sync...")
+end
+
+function module:OnRaiderSyncRequest(message, sender)
+    if not LootCouncil.Session:IsOwner() then
+        return
+    end
+
+    if not LootCouncil.Session:IsActive() then
+        return
+    end
+
+    if sender == UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Generating raider snapshot for " .. sender)
+
+    local snapshot = LootCouncil.Session:SerializeRaiderSnapshot(sender)
+    if not snapshot then
+        LootCouncil:Print("Failed to generate raider snapshot for " .. sender)
+        return
+    end
+
+    local response = LootCouncil.Message:New(
+        RESPONSE_RAIDER,
+        {
+            target = sender,
+            responder = UnitName("player"),
+            snapshot = snapshot,
+        }
+    )
+
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent raider sync to " .. sender)
+end
+
+function module:OnRaiderSyncResponse(message, sender)
+    LootCouncil:Print("DEBUG: OnRaiderSyncResponse - Received")
+
+    local payload = message:GetPayload()
     if not payload then
+        LootCouncil:Print("DEBUG: No payload")
+        module:ClearSyncLock()
+        return
+    end
+
+    if payload.target and payload.target ~= UnitName("player") then
+        LootCouncil:Print("DEBUG: Message for " .. payload.target .. ", ignoring")
         return
     end
 
     if not payload.snapshot then
+        LootCouncil:Print("DEBUG: No snapshot")
+        module:ClearSyncLock()
         return
     end
 
-    ---------------------------------------------------
-    -- Apply Snapshot
-    ---------------------------------------------------
+    if LootCouncil.Session:IsOwner() then
+        module:ClearSyncLock()
+        return
+    end
 
-    LootCouncil.Session:Deserialize(
-        payload.snapshot
+    LootCouncil:Print("Applying raider snapshot...")
+
+    local success = LootCouncil.Session:DeserializeRaiderSnapshot(
+        payload.snapshot,
+        UnitName("player")
     )
 
-    LootCouncil:Print(
-        "Sync snapshot applied from " ..
-        tostring(sender)
+    if success then
+        LootCouncil:Print("Raider sync complete from " .. sender)
+    else
+        LootCouncil:Print("Failed to apply raider sync from " .. sender)
+    end
+
+    module:ClearSyncLock()
+end
+
+---------------------------------------------------
+-- Council Sync
+---------------------------------------------------
+
+function module:RequestCouncilSync()
+    if LootCouncil.Session:IsOwner() then
+        return
+    end
+
+    local message = LootCouncil.Message:New(
+        REQUEST_COUNCIL,
+        {
+            requester = UnitName("player"),
+            timestamp = time(),
+        }
     )
 
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+    LootCouncil:Print("Requesting council sync...")
+end
+
+function module:OnCouncilSyncRequest(message, sender)
+    if not LootCouncil.Session:IsOwner() then
+        return
+    end
+
+    if not LootCouncil.Session:IsActive() then
+        return
+    end
+
+    if sender == UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Generating council snapshot for " .. sender)
+
+    local snapshot = LootCouncil.Session:SerializeCouncilSnapshot()
+    if not snapshot then
+        LootCouncil:Print("Failed to generate council snapshot for " .. sender)
+        return
+    end
+
+    local response = LootCouncil.Message:New(
+        RESPONSE_COUNCIL,
+        {
+            target = sender,
+            responder = UnitName("player"),
+            snapshot = snapshot,
+        }
+    )
+
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent council sync to " .. sender)
+end
+
+function module:OnCouncilSyncResponse(message, sender)
+    LootCouncil:Print("DEBUG: OnCouncilSyncResponse - Received")
+
+    local payload = message:GetPayload()
+    if not payload then
+        LootCouncil:Print("DEBUG: No payload")
+        module:ClearSyncLock()
+        return
+    end
+
+    if payload.target and payload.target ~= UnitName("player") then
+        LootCouncil:Print("DEBUG: Message for " .. payload.target .. ", ignoring")
+        return
+    end
+
+    if not payload.snapshot then
+        LootCouncil:Print("DEBUG: No snapshot")
+        module:ClearSyncLock()
+        return
+    end
+
+    if LootCouncil.Session:IsOwner() then
+        module:ClearSyncLock()
+        return
+    end
+
+    LootCouncil:Print("Applying council snapshot...")
+
+    local success = LootCouncil.Session:DeserializeCouncilSnapshot(payload.snapshot)
+
+    if success then
+        LootCouncil:Print("Council sync complete from " .. sender)
+        LootCouncil:Print("Requesting gear data...")
+        LootCouncil.Sync:RequestGearForAllItems()
+    else
+        LootCouncil:Print("Failed to apply council sync from " .. sender)
+    end
+
+    module:ClearSyncLock()
+end
+
+---------------------------------------------------
+-- Gear Request Helper
+---------------------------------------------------
+
+function module:RequestGearForAllItems()
+    if not LootCouncil.Session:IsActive() then
+        return
+    end
+
+    local sessionItems = LootCouncil.Session:GetItems()
+
+    for itemIndex, item in ipairs(sessionItems) do
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item)
+
+        for _, applicant in ipairs(item:GetApplicants()) do
+            local playerName = applicant:GetPlayer():GetName()
+            local message = LootCouncil.Message:New(
+                "GEAR_REQUEST",
+                {
+                    target = playerName,
+                    itemIndex = itemIndex,
+                    slots = comparisonSlots,
+                }
+            )
+            LootCouncil.MessageBus:Route(message, UnitName("player"))
+        end
+    end
 end

@@ -22,9 +22,9 @@ function LootCouncil:Initialize()
 
     self.Permissions:Initialize()
 
-    self.Sync:Initialize()
-
     self.Comms:Initialize()
+
+    self.Sync:Initialize()
 
     ---------------------------------------------------
     -- Restore Persistent State

@@ -1115,6 +1115,9 @@ commands["transfer"] = TransferOwnership
 commands["owner"] = ShowOwner
 commands["testpopup"] = TestOwnershipPopup
 commands["testsync"] = TestSyncRequest
+commands["sync"] = function(arguments)
+    LootCouncil.Sync:RequestSync()
+end
 
 ---------------------------------------------------
 -- Slash Command
