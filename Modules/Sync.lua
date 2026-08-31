@@ -57,6 +57,7 @@ function module:Initialize()
         self,
         self.OnSessionAnnounce
     )
+
 end
 
 ---------------------------------------------------
@@ -132,27 +133,32 @@ function module:OnSessionAnnounce(message, sender)
         return
     end
 
+    -- Ignore if we already have a local session
     if LootCouncil.Session:IsActive() then
-        module:ClearSyncLock()
+        syncInProgress = false
         return
     end
 
+    -- Ignore if we're the owner (shouldn't happen)
     if payload.owner == UnitName("player") then
-        module:ClearSyncLock()
+        syncInProgress = false
         return
     end
 
+    -- If sync is already in progress, this is a continuation, not a duplicate
+    -- The first request (SESSION_QUERY) triggered this response
     if syncInProgress then
-        LootCouncil:Print("Sync already in progress. Please wait.")
-        return
+        -- Don't return! Continue to the sync request below.
+    else
+        -- First time we're hearing about this session
+        syncInProgress = true
+        syncStartTime = time()
     end
 
     LootCouncil:Print("Session exists! Owner: " .. payload.owner)
     LootCouncil:Print("Requesting sync...")
 
-    syncInProgress = true
-    syncStartTime = time()
-
+    -- Directly request the appropriate sync
     local role = LootCouncil.Permissions:GetRole(UnitName("player"))
     if role == LootCouncil.Permissions.Role.COUNCIL then
         module:RequestCouncilSync()
@@ -255,22 +261,18 @@ function module:OnRaiderSyncRequest(message, sender)
 end
 
 function module:OnRaiderSyncResponse(message, sender)
-    LootCouncil:Print("DEBUG: OnRaiderSyncResponse - Received")
 
     local payload = message:GetPayload()
     if not payload then
-        LootCouncil:Print("DEBUG: No payload")
         module:ClearSyncLock()
         return
     end
 
     if payload.target and payload.target ~= UnitName("player") then
-        LootCouncil:Print("DEBUG: Message for " .. payload.target .. ", ignoring")
         return
     end
 
     if not payload.snapshot then
-        LootCouncil:Print("DEBUG: No snapshot")
         module:ClearSyncLock()
         return
     end
@@ -332,7 +334,7 @@ function module:OnCouncilSyncRequest(message, sender)
 
     LootCouncil:Print("Generating council snapshot for " .. sender)
 
-    local snapshot = LootCouncil.Session:SerializeCouncilSnapshot()
+    local snapshot = LootCouncil.Session:SerializeCouncilSnapshot(sender)
     if not snapshot then
         LootCouncil:Print("Failed to generate council snapshot for " .. sender)
         return
@@ -352,22 +354,18 @@ function module:OnCouncilSyncRequest(message, sender)
 end
 
 function module:OnCouncilSyncResponse(message, sender)
-    LootCouncil:Print("DEBUG: OnCouncilSyncResponse - Received")
 
     local payload = message:GetPayload()
     if not payload then
-        LootCouncil:Print("DEBUG: No payload")
         module:ClearSyncLock()
         return
     end
 
     if payload.target and payload.target ~= UnitName("player") then
-        LootCouncil:Print("DEBUG: Message for " .. payload.target .. ", ignoring")
         return
     end
 
     if not payload.snapshot then
-        LootCouncil:Print("DEBUG: No snapshot")
         module:ClearSyncLock()
         return
     end

@@ -173,43 +173,28 @@ end
 ---------------------------------------------------
 
 function Bus:Publish(
-
     message,
-
     sender
-
 )
 
     if not message then
         return
     end
 
-    local handlers =
+    local command = message:GetCommand()
 
-        self.handlers[
-            message:GetCommand()
-        ]
+    local handlers = self.handlers[command]
 
     if not handlers then
         return
     end
 
-    for _, listener in ipairs(
-
-        handlers
-
-    ) do
-
+    for _, listener in ipairs(handlers) do
         listener.callback(
-
             listener.owner,
-
             message,
-
             sender
-
         )
-
     end
 
 end

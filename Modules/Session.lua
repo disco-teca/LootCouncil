@@ -3425,6 +3425,7 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
 end
 
 function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
+
     if not snapshot then
         return false
     end
@@ -3502,10 +3503,12 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     return true
 end
 
-function LootCouncil.Session:SerializeCouncilSnapshot()
-    -- Use the existing Serialize() function for full state
-    -- This is the same data council members need
-    return self:Serialize()
+function LootCouncil.Session:SerializeCouncilSnapshot(requester)
+    local snapshot = self:Serialize()
+    if snapshot and requester then
+        snapshot.role = self:GetRole(requester) or LootCouncil.Permissions.Role.COUNCIL
+    end
+    return snapshot
 end
 
 function LootCouncil.Session:DeserializeCouncilSnapshot(snapshot)

@@ -1089,6 +1089,11 @@ local function ShowOwner()
 
 end
 
+local function ClearSyncLock()
+    LootCouncil.Sync:ClearSyncLock()
+    LootCouncil:Print("Sync lock cleared.")
+end
+
 ---------------------------------------------------
 -- Command Table
 ---------------------------------------------------
@@ -1118,6 +1123,7 @@ commands["testsync"] = TestSyncRequest
 commands["sync"] = function(arguments)
     LootCouncil.Sync:RequestSync()
 end
+commands["clearsync"] = ClearSyncLock
 
 ---------------------------------------------------
 -- Slash Command
