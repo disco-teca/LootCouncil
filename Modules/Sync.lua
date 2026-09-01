@@ -284,13 +284,23 @@ function module:OnRaiderSyncResponse(message, sender)
 
     LootCouncil:Print("Applying raider snapshot...")
 
-    local success = LootCouncil.Session:DeserializeRaiderSnapshot(
+        local success = LootCouncil.Session:DeserializeRaiderSnapshot(
         payload.snapshot,
         UnitName("player")
     )
 
     if success then
         LootCouncil:Print("Raider sync complete from " .. sender)
+        
+        -- Tell the owner that we've joined the session
+        local announceMessage = LootCouncil.Message:New(
+            "PLAYER_JOINED",
+            {
+                player = UnitName("player"),
+                timestamp = time(),
+            }
+        )
+        LootCouncil.MessageBus:Route(announceMessage, UnitName("player"))
     else
         LootCouncil:Print("Failed to apply raider sync from " .. sender)
     end
@@ -377,19 +387,24 @@ function module:OnCouncilSyncResponse(message, sender)
 
     LootCouncil:Print("Applying council snapshot...")
 
-        local success = LootCouncil.Session:DeserializeCouncilSnapshot(payload.snapshot)
+    local success = LootCouncil.Session:DeserializeCouncilSnapshot(payload.snapshot)
 
     -- Force the requester to RAIDER if they're not the owner
     local playerName = UnitName("player")
     if success and playerName ~= LootCouncil.Session:GetOwner() then
         LootCouncil.Permissions:SetRole(playerName, LootCouncil.Permissions.Role.RAIDER)
         LootCouncil:Print("Forced " .. playerName .. " to RAIDER")
-    end
+    
 
-    if success then
-        LootCouncil:Print("Council sync complete from " .. sender)
-        LootCouncil:Print("Requesting gear data...")
-        LootCouncil.Sync:RequestGearForAllItems()
+            -- Tell the owner that we've joined the session
+        local announceMessage = LootCouncil.Message:New(
+            "PLAYER_JOINED",
+            {
+                player = UnitName("player"),
+                timestamp = time(),
+            }
+        )
+        LootCouncil.MessageBus:Route(announceMessage, UnitName("player"))
     else
         LootCouncil:Print("Failed to apply council sync from " .. sender)
     end

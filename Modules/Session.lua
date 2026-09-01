@@ -3218,6 +3218,16 @@ function LootCouncil.Session:Initialize()
 
     )
 
+    LootCouncil.MessageBus:Register(
+
+        "PLAYER_JOINED",
+
+        self,
+
+        self.OnPlayerJoinedMessage
+        
+    )
+
 end
 
 function LootCouncil.Session:OnVoteMessage(
@@ -3389,6 +3399,45 @@ function LootCouncil.Session:OnSessionStateMessage(
 
     LootCouncil.UI.SettingsTab:Refresh()
 
+end
+
+function LootCouncil.Session:OnPlayerJoinedMessage(message, sender)
+    if not self:IsOwner() then
+        return
+    end
+    
+    if not self:IsActive() then
+        return
+    end
+    
+    local payload = message:GetPayload()
+    if not payload or not payload.player then
+        return
+    end
+    
+    local playerName = payload.player
+    
+    -- Check if player is already in the session
+    if self:FindPlayer(playerName) then
+        return
+    end
+    
+    -- Add the player to the session
+    local player = LootCouncil.Player:New(playerName, "UNKNOWN")
+    self:AddPlayer(player)
+    
+    -- Add them as an applicant to all items
+    for _, item in ipairs(self:GetItems()) do
+        self:InitializeApplicants(item)
+    end
+    
+    -- Save and refresh
+    LootCouncil.Persistence:Save()
+    LootCouncil.UI.TabManager:Refresh()
+    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.LootTab:Refresh()
+    
+    LootCouncil:Print(playerName .. " joined the session")
 end
 
 ---------------------------------------------------
