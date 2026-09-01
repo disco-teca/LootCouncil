@@ -3225,7 +3225,7 @@ function LootCouncil.Session:Initialize()
         self,
 
         self.OnPlayerJoinedMessage
-        
+
     )
 
 end
@@ -3457,14 +3457,12 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
         items = {},
     }
 
-    -- Items: minimal data only
+        -- Items: minimal data only (stripped for network size)
     for _, item in ipairs(self:GetItems()) do
         table.insert(snapshot.items, {
             number = item:GetNumber(),
             id = item:GetID(),
-            name = item:GetName(),
-            link = item:GetLink(),
-            ilvl = item:GetItemLevel(),
+            -- name, link, ilvl removed - client will fetch these locally
             awarded = item:IsAwarded(),
             winner = item:GetWinner(),
         })
