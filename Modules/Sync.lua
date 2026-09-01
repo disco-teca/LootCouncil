@@ -377,7 +377,14 @@ function module:OnCouncilSyncResponse(message, sender)
 
     LootCouncil:Print("Applying council snapshot...")
 
-    local success = LootCouncil.Session:DeserializeCouncilSnapshot(payload.snapshot)
+        local success = LootCouncil.Session:DeserializeCouncilSnapshot(payload.snapshot)
+
+    -- Force the requester to RAIDER if they're not the owner
+    local playerName = UnitName("player")
+    if success and playerName ~= LootCouncil.Session:GetOwner() then
+        LootCouncil.Permissions:SetRole(playerName, LootCouncil.Permissions.Role.RAIDER)
+        LootCouncil:Print("Forced " .. playerName .. " to RAIDER")
+    end
 
     if success then
         LootCouncil:Print("Council sync complete from " .. sender)
