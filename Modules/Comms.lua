@@ -22,7 +22,7 @@ function module:Initialize()
         LibStub("AceComm-3.0")
 
     self.Serializer =
-        LibStub("AceSerializer-3.0")
+        LibStub("LibSerialize")
 
     ---------------------------------------------------
     -- Embed AceComm
