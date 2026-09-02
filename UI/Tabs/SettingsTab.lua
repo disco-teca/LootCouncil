@@ -183,7 +183,6 @@ end
 
 function view:CreateRow(
     playerName,
-    role,
     index
 )
 
@@ -228,110 +227,6 @@ function view:CreateRow(
                 text = role
             }
         )
-
-    ---------------------------------------------------
-    -- Council Toggle
-    ---------------------------------------------------
-
-    row.council =
-        LootCouncil.UI.Widgets.Button:Create(
-            self.scrollContent,
-            {
-                width = 20,
-                height = 20,
-                text = ""
-            }
-        )
-
-    row.council:SetPoint(
-        "TOPLEFT",
-        self.scrollContent,
-        "TOPLEFT",
-        220,
-        -(
-            index * 25
-        )
-    )
-
-    ---------------------------------------------------
-    -- Current State
-    ---------------------------------------------------
-
-    local isCouncil =
-        role ==
-        LootCouncil.Permissions.Role.COUNCIL
-
-    if isCouncil then
-
-        row.council:SetText(
-            "✓"
-        )
-
-    else
-
-        row.council:SetText(
-            ""
-        )
-
-    end
-
-    ---------------------------------------------------
-    -- Permission
-    ---------------------------------------------------
-
-    local canManage =
-        LootCouncil.Permissions:CanManageRoles(
-            UnitName("player")
-        )
-
-    ---------------------------------------------------
-    -- Owner Lock
-    ---------------------------------------------------
-
-    local isOwner =
-        playerName ==
-        UnitName("player")
-
-    if isOwner then
-
-        row.council:SetText(
-            "✓"
-        )
-
-        row.council:Disable()
-
-        LootCouncil.Permissions:SetRole(
-            playerName,
-            LootCouncil.Permissions.Role.COUNCIL
-        )
-
-    elseif canManage then
-
-        row.council:Enable()
-
-        row.council:SetScript(
-            "OnClick",
-            function()
-
-                local success =
-                    LootCouncil.Permissions:ToggleCouncil(
-                        playerName
-                    )
-
-                if success then
-
-                    view:Refresh()
-
-                end
-
-            end
-        )
-
-    else
-
-        row.council:Disable()
-
-    end
 
     return row
 
@@ -392,15 +287,9 @@ function view:Refresh()
 
     for index, playerName in ipairs(names) do
 
-        local role =
-            LootCouncil.Permissions:GetRole(
-                playerName
-            )
-
         local row =
             self:CreateRow(
                 playerName,
-                role or LootCouncil.Permissions.Role.RAIDER,
                 index
             )
 

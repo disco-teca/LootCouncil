@@ -77,7 +77,6 @@ local function StartSession()
             "START",
             {
                 owner = UnitName("player"),
-                roles = LootCouncil.Session:GetRoles()
             }
         )
 

@@ -470,8 +470,6 @@ function LootCouncil.Session:Serialize()
 
             items = {},
 
-            roles = {},
-
             selectedItem = nil,
 
             nextItemNumber = nil,
@@ -505,9 +503,6 @@ function LootCouncil.Session:Serialize()
 
         gear =
             self:SerializeGear(),
-
-        roles =
-            self:SerializeRoles(),
 
         nextItemNumber =
             session.nextItemNumber,
@@ -549,27 +544,6 @@ end
 ---------------------------------------------------
 -- Role Persistence
 ---------------------------------------------------
-
-function LootCouncil.Session:SerializeRoles()
-
-    if not session then
-        return {}
-    end
-
-    local roles = {}
-
-    for playerName, role in pairs(
-        session.roles or {}
-    ) do
-
-        roles[playerName] =
-            role
-
-    end
-
-    return roles
-
-end
 
 function LootCouncil.Session:SerializeItems()
 
@@ -844,34 +818,6 @@ end
 -- Deserialize Roles
 ---------------------------------------------------
 
-function LootCouncil.Session:DeserializeRoles(data)
-
-    if not session then
-        return
-    end
-
-    session.roles = {}
-
-    if not data then
-        return
-    end
-
-    for playerName, role in pairs(data) do
-
-        if role ==
-            LootCouncil.Permissions.Role.COUNCIL
-        or role ==
-            LootCouncil.Permissions.Role.RAIDER then
-
-            session.roles[playerName] =
-                role
-
-        end
-
-    end
-
-end
-
 ---------------------------------------------------
 -- Loading
 ---------------------------------------------------
@@ -965,14 +911,6 @@ function LootCouncil.Session:Deserialize(data)
         end
 
     end
-
-    ---------------------------------------------------
-    -- Restore Roles
-    ---------------------------------------------------
-
-    self:DeserializeRoles(
-        data.roles
-    )
 
     ---------------------------------------------------
     -- Restore Items
@@ -1224,25 +1162,6 @@ function LootCouncil.Session:Begin(
     self:Start()
 
     ---------------------------------------------------
-    -- Apply Owner Roles
-    ---------------------------------------------------
-
-    if roles then
-
-        session.roles = {}
-
-        for playerName, role in pairs(
-            roles
-        ) do
-
-            session.roles[playerName] =
-                role
-
-        end
-
-    end
-
-    ---------------------------------------------------
     -- Persist Authoritative State
     ---------------------------------------------------
 
@@ -1285,8 +1204,6 @@ function LootCouncil.Session:Start()
     ---------------------------------------------------
     -- Initialize Roles
     ---------------------------------------------------
-
-    self:InitializeRoles()
 
     self:BroadcastState()
 
@@ -1445,89 +1362,13 @@ end
 -- Initialize Roles
 ---------------------------------------------------
 
-function LootCouncil.Session:InitializeRoles()
-
-    if not session then
-        return
-    end
-
-    ---------------------------------------------------
-    -- Clear Existing Roles
-    ---------------------------------------------------
-
-    session.roles = {}
-
-    ---------------------------------------------------
-    -- Initialize From Pre-Session Assignments
-    ---------------------------------------------------
-
-    local permissionsDB =
-        LootCouncilDB.Permissions
-
-    local players =
-        permissionsDB.Players
-
-    for _, player in ipairs(session.players) do
-
-        local playerName =
-            player:GetName()
-
-        local role =
-            LootCouncil.Permissions.Role.RAIDER
-
-        local permissionPlayer =
-            players[playerName]
-
-        if permissionPlayer
-        and permissionPlayer.role then
-
-            role =
-                permissionPlayer.role
-
-        end
-
-        session.roles[playerName] =
-            role
-
-    end
-
-    ---------------------------------------------------
-    -- Session Owner Is Always Council
-    ---------------------------------------------------
-
-    local owner =
-        self:GetOwner()
-
-    if owner then
-
-        session.roles[owner] =
-            LootCouncil.Permissions.Role.COUNCIL
-
-        LootCouncil.Permissions:SetRole(
-            owner,
-            LootCouncil.Permissions.Role.COUNCIL
-        )
-
-    end
-
-end
-
 ---------------------------------------------------
 -- Get Role
 ---------------------------------------------------
 
 function LootCouncil.Session:GetRole(playerName)
-
-    if not session then
-        return nil
-    end
-
-    if not session.roles then
-        return nil
-    end
-
-    return session.roles[playerName]
-
+    -- Roles are temporarily disabled. Everyone is RAIDER.
+    return LootCouncil.Permissions.Role.RAIDER
 end
 
 ---------------------------------------------------
@@ -1535,13 +1376,8 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:GetRoles()
-
-    if not session then
-        return {}
-    end
-
-    return session.roles or {}
-
+    -- Roles are temporarily disabled
+    return {}
 end
 
 ---------------------------------------------------
@@ -3118,15 +2954,15 @@ function LootCouncil.Session:Initialize()
 
     )
 
-    LootCouncil.MessageBus:Register(
+    -- LootCouncil.MessageBus:Register(
 
-        "SESSION_STATE",
+    --    "SESSION_STATE",
 
-        self,
+    --   self,
 
-        self.OnSessionStateMessage
+    --    self.OnSessionStateMessage
 
-    )
+    --)
 
     LootCouncil.MessageBus:Register(
 
@@ -3318,7 +3154,6 @@ function LootCouncil.Session:BroadcastState()
             "SESSION_STATE",
             {
                 owner = self:GetOwner(),
-                roles = self:GetRoles(),
             }
         )
 
@@ -3332,74 +3167,6 @@ end
 ---------------------------------------------------
 -- Session State Message
 ---------------------------------------------------
-
-function LootCouncil.Session:OnSessionStateMessage(
-
-    message,
-
-    sender
-
-)
-
-    if not session then
-        return
-    end
-
-    local payload =
-        message:GetPayload()
-
-    if not payload then
-        return
-    end
-
-    ---------------------------------------------------
-    -- Authority
-    ---------------------------------------------------
-
-    if payload.owner ~= sender then
-        return
-    end
-
-    if sender ~= self:GetOwner() then
-        return
-    end
-
-    ---------------------------------------------------
-    -- Apply Owner Roles
-    ---------------------------------------------------
-
-    if payload.roles then
-
-        session.roles = {}
-
-        for playerName, role in pairs(
-            payload.roles
-        ) do
-
-            session.roles[playerName] =
-                role
-
-        end
-
-    end
-
-    ---------------------------------------------------
-    -- Persist Corrected Session
-    ---------------------------------------------------
-
-    LootCouncil.Persistence:Save()
-
-    ---------------------------------------------------
-    -- Refresh UI
-    ---------------------------------------------------
-
-    LootCouncil.UI.NavigationTabManager:Refresh()
-
-    LootCouncil.UI.VotingTab:Refresh()
-
-    LootCouncil.UI.SettingsTab:Refresh()
-
-end
 
 function LootCouncil.Session:OnPlayerJoinedMessage(message, sender)
     if not self:IsOwner() then
@@ -3452,7 +3219,6 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
     local snapshot = {
         version = 1,
         owner = self:GetOwner(),
-        role = self:GetRole(requester) or LootCouncil.Permissions.Role.RAIDER,
         selectedItem = self:GetSelectedIndex(),
         items = {},
     }
@@ -3462,9 +3228,6 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
         table.insert(snapshot.items, {
             number = item:GetNumber(),
             id = item:GetID(),
-            -- name, link, ilvl removed - client will fetch these locally
-            awarded = item:IsAwarded(),
-            winner = item:GetWinner(),
         })
     end
 
@@ -3472,7 +3235,6 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
 end
 
 function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
-
     if not snapshot then
         return false
     end
@@ -3487,69 +3249,32 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     session.started = time()
     session.nextItemNumber = #snapshot.items + 1
 
-        -- Restore roster from local raid data (not from sync)
+    -- Restore roster from local raid data
     LootCouncil.Roster:Refresh()
-    
-    -- MERGE: Keep existing session players, add any new ones from the local roster
-    -- This is the critical fix for players joining mid-session
-    local existingNames = {}
-    for _, player in ipairs(session.players or {}) do
-        existingNames[player:GetName()] = true
-    end
-    
+    session.players = {}
     for _, player in ipairs(LootCouncil.Roster:GetPlayers()) do
-        if not existingNames[player:GetName()] then
-            table.insert(session.players, player)
-            LootCouncil:Print("Added " .. player:GetName() .. " to session roster during sync")
-        end
+        table.insert(session.players, player)
     end
     
     -- Ensure the requester is in the roster (safety net)
     if requester and not self:FindPlayer(requester) then
-        LootCouncil:Print("DEBUG: Requester not in roster, adding them...")
         local player = LootCouncil.Player:New(requester, "UNKNOWN")
         table.insert(session.players, player)
     end
 
-    -- Restore roles: all raiders by default, owner is council
-    session.roles = {}
-    for _, player in ipairs(session.players) do
-        local playerName = player:GetName()
-        if playerName == session.owner then
-            session.roles[playerName] = LootCouncil.Permissions.Role.COUNCIL
-        else
-            session.roles[playerName] = LootCouncil.Permissions.Role.RAIDER
-        end
-    end
+    -- NO ROLES — Everyone is equal
 
-        -- Override requester's role if provided
-    if snapshot.role and requester then
-        session.roles[requester] = snapshot.role
-    end
-    
-    -- If the requester is not the owner, force them to RAIDER
-    if requester and requester ~= session.owner then
-        session.roles[requester] = LootCouncil.Permissions.Role.RAIDER
-        LootCouncil.Permissions:SetRole(requester, LootCouncil.Permissions.Role.RAIDER)
-        LootCouncil:Print("DEBUG: Forced " .. requester .. " to RAIDER")
-    end
-
-    -- Restore items (no applicants yet)
+    -- Restore items
     session.items = {}
     for _, itemData in ipairs(snapshot.items or {}) do
+        local name, link, _, ilvl = GetItemInfo(itemData.id)
         local item = LootCouncil.LootItem:New({
             id = itemData.id,
             number = itemData.number,
-            name = itemData.name,
-            link = itemData.link,
-            ilvl = itemData.ilvl,
+            name = name or "Unknown Item",
+            link = link or "",
+            ilvl = ilvl or 0,
         })
-        if itemData.awarded then
-            item:SetAwarded(true)
-            if itemData.winner then
-                item:SetWinner(itemData.winner)
-            end
-        end
         table.insert(session.items, item)
     end
 
@@ -3571,108 +3296,5 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.LootTab:Refresh()
 
-    return true
-end
-
-function LootCouncil.Session:SerializeCouncilSnapshot(requester)
-    local snapshot = self:Serialize()
-    if snapshot and requester then
-        snapshot.role = self:GetRole(requester) or LootCouncil.Permissions.Role.COUNCIL
-    end
-    return snapshot
-end
-
-function LootCouncil.Session:DeserializeCouncilSnapshot(snapshot)
-    if not snapshot then
-        return false
-    end
-
-    -- Clear existing session
-    session = nil
-    
-    -- Create new session with the snapshot data
-    self:Create(true, snapshot.id or "COUNCIL_SYNC_" .. time())
-    
-    -- Set basic session properties
-    session.owner = snapshot.owner
-    session.started = snapshot.started or time()
-    session.nextItemNumber = snapshot.nextItemNumber or 1
-    
-    -- Restore players from the local roster (NOT from the snapshot)
-    -- This ensures the requester is included
-    LootCouncil.Roster:Refresh()
-    session.players = {}
-    for _, player in ipairs(LootCouncil.Roster:GetPlayers()) do
-        table.insert(session.players, player)
-    end
-    
-    -- Ensure the requester is in the roster
-    if snapshot.owner ~= UnitName("player") then
-        local requester = UnitName("player")
-        if not self:FindPlayer(requester) then
-            local player = LootCouncil.Player:New(requester, "UNKNOWN")
-            table.insert(session.players, player)
-        end
-    end
-    
-    -- Restore roles from the snapshot or default to RAIDER
-    session.roles = {}
-    for _, player in ipairs(session.players) do
-        local playerName = player:GetName()
-        if playerName == session.owner then
-            session.roles[playerName] = LootCouncil.Permissions.Role.COUNCIL
-        else
-            session.roles[playerName] = LootCouncil.Permissions.Role.RAIDER
-        end
-    end
-    
-    -- If the snapshot has roles, apply them
-    if snapshot.roles then
-        for playerName, role in pairs(snapshot.roles) do
-            if session.players then
-                session.roles[playerName] = role
-            end
-        end
-    end
-    
-    -- Restore items from the snapshot
-    session.items = {}
-    if snapshot.items then
-        for _, itemData in ipairs(snapshot.items) do
-            local item = LootCouncil.LootItem:New({
-                id = itemData.id,
-                number = itemData.number,
-                name = itemData.name,
-                link = itemData.link,
-                ilvl = itemData.ilvl,
-            })
-            if itemData.awarded then
-                item:SetAwarded(true)
-                if itemData.winner then
-                    item:SetWinner(itemData.winner)
-                end
-            end
-            table.insert(session.items, item)
-        end
-    end
-    
-    -- Rebuild applicants from roster
-    for _, item in ipairs(session.items) do
-        self:InitializeApplicants(item)
-    end
-    
-    -- Restore selected item
-    if snapshot.selectedItem then
-        self:SetSelectedIndex(snapshot.selectedItem)
-    elseif #session.items > 0 then
-        self:SetSelectedIndex(1)
-    end
-    
-    -- Save and refresh
-    LootCouncil.Persistence:Save()
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootTab:Refresh()
-    
     return true
 end
