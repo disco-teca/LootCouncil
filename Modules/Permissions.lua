@@ -27,7 +27,10 @@ end
 ---------------------------------------------------
 
 function permissions:CanViewTab(playerName, tabName)
-    -- Everyone can view all tabs for now
+    if tabName == "Voting" then
+        return LootCouncil.Session:IsCouncil(playerName)
+    end
+    -- All other tabs are visible to everyone
     return true
 end
 

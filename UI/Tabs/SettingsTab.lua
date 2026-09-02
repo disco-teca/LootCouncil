@@ -167,8 +167,8 @@ function view:ClearRows()
             row.role:Hide()
         end
 
-        if row.council then
-            row.council:Hide()
+        if row.councilToggle then
+            row.councilToggle:Hide()
         end
 
     end
@@ -181,55 +181,87 @@ end
 -- Create Row
 ---------------------------------------------------
 
-function view:CreateRow(
-    playerName,
-    index
-)
-
+function view:CreateRow(playerName, index)
     local row = {}
 
     ---------------------------------------------------
     -- Player Name
     ---------------------------------------------------
 
-    row.name =
-        LootCouncil.UI.Widgets:CreateLabel(
-            self.scrollContent,
-            {
-                point = "TOPLEFT",
-                relativeTo = self.scrollContent,
-                relativePoint = "TOPLEFT",
-
-                x = 0,
-                y = -(
-                    index * 25
-                ),
-
-                text = playerName
-            }
-        )
+    row.name = LootCouncil.UI.Widgets:CreateLabel(
+        self.scrollContent,
+        {
+            point = "TOPLEFT",
+            relativeTo = self.scrollContent,
+            relativePoint = "TOPLEFT",
+            x = 0,
+            y = -(index * 25),
+            text = playerName
+        }
+    )
 
     ---------------------------------------------------
-    -- Active Role
+    -- Role Display
     ---------------------------------------------------
 
-    row.role =
-        LootCouncil.UI.Widgets:CreateLabel(
-            self.scrollContent,
-            {
-                point = "LEFT",
-                relativeTo = row.name,
-                relativePoint = "RIGHT",
+    local displayText = LootCouncil.Session:IsCouncil(playerName) and "COUNCIL" or "RAIDER"
+    
+    row.role = LootCouncil.UI.Widgets:CreateLabel(
+        self.scrollContent,
+        {
+            point = "LEFT",
+            relativeTo = row.name,
+            relativePoint = "RIGHT",
+            x = 30,
+            y = 0,
+            text = displayText
+        }
+    )
 
-                x = 30,
-                y = 0,
+    ---------------------------------------------------
+    -- Council Toggle Button
+    ---------------------------------------------------
 
-                text = role
-            }
-        )
+    local isCouncil = LootCouncil.Session:IsCouncil(playerName)
+    local isOwner = playerName == LootCouncil.Session:GetOwner()
+    
+    row.councilToggle = LootCouncil.UI.Widgets.Button:Create(
+        self.scrollContent,
+        {
+            width = 20,
+            height = 20,
+            text = isCouncil and "★" or "",
+        }
+    )
+    
+    row.councilToggle:SetPoint(
+        "TOPLEFT",
+        self.scrollContent,
+        "TOPLEFT",
+        220,
+        -(index * 25)
+    )
+    
+    -- Only the session owner can toggle others
+    -- The owner can't be demoted
+    if LootCouncil.Session:IsOwner() and not isOwner then
+        row.councilToggle:Enable()
+        row.councilToggle:SetScript("OnClick", function()
+            if LootCouncil.Session:IsCouncil(playerName) then
+                LootCouncil.Session:RemoveCouncilMember(playerName)
+            else
+                LootCouncil.Session:AddCouncilMember(playerName)
+            end
+            self:Refresh()
+        end)
+    else
+        row.councilToggle:Disable()
+        if isOwner then
+            row.councilToggle:SetText("★")  -- Owner always council
+        end
+    end
 
     return row
-
 end
 
 ---------------------------------------------------

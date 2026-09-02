@@ -173,15 +173,6 @@ function manager:Refresh()
     local playerName =
         UnitName("player")
 
-    if not LootCouncil.Permissions:CanViewTab(
-        playerName,
-        "Voting"
-    ) then
-
-        return
-
-    end
-
     local items =
         LootCouncil.Session:GetItems()
 

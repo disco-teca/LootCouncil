@@ -1151,6 +1151,8 @@ function LootCouncil.Session:Create(
 
         nextItemNumber = 1,
 
+        councilMembers = {},
+
     }
 
     if not restoring then
@@ -1403,6 +1405,137 @@ end
 function LootCouncil.Session:GetRoles()
     -- Roles are temporarily disabled
     return {}
+end
+
+---------------------------------------------------
+-- Council Check
+---------------------------------------------------
+
+function LootCouncil.Session:IsCouncil(playerName)
+    if not session then
+        return false
+    end
+    
+    -- Owner is always council
+    if playerName == self:GetOwner() then
+        return true
+    end
+    
+    if not session.councilMembers then
+        return false
+    end
+    
+    for _, name in ipairs(session.councilMembers) do
+        if name == playerName then
+            return true
+        end
+    end
+    return false
+end
+
+---------------------------------------------------
+-- Council Management
+---------------------------------------------------
+
+function LootCouncil.Session:AddCouncilMember(playerName)
+    if not session then
+        LootCouncil:Print("No active session.")
+        return false
+    end
+    
+    if not playerName or playerName == "" then
+        return false
+    end
+    
+    if not session.councilMembers then
+        session.councilMembers = {}
+    end
+    
+    if self:IsCouncil(playerName) then
+        LootCouncil:Print(playerName .. " is already council.")
+        return false
+    end
+    
+    table.insert(session.councilMembers, playerName)
+    LootCouncil.Persistence:Save()
+    self:BroadcastCouncilRoster()
+    LootCouncil:Print(playerName .. " is now council.")
+    return true
+end
+
+function LootCouncil.Session:RemoveCouncilMember(playerName)
+    if not session then
+        LootCouncil:Print("No active session.")
+        return false
+    end
+    
+    if not playerName or playerName == "" then
+        return false
+    end
+    
+    -- Owner cannot be removed
+    if playerName == self:GetOwner() then
+        LootCouncil:Print("Cannot remove the session owner from council.")
+        return false
+    end
+    
+    if not session.councilMembers then
+        return false
+    end
+    
+    for i, name in ipairs(session.councilMembers) do
+        if name == playerName then
+            table.remove(session.councilMembers, i)
+            LootCouncil.Persistence:Save()
+            self:BroadcastCouncilRoster()
+            LootCouncil:Print(playerName .. " is no longer council.")
+            return true
+        end
+    end
+    
+    LootCouncil:Print(playerName .. " is not council.")
+    return false
+end
+
+---------------------------------------------------
+-- Broadcast Council Roster
+---------------------------------------------------
+
+function LootCouncil.Session:BroadcastCouncilRoster()
+    if not session then
+        return
+    end
+    
+    local message = LootCouncil.Message:New(
+        "COUNCIL_ROSTER_UPDATE",
+        {
+            councilMembers = session.councilMembers or {},
+        }
+    )
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+end
+
+---------------------------------------------------
+-- Receive Council Roster Update
+---------------------------------------------------
+
+function LootCouncil.Session:OnCouncilRosterUpdate(message, sender)
+    local payload = message:GetPayload()
+    if not payload or not payload.councilMembers then
+        return
+    end
+    
+    if not session then
+        return
+    end
+    
+    -- Update the local council roster
+    session.councilMembers = payload.councilMembers
+    
+    -- Refresh UI
+    LootCouncil.UI.TabManager:Refresh()
+    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.SettingsTab:Refresh()
 end
 
 ---------------------------------------------------
@@ -3087,6 +3220,15 @@ function LootCouncil.Session:Initialize()
 
         self.OnPlayerJoinedMessage
 
+    )
+
+    LootCouncil.MessageBus:Register(
+        "COUNCIL_ROSTER_UPDATE",
+
+        self,
+
+        self.OnCouncilRosterUpdate
+        
     )
 
 end
