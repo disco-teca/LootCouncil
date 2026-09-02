@@ -1123,6 +1123,13 @@ commands["sync"] = function(arguments)
     LootCouncil.Sync:RequestSync()
 end
 commands["clearsync"] = ClearSyncLock
+commands["roles"] = function()
+    if LootCouncil.Session:IsOwner() and LootCouncil.Session:IsActive() then
+        StaticPopup_Show("LOOTCOUNCIL_ASSIGN_ROLES")
+    else
+        LootCouncil:Print("You must be the session owner to assign roles.")
+    end
+end
 
 ---------------------------------------------------
 -- Slash Command

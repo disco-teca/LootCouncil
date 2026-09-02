@@ -6,6 +6,26 @@ local pendingOwnershipTransfer = nil
 local pendingManualOwnershipTransfer = nil
 
 ---------------------------------------------------
+-- Role Assignment Reminder Popup
+---------------------------------------------------
+
+StaticPopupDialogs["LOOTCOUNCIL_ASSIGN_ROLES"] = {
+    text = "Session Started!\n\nDon't forget to assign roles to your Council.\n\nYou can do this in the Settings tab.",
+    button1 = "Open Settings",
+    button2 = "Dismiss",
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnAccept = function()
+        LootCouncil.UI:Show()
+        LootCouncil.UI.NavigationTabManager:Select("Settings")
+    end,
+    OnCancel = function()
+        -- Dismissed, user can reopen with /lc roles
+    end,
+}
+
+---------------------------------------------------
 -- Ownership Transfer Popup
 ---------------------------------------------------
 
@@ -1218,6 +1238,11 @@ function LootCouncil.Session:Start()
     LootCouncil.UI.NavigationTabManager:Refresh()
 
     LootCouncil.Persistence:Save()
+
+        -- Show role assignment reminder to the owner
+    if self:IsOwner() then
+        StaticPopup_Show("LOOTCOUNCIL_ASSIGN_ROLES")
+    end
 
 end
 
