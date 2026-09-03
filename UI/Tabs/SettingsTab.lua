@@ -261,6 +261,40 @@ function view:CreateRow(playerName, index)
         end
     end
 
+    ---------------------------------------------------
+    -- Gear Request Button (Council + Owner only)
+    ---------------------------------------------------
+
+    row.gearButton = LootCouncil.UI.Widgets.Button:Create(
+        self.scrollContent,
+        {
+            width = 25,
+            height = 20,
+            text = "G",
+        }
+    )
+    row.gearButton:SetPoint(
+        "LEFT",
+        row.councilToggle,
+        "RIGHT",
+        5,
+        0
+    )
+
+    -- Only council and owner can request gear
+    local canRequestGear = LootCouncil.Session:IsCouncil(UnitName("player"))
+
+    if canRequestGear and playerName ~= UnitName("player") then
+        row.gearButton:Enable()
+        row.gearButton:SetScript("OnClick", function()
+            LootCouncil.Sync:RequestGearFromPlayer(playerName)
+            LootCouncil:Print("Requesting gear from " .. playerName)
+        end)
+    else
+        row.gearButton:Disable()
+        row.gearButton:SetText("")
+    end
+
     return row
 end
 

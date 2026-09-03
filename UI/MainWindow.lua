@@ -51,12 +51,81 @@ titleBar:SetScript("OnDragStop", function()
 end)
 
 ---------------------------------------------------
--- Title
+-- Sync Button (Left side)
+---------------------------------------------------
+
+local syncButton = LootCouncil.UI.Widgets.Button:Create(
+    titleBar,
+    {
+        width = 60,
+        height = 22,
+        text = "Sync",
+    }
+)
+syncButton:SetPoint("LEFT", titleBar, "LEFT", 10, 0)
+syncButton:SetScript("OnClick", function()
+    LootCouncil.Sync:RequestSync()
+end)
+
+---------------------------------------------------
+-- Council Sync Button (Left side, next to Sync)
+---------------------------------------------------
+
+local councilButton = LootCouncil.UI.Widgets.Button:Create(
+    titleBar,
+    {
+        width = 100,
+        height = 22,
+        text = "Council Sync",
+    }
+)
+councilButton:SetPoint("LEFT", syncButton, "RIGHT", 5, 0)
+councilButton:SetScript("OnClick", function()
+    LootCouncil.Sync:RequestResponses()
+    LootCouncil.Sync:RequestVotes()
+    LootCouncil.Sync:RequestSyncGear()
+end)
+
+-- Store buttons for visibility updates
+LootCouncil.UI.MainWindow.syncButton = syncButton
+LootCouncil.UI.MainWindow.councilButton = councilButton
+
+---------------------------------------------------
+-- Refresh Buttons Visibility
+---------------------------------------------------
+
+function LootCouncil.UI.MainWindow:RefreshButtons()
+    if not self.councilButton then
+        return
+    end
+    
+    local playerName = UnitName("player")
+    if LootCouncil.Session:IsCouncil(playerName) then
+        self.councilButton:Enable()
+        self.councilButton:SetAlpha(1)
+    else
+        self.councilButton:Disable()
+        self.councilButton:SetAlpha(0.5)
+    end
+end
+
+-- Set initial visibility
+local playerName = UnitName("player")
+if LootCouncil.Session:IsCouncil(playerName) then
+    councilButton:Enable()
+    councilButton:SetAlpha(1)
+else
+    councilButton:Disable()
+    councilButton:SetAlpha(0.5)
+end
+
+---------------------------------------------------
+-- Title (Centered)
 ---------------------------------------------------
 
 local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 
-title:SetPoint("CENTER")
+title:SetPoint("CENTER", titleBar, "CENTER", 0, 0)
 title:SetText("LootCouncil v" .. LootCouncil.version)
 
 ---------------------------------------------------
@@ -140,10 +209,6 @@ toolbar:SetPoint("TOPRIGHT", itemBar, "BOTTOMRIGHT", 0, -5)
 toolbar:SetHeight(30)
 
 LootCouncil.UI.MainWindow.toolbar = toolbar
-
----------------------------------------------------
--- Workspace
----------------------------------------------------
 
 ---------------------------------------------------
 -- Workspace
@@ -259,7 +324,6 @@ settingsPanel:SetPoint(
 LootCouncil.UI.MainWindow.settingsPanel =
     settingsPanel
 
-
 ---------------------------------------------------
 -- History Panel
 ---------------------------------------------------
@@ -283,6 +347,7 @@ historyPanel:SetPoint(
 
 LootCouncil.UI.MainWindow.historyPanel =
     historyPanel
+
 ---------------------------------------------------
 -- Status Bar
 ---------------------------------------------------
