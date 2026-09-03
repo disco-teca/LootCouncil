@@ -1130,6 +1130,26 @@ commands["roles"] = function()
         LootCouncil:Print("You must be the session owner to assign roles.")
     end
 end
+commands["responses"] = function()
+    LootCouncil.Sync:RequestResponses()
+end
+commands["votes"] = function()
+    LootCouncil:Print("DEBUG: /lc votes command triggered")
+    LootCouncil.Sync:RequestVotes()
+end
+commands["gear"] = function()
+    LootCouncil.Sync:RequestGear()
+end
+commands["syncgear"] = function()
+    LootCouncil.Sync:RequestSyncGear()
+end
+commands["getgear"] = function(arguments)
+    if not arguments or arguments == "" then
+        LootCouncil:Print("Usage: /lc getgear <player>")
+        return
+    end
+    LootCouncil.Sync:RequestGearFromPlayer(arguments)
+end
 
 ---------------------------------------------------
 -- Slash Command

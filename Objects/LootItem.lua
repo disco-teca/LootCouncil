@@ -28,6 +28,8 @@ function LootItem:New(data)
     item.ilvl =
         data.ilvl
 
+    item.equipSlot = data.equipSlot 
+
     item.icon = nil
     item.quality = nil
     item.itemType = nil
@@ -88,9 +90,14 @@ function LootItem:GetQuality()
 end
 
 function LootItem:GetEquipSlot()
-
-    return self.equipSlot
-
+    if self.equipSlot then
+        return self.equipSlot
+    end
+    
+    -- If not stored, try to fetch it
+    local _, _, _, _, _, _, _, _, equipSlot = GetItemInfo(self.id)
+    self.equipSlot = equipSlot
+    return equipSlot
 end
 
 function LootItem:SetMetadata(metadata)

@@ -1198,7 +1198,6 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:Start()
-
     if not session then
         return
     end
@@ -1224,6 +1223,32 @@ function LootCouncil.Session:Start()
     end
 
     ---------------------------------------------------
+    -- Ensure the owner is in the council roster
+    ---------------------------------------------------
+
+    -- Ensure the owner is in the council roster
+    local owner = self:GetOwner()
+    if owner then
+        if not session.councilMembers then
+            session.councilMembers = {}
+        end
+    
+    -- Check if owner is already in the list
+        local ownerInList = false
+        for _, name in ipairs(session.councilMembers) do
+            if name == owner then
+                ownerInList = true
+                break
+            end
+        end
+    
+        if not ownerInList then
+            table.insert(session.councilMembers, owner)
+            LootCouncil:Print("DEBUG: Added owner to councilMembers")
+        end
+    end
+
+    ---------------------------------------------------
     -- Initialize Roles
     ---------------------------------------------------
 
@@ -1241,11 +1266,10 @@ function LootCouncil.Session:Start()
 
     LootCouncil.Persistence:Save()
 
-        -- Show role assignment reminder to the owner
+    -- Show role assignment reminder to the owner
     if self:IsOwner() then
         StaticPopup_Show("LOOTCOUNCIL_ASSIGN_ROLES")
     end
-
 end
 
 ---------------------------------------------------
@@ -1373,6 +1397,17 @@ function LootCouncil.Session:HasPlayer(name)
 
     return self:GetPlayer(name) ~= nil
 
+end
+
+---------------------------------------------------
+-- Get Council Members
+---------------------------------------------------
+
+function LootCouncil.Session:GetCouncilMembers()
+    if not session then
+        return {}
+    end
+    return session.councilMembers or {}
 end
 
 function LootCouncil.Session:ClearPlayers()
@@ -3231,6 +3266,54 @@ function LootCouncil.Session:Initialize()
         
     )
 
+    LootCouncil.MessageBus:Register(
+        "REQUEST_RESPONSES",
+        self,
+        self.OnRequestResponses
+    )
+
+    LootCouncil.MessageBus:Register(
+        "RESPONSES_DATA",
+        self,
+        self.OnResponsesData
+    )
+
+    LootCouncil.MessageBus:Register(
+        "REQUEST_VOTES",
+        self,
+        self.OnRequestVotes
+    )
+
+    LootCouncil.MessageBus:Register(
+        "VOTES_DATA",
+        self,
+        self.OnVotesData
+    )
+
+    LootCouncil.MessageBus:Register(
+        "SYNC_GEAR_REQUEST",
+        self,
+        self.OnSyncGearRequest
+    )
+
+    LootCouncil.MessageBus:Register(
+        "SYNC_GEAR_RESPONSE",
+        self,
+        self.OnSyncGearResponse
+    )
+
+    LootCouncil.MessageBus:Register(
+        "OWNER_GEAR_REQUEST",
+        self,
+        self.OnOwnerGearRequest
+    )
+
+    LootCouncil.MessageBus:Register(
+        "OWNER_GEAR_RESPONSE",
+        self,
+        self.OnOwnerGearResponse
+    )
+
 end
 
 function LootCouncil.Session:OnVoteMessage(
@@ -3300,6 +3383,288 @@ function LootCouncil.Session:OnVoteMessage(
 
     LootCouncil.UI.TabManager:Refresh()
 
+end
+
+function LootCouncil.Session:OnRequestVotes(message, sender)
+    local payload = message:GetPayload()
+    if not payload or payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Vote request received from " .. sender)
+
+    local items = self:GetItems()
+    local votes = {}
+    
+    for _, item in ipairs(items) do
+        local itemNumber = item:GetNumber()
+        votes[itemNumber] = {}
+        
+        -- Loop through all applicants for this item
+        local applicants = item:GetApplicants()
+        for _, applicant in ipairs(applicants) do
+            local playerName = applicant:GetPlayer():GetName()
+            local voterList = applicant:GetVotes()
+            if #voterList > 0 then
+                votes[itemNumber][playerName] = voterList
+            end
+        end
+    end
+
+    local response = LootCouncil.Message:New(
+        "VOTES_DATA",
+        {
+            target = sender,
+            councilMember = UnitName("player"),
+            votes = votes,
+        }
+    )
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent votes to " .. sender)
+end
+
+function LootCouncil.Session:OnVotesData(message, sender)
+    local payload = message:GetPayload()
+    if not payload or payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Received votes from " .. payload.councilMember)
+
+    for itemNumber, applicantVotes in pairs(payload.votes) do
+        local item = self:GetItemByNumber(itemNumber)
+        if item then
+            for playerName, voterList in pairs(applicantVotes) do
+                local applicant = item:FindApplicant(playerName)
+                if applicant then
+                    -- Clear existing votes and add the new ones
+                    for _, voter in ipairs(voterList) do
+                        applicant:AddVote(voter)
+                    end
+                end
+            end
+        end
+    end
+
+    LootCouncil.UI.VotingTab:Refresh()
+end
+
+function LootCouncil.Session:OnRequestResponses(message, sender)
+    local payload = message:GetPayload()
+    if not payload or payload.target ~= UnitName("player") then
+        return
+    end
+    
+    LootCouncil:Print("Response request received from " .. sender)
+    
+    -- Build responses for all items
+    local items = self:GetItems()
+    local responses = {}
+    for _, item in ipairs(items) do
+        local applicant = item:FindApplicant(UnitName("player"))
+        responses[item:GetNumber()] = applicant and applicant:GetResponse() or "PENDING"
+    end
+    
+    -- Send responses back to the requester
+    local response = LootCouncil.Message:New(
+        "RESPONSES_DATA",
+        {
+            target = sender,
+            player = UnitName("player"),
+            responses = responses,
+        }
+    )
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent responses to " .. sender)
+end
+
+function LootCouncil.Session:OnResponsesData(message, sender)
+    local payload = message:GetPayload()
+    if not payload or payload.target ~= UnitName("player") then
+        return
+    end
+    
+    LootCouncil:Print("Received responses from " .. payload.player)
+    
+    for itemNumber, response in pairs(payload.responses) do
+        local item = self:GetItemByNumber(itemNumber)
+        if item then
+            local applicant = item:FindApplicant(payload.player)
+            if applicant then
+                applicant:SetResponse(response)
+            end
+        end
+    end
+    
+    LootCouncil.UI.VotingTab:Refresh()
+end
+
+function LootCouncil.Session:OnSyncGearRequest(message, sender)
+    local payload = message:GetPayload()
+    if not payload then
+        return
+    end
+
+    if payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Sync gear request received from " .. sender)
+
+    local items = {}
+    local links = {}
+
+    for _, slotID in ipairs(payload.slots or {}) do
+        local itemID = GetInventoryItemID("player", slotID)
+        if itemID then
+            items[slotID] = itemID
+            local link = GetInventoryItemLink("player", slotID)
+            if link then
+                links[slotID] = EncodeGearLink(link)
+            end
+        end
+    end
+
+    local response = LootCouncil.Message:New(
+        "SYNC_GEAR_RESPONSE",
+        {
+            target = sender,
+            player = UnitName("player"),
+            itemNumber = payload.itemNumber,
+            slots = payload.slots,
+            items = items,
+            links = links,
+        }
+    )
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent sync gear data to " .. sender)
+end
+
+function LootCouncil.Session:OnSyncGearResponse(message, sender)
+    local payload = message:GetPayload()
+    if not payload then
+        return
+    end
+
+    if payload.target and payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Received sync gear data from " .. payload.player)
+
+    local item = self:GetItemByNumber(payload.itemNumber)
+    if not item then
+        LootCouncil:Print("SYNC_GEAR_RESPONSE: Item not found. Number: " .. tostring(payload.itemNumber))
+        return
+    end
+
+    local applicant = item:FindApplicant(payload.player)
+    if not applicant then
+        LootCouncil:Print("SYNC_GEAR_RESPONSE: Applicant not found: " .. tostring(payload.player))
+        return
+    end
+
+    LootCouncil:Print("DEBUG: Storing gear for " .. payload.player .. " for item " .. payload.itemNumber .. " with " .. #payload.slots .. " slots")
+
+    -- Clear and store gear
+    for _, slotID in ipairs(payload.slots or {}) do
+        applicant.gear[slotID] = nil
+    end
+
+    for slotID, itemID in pairs(payload.items or {}) do
+        applicant.gear[slotID] = {
+            itemID = itemID,
+            link = payload.links and DecodeGearLink(payload.links[slotID]) or nil,
+        }
+    end
+
+    -- Force a full UI refresh
+    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.Widgets.ApplicantList:Refresh(
+        LootCouncil.UI.VotingTab.applicantList,
+        item:GetApplicants()
+    )
+
+    LootCouncil:Print("Gear data applied for " .. payload.player)
+end
+
+function LootCouncil.Session:OnOwnerGearRequest(message, sender)
+    local payload = message:GetPayload()
+    if not payload then
+        return
+    end
+
+    if payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Owner gear request received from " .. sender)
+
+    local items = {}
+    local links = {}
+
+    for _, slotID in ipairs(payload.slots or {}) do
+        local itemID = GetInventoryItemID("player", slotID)
+        if itemID then
+            items[slotID] = itemID
+            local link = GetInventoryItemLink("player", slotID)
+            if link then
+                links[slotID] = EncodeGearLink(link)
+            end
+        end
+    end
+
+    local response = LootCouncil.Message:New(
+        "OWNER_GEAR_RESPONSE",
+        {
+            target = sender,
+            player = UnitName("player"),
+            itemNumber = payload.itemNumber,
+            slots = payload.slots,
+            items = items,
+            links = links,
+        }
+    )
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
+    LootCouncil:Print("Sent owner gear data to " .. sender)
+end
+
+function LootCouncil.Session:OnOwnerGearResponse(message, sender)
+    local payload = message:GetPayload()
+    if not payload then
+        return
+    end
+
+    if payload.target and payload.target ~= UnitName("player") then
+        return
+    end
+
+    LootCouncil:Print("Received owner gear data from " .. payload.player)
+
+    local item = self:GetItemByNumber(payload.itemNumber)
+    if not item then
+        LootCouncil:Print("OWNER_GEAR_RESPONSE: Item not found. Number: " .. tostring(payload.itemNumber))
+        return
+    end
+
+    local applicant = item:FindApplicant(payload.player)
+    if not applicant then
+        LootCouncil:Print("OWNER_GEAR_RESPONSE: Applicant not found: " .. tostring(payload.player))
+        return
+    end
+
+    for _, slotID in ipairs(payload.slots or {}) do
+        applicant.gear[slotID] = nil
+    end
+
+    for slotID, itemID in pairs(payload.items or {}) do
+        applicant.gear[slotID] = {
+            itemID = itemID,
+            link = payload.links and DecodeGearLink(payload.links[slotID]) or nil,
+        }
+    end
+
+    LootCouncil.UI.VotingTab:Refresh()
 end
 
 ---------------------------------------------------
@@ -3388,6 +3753,7 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
         owner = self:GetOwner(),
         selectedItem = self:GetSelectedIndex(),
         items = {},
+        councilMembers = session.councilMembers or {},
     }
 
         -- Items: minimal data only (stripped for network size)
@@ -3416,6 +3782,9 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     session.started = time()
     session.nextItemNumber = #snapshot.items + 1
 
+        -- Restore council roster from snapshot
+    session.councilMembers = snapshot.councilMembers or {}
+
     -- Restore roster from local raid data
     LootCouncil.Roster:Refresh()
     session.players = {}
@@ -3441,6 +3810,7 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
             name = name or "Unknown Item",
             link = link or "",
             ilvl = ilvl or 0,
+            equipSlot = equipSlot,
         })
         table.insert(session.items, item)
     end

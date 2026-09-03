@@ -298,6 +298,23 @@ function module:OnRaiderSyncResponse(message, sender)
     module:ClearSyncLock()
 end
 
+function LootCouncil.Sync:RequestGearFromPlayer(playerName)
+    local items = LootCouncil.Session:GetItems() or {}
+    for itemIndex, item in ipairs(items) do
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item) or {}
+        local gearRequest = LootCouncil.Message:New(
+            "OWNER_GEAR_REQUEST",  -- <-- Different message type
+            {
+                target = playerName,
+                itemNumber = item:GetNumber(),
+                slots = comparisonSlots,
+            }
+        )
+        LootCouncil.MessageBus:Route(gearRequest, UnitName("player"))
+        LootCouncil:Print("Sent OWNER_GEAR_REQUEST to " .. playerName .. " for item " .. item:GetNumber())
+    end
+end
+
 ---------------------------------------------------
 -- Gear Request Helper
 ---------------------------------------------------
@@ -324,5 +341,103 @@ function module:RequestGearForAllItems()
             )
             LootCouncil.MessageBus:Route(message, UnitName("player"))
         end
+    end
+end
+
+function LootCouncil.Sync:RequestResponses()
+    local players = LootCouncil.Session:GetPlayers() or {}
+    for _, player in ipairs(players) do
+        local playerName = player:GetName()
+        if playerName and playerName ~= UnitName("player") then
+            local message = LootCouncil.Message:New(
+                "REQUEST_RESPONSES",
+                {
+                    target = playerName,
+                }
+            )
+            LootCouncil.MessageBus:Route(message, UnitName("player"))
+            LootCouncil:Print("Sent REQUEST_RESPONSES to " .. playerName)
+        end
+    end
+end
+
+function LootCouncil.Sync:RequestVotes()
+    local councilMembers = LootCouncil.Session:GetCouncilMembers() or {}
+    for _, member in ipairs(councilMembers) do
+        if member ~= UnitName("player") then
+            local message = LootCouncil.Message:New(
+                "REQUEST_VOTES",
+                {
+                    target = member,
+                }
+            )
+            LootCouncil.MessageBus:Route(message, UnitName("player"))
+            LootCouncil:Print("Sent REQUEST_VOTES to " .. member)
+        end
+    end
+end
+
+function LootCouncil.Sync:RequestGear()
+    local players = LootCouncil.Session:GetPlayers() or {}
+    local items = LootCouncil.Session:GetItems() or {}
+
+    for itemIndex, item in ipairs(items) do
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item) or {}
+        for _, player in ipairs(players) do
+            local playerName = player:GetName()
+            if playerName and playerName ~= UnitName("player") then
+                local message = LootCouncil.Message:New(
+                    "GEAR_REQUEST",
+                    {
+                        target = playerName,
+                        itemIndex = itemIndex,
+                        itemNumber = item:GetNumber(),
+                        slots = comparisonSlots,
+                    }
+                )
+                LootCouncil.MessageBus:Route(message, UnitName("player"))
+                LootCouncil:Print("Sent GEAR_REQUEST to " .. playerName .. " for item " .. itemIndex)
+            end
+        end
+    end
+end
+
+function LootCouncil.Sync:RequestSyncGear()
+    local players = LootCouncil.Session:GetPlayers() or {}
+    local items = LootCouncil.Session:GetItems() or {}
+
+    for _, item in ipairs(items) do
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item) or {}
+        LootCouncil:Print("DEBUG: comparisonSlots for item " .. item:GetNumber() .. ": " .. table.concat(comparisonSlots, ", "))
+        for _, player in ipairs(players) do
+            local playerName = player:GetName()
+            if playerName and playerName ~= UnitName("player") then
+                local message = LootCouncil.Message:New(
+                    "SYNC_GEAR_REQUEST",
+                    {
+                        target = playerName,
+                        itemNumber = item:GetNumber(),
+                        slots = comparisonSlots,
+                    }
+                )
+                LootCouncil.MessageBus:Route(message, UnitName("player"))
+                LootCouncil:Print("Sent SYNC_GEAR_REQUEST to " .. playerName .. " for item " .. item:GetNumber())
+            end
+        end
+    end
+
+    -- Also request own gear locally
+    local myName = UnitName("player")
+    for _, item in ipairs(items) do
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item) or {}
+        local payload = {
+            target = myName,
+            itemNumber = item:GetNumber(),
+            slots = comparisonSlots,
+        }
+        LootCouncil.Session:OnSyncGearRequest(
+            { GetPayload = function() return payload end },
+            myName
+        )
     end
 end
