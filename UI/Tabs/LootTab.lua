@@ -339,6 +339,9 @@ function view:CreateItemRow(
         yOffset
     )
 
+    -- Store reference to the item for later icon refresh
+    row.icon.item = item
+
     LootCouncil.UI.Widgets.Icon:SetTexture(
         row.icon,
         item:GetIcon()
@@ -743,4 +746,34 @@ function view:Refresh()
 
     end
 
+    ---------------------------------------------------
+    -- Delayed Icon Refresh
+    ---------------------------------------------------
+
+    C_Timer.After(0.5, function()
+        self:RefreshIcons()
+    end)
+end
+
+---------------------------------------------------
+-- Refresh Icons
+---------------------------------------------------
+
+function view:RefreshIcons()
+    for _, row in ipairs(self.rows) do
+        if row.icon and row.icon.item then
+            local icon = row.icon.item:GetIcon()
+            if icon then
+                LootCouncil.UI.Widgets.Icon:SetTexture(row.icon, icon)
+            else
+                -- If still nil, try again later
+                C_Timer.After(0.5, function()
+                    local retryIcon = row.icon.item:GetIcon()
+                    if retryIcon then
+                        LootCouncil.UI.Widgets.Icon:SetTexture(row.icon, retryIcon)
+                    end
+                end)
+            end
+        end
+    end
 end

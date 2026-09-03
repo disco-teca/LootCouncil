@@ -98,7 +98,6 @@ function module:RequestSessionQuery()
     )
 
     LootCouncil.MessageBus:Route(message, UnitName("player"))
-    LootCouncil:Print("Checking for active loot session...")
 end
 
 function module:OnSessionQuery(message, sender)
@@ -124,7 +123,6 @@ function module:OnSessionQuery(message, sender)
     )
 
     LootCouncil.MessageBus:Route(announce, sender)
-    LootCouncil:Print("Announced session existence to " .. sender)
 end
 
 function module:OnSessionAnnounce(message, sender)
@@ -153,9 +151,6 @@ function module:OnSessionAnnounce(message, sender)
         syncInProgress = true
         syncStartTime = time()
     end
-
-    LootCouncil:Print("Session exists! Owner: " .. payload.owner)
-    LootCouncil:Print("Requesting sync...")
 
     -- No roles anymore — everyone gets raider sync
     module:RequestRaiderSync()
@@ -186,7 +181,6 @@ function module:RequestSync()
     if not LootCouncil.Session:IsActive() then
         syncInProgress = true
         syncStartTime = time()
-        LootCouncil:Print("No local session. Checking for active session...")
         module:RequestSessionQuery()
         return
     end
@@ -213,7 +207,6 @@ function module:RequestRaiderSync()
     )
 
     LootCouncil.MessageBus:Route(message, UnitName("player"))
-    LootCouncil:Print("Requesting raider sync...")
 end
 
 function module:OnRaiderSyncRequest(message, sender)
@@ -228,8 +221,6 @@ function module:OnRaiderSyncRequest(message, sender)
     if sender == UnitName("player") then
         return
     end
-
-    LootCouncil:Print("Generating raider snapshot for " .. sender)
 
     local snapshot = LootCouncil.Session:SerializeRaiderSnapshot(sender)
     if not snapshot then
@@ -247,7 +238,6 @@ function module:OnRaiderSyncRequest(message, sender)
     )
 
     LootCouncil.MessageBus:Route(response, UnitName("player"))
-    LootCouncil:Print("Sent raider sync to " .. sender)
 end
 
 function module:OnRaiderSyncResponse(message, sender)
@@ -272,15 +262,12 @@ function module:OnRaiderSyncResponse(message, sender)
         return
     end
 
-    LootCouncil:Print("Applying raider snapshot...")
-
         local success = LootCouncil.Session:DeserializeRaiderSnapshot(
         payload.snapshot,
         UnitName("player")
     )
 
     if success then
-        LootCouncil:Print("Raider sync complete from " .. sender)
         
         -- Tell the owner that we've joined the session
         local announceMessage = LootCouncil.Message:New(
@@ -292,7 +279,7 @@ function module:OnRaiderSyncResponse(message, sender)
         )
         LootCouncil.MessageBus:Route(announceMessage, UnitName("player"))
     else
-        LootCouncil:Print("Failed to apply raider sync from " .. sender)
+
     end
 
     module:ClearSyncLock()
@@ -356,7 +343,6 @@ function LootCouncil.Sync:RequestResponses()
                 }
             )
             LootCouncil.MessageBus:Route(message, UnitName("player"))
-            LootCouncil:Print("Sent REQUEST_RESPONSES to " .. playerName)
         end
     end
 end
@@ -372,7 +358,6 @@ function LootCouncil.Sync:RequestVotes()
                 }
             )
             LootCouncil.MessageBus:Route(message, UnitName("player"))
-            LootCouncil:Print("Sent REQUEST_VOTES to " .. member)
         end
     end
 end
@@ -408,7 +393,6 @@ function LootCouncil.Sync:RequestSyncGear()
 
     for _, item in ipairs(items) do
         local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item) or {}
-        LootCouncil:Print("DEBUG: comparisonSlots for item " .. item:GetNumber() .. ": " .. table.concat(comparisonSlots, ", "))
         for _, player in ipairs(players) do
             local playerName = player:GetName()
             if playerName and playerName ~= UnitName("player") then
@@ -421,7 +405,6 @@ function LootCouncil.Sync:RequestSyncGear()
                     }
                 )
                 LootCouncil.MessageBus:Route(message, UnitName("player"))
-                LootCouncil:Print("Sent SYNC_GEAR_REQUEST to " .. playerName .. " for item " .. item:GetNumber())
             end
         end
     end

@@ -1134,7 +1134,6 @@ commands["responses"] = function()
     LootCouncil.Sync:RequestResponses()
 end
 commands["votes"] = function()
-    LootCouncil:Print("DEBUG: /lc votes command triggered")
     LootCouncil.Sync:RequestVotes()
 end
 commands["gear"] = function()

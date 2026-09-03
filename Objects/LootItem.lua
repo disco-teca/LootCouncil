@@ -149,9 +149,37 @@ function LootItem:GetItemSubType()
 end
 
 function LootItem:GetIcon()
-
-    return self.icon
-
+    if self.icon then
+        return self.icon
+    end
+    
+    if self.id then
+        local _, _, _, _, _, _, _, _, _, icon = GetItemInfo(self.id)
+        if icon then
+            self.icon = icon
+            return icon
+        end
+    end
+    
+    -- If we have a link, use it to force the icon to load
+    if self.link then
+        -- Create a temporary tooltip to force the item to cache
+        local tooltip = CreateFrame("GameTooltip", "LootCouncilIconTooltip", nil, "GameTooltipTemplate")
+        tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        tooltip:SetHyperlink(self.link)
+        tooltip:Hide()
+        
+        -- Try again after forcing
+        if self.id then
+            local _, _, _, _, _, _, _, _, _, icon = GetItemInfo(self.id)
+            if icon then
+                self.icon = icon
+                return icon
+            end
+        end
+    end
+    
+    return nil
 end
 
 function LootItem:GetItemLevel()
