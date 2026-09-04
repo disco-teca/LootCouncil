@@ -2,7 +2,7 @@
 ## Title: LootCouncil
 ## Notes: Standalone Loot Council for WoW 3.3.5a
 ## Author: Alex
-## Version: 0.7.5
+## Version: 0.8.0
 ## SavedVariables: LootCouncilDB
 
 ---------------------------------------------------

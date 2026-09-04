@@ -4,7 +4,7 @@ LootCouncil.Modules = LootCouncil.Modules or {}
 LootCouncil.UI = LootCouncil.UI or {}
 
 LootCouncil.name = "LootCouncil"
-LootCouncil.version = "0.7.5"
+LootCouncil.version = "0.8.0"
 
 function LootCouncil:Print(message)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootCouncil:|r " .. tostring(message))
