@@ -179,8 +179,7 @@ function widget:Create(parent)
         frame.header.cells[column] =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
-                font = "GameFontNormal",
-
+                font = "GameFontNormalLarge",
                 point = "TOPLEFT",
                 relativeTo = frame,
                 relativePoint = "TOPLEFT",
@@ -221,8 +220,8 @@ function widget:Create(parent)
         local playerCell =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
+                font = "GameFontNormalLarge",
                 point = "TOPLEFT",
-
                 relativeTo = previous,
                 relativePoint = "BOTTOMLEFT",
 
@@ -288,8 +287,8 @@ function widget:Create(parent)
             row.cells[column] =
                 LootCouncil.UI.Widgets:CreateLabel(frame, {
 
+                    font = "GameFontNormalLarge",
                     point = "TOPLEFT",
-
                     relativeTo = playerCell,
                     relativePoint = "TOPLEFT",
 
@@ -345,8 +344,8 @@ function widget:Create(parent)
         row.cells.Votes =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
+                font = "GameFontNormalLarge",
                 point = "LEFT",
-
                 relativeTo = row.cells.Vote,
                 relativePoint = "RIGHT",
 
@@ -416,6 +415,14 @@ function widget:Create(parent)
 
         )
 
+                -- Divider line between rows
+        local divider = frame:CreateTexture(nil, "BACKGROUND")
+        divider:SetHeight(1)
+        divider:SetPoint("TOPLEFT", playerCell, "BOTTOMLEFT", 0, -2)
+        divider:SetPoint("TOPRIGHT", row.cells.Award, "BOTTOMRIGHT", 0, -2)
+        divider:SetTexture(0.3, 0.3, 0.3, 0.5)
+        row.divider = divider
+
         frame.rows[i] = row
 
         previous = playerCell
@@ -454,6 +461,11 @@ function widget:Refresh(frame, applicants)
         row.applicant = applicants[i]
 
         if row.applicant then
+
+            -- Show divider for this row
+            if row.divider then
+                row.divider:Show()
+            end
 
             ---------------------------------------------------
             -- Player
@@ -579,9 +591,23 @@ function widget:Refresh(frame, applicants)
             -- Response
             ---------------------------------------------------
 
-            row.cells.Response:SetText(
-                row.applicant:GetResponse()
-            )
+            local response = row.applicant:GetResponse()
+            row.cells.Response:SetText(response)
+
+            -- Color coding
+            if response == "BIS" then
+                row.cells.Response:SetTextColor(0.2, 1, 0.2)
+            elseif response == "MS" then
+                row.cells.Response:SetTextColor(0.3, 0.5, 1)
+            elseif response == "OS" then
+                row.cells.Response:SetTextColor(1, 0.6, 0.1)
+            elseif response == "PENDING" then
+                row.cells.Response:SetTextColor(1, 1, 1)
+            elseif response == "PASS" or response == "AUTO_PASS" then
+                row.cells.Response:SetTextColor(0.5, 0.5, 0.5)
+            else
+                row.cells.Response:SetTextColor(1, 1, 1)
+            end
 
             ---------------------------------------------------
             -- Item Level
@@ -710,7 +736,7 @@ function widget:Refresh(frame, applicants)
 
                 function()
 
-                    if not item then
+                    if not item or not row.applicant then
                         return
                     end
 
@@ -815,6 +841,11 @@ function widget:Refresh(frame, applicants)
             )
 
         else
+
+            -- Hide divider for empty rows
+            if row.divider then
+                row.divider:Hide()
+            end
 
             ---------------------------------------------------
             -- Clear Icons

@@ -429,14 +429,14 @@ function view:Refresh()
     if activeRoll then
         if activeRoll.isClosed then
             self:UpdateWinner(activeRoll.winner)
-            self.timerButton:SetText("▶ Start 15s Timer")
+            self.timerButton:SetText("Start 15s Timer")
         elseif activeRoll.timerStarted then
             -- Timer is running, button shows remaining time
             -- The timer update will be called from Roll:StartTimer
         end
     else
         self:UpdateWinner(nil)
-        self.timerButton:SetText("▶ Start 15s Timer")
+        self.timerButton:SetText("Start 15s Timer")
     end
 
     ---------------------------------------------------
@@ -459,7 +459,7 @@ function view:UpdateTimer(remaining)
         if remaining and remaining > 0 then
             self.timerButton:SetText("⏱ " .. remaining .. "s remaining")
         else
-            self.timerButton:SetText("▶ Start 15s Timer")
+            self.timerButton:SetText("Start 15s Timer")
         end
     end
 end
