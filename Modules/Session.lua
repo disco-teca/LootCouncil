@@ -1679,6 +1679,8 @@ function LootCouncil.Session:AddItem(data)
         
         -- Auto-show the main window
         LootCouncil.UI:Show()
+        -- Auto-show the loot popup (instead of the main window)
+        LootCouncil.UI.LootPopup:Show()
     end
 
     LootCouncil.UI.TabManager:Refresh()
@@ -1686,6 +1688,9 @@ function LootCouncil.Session:AddItem(data)
     LootCouncil.UI.VotingTab:Refresh()
 
     LootCouncil.UI.LootTab:Refresh()
+
+    -- After adding the item and refreshing tabs
+    LootCouncil.UI.LootPopup:Refresh()
 
     return item
 

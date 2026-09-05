@@ -275,10 +275,6 @@ end
 -- Create Item Row
 ---------------------------------------------------
 
----------------------------------------------------
--- Create Item Row
----------------------------------------------------
-
 function view:CreateItemRow(
     item,
     itemIndex,
@@ -341,7 +337,6 @@ function view:CreateItemRow(
         yOffset
     )
 
-    -- Store reference to the item for later icon refresh
     row.icon.item = item
 
     LootCouncil.UI.Widgets.Icon:SetTexture(
@@ -399,25 +394,56 @@ function view:CreateItemRow(
         )
 
     ---------------------------------------------------
-    -- Response Buttons
+    -- Current Response (Moved UP before buttons)
+    ---------------------------------------------------
+
+    local applicant =
+        item:FindApplicant(
+            UnitName("player")
+        )
+
+    local currentResponse
+
+    if applicant then
+        currentResponse =
+            "Your Response: " ..
+            applicant:GetResponse()
+    else
+        currentResponse =
+            "Your Response: None"
+    end
+
+    row.response =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.content,
+            {
+                point = "TOPLEFT",
+                relativeTo = row.itemLevel,
+                relativePoint = "BOTTOMLEFT",
+
+                x = 0,
+                y = -4,
+
+                text = currentResponse
+            }
+        )
+
+    ---------------------------------------------------
+    -- Response Buttons (Moved DOWN under the response label)
     ---------------------------------------------------
 
     row.buttons = {}
 
     local responses = {
-
         "BIS",
         "MS",
         "OS",
         "PASS",
-
     }
 
     local previous
 
-    for _, response in ipairs(
-        responses
-    ) do
+    for _, response in ipairs(responses) do
 
         local button =
             LootCouncil.UI.Widgets.Button:Create(
@@ -430,7 +456,6 @@ function view:CreateItemRow(
             )
 
         if previous then
-
             button:SetPoint(
                 "LEFT",
                 previous,
@@ -438,49 +463,35 @@ function view:CreateItemRow(
                 5,
                 0
             )
-
         else
-
             button:SetPoint(
-                "LEFT",
-                row.itemLevel,
-                "RIGHT",
-                30,
-                0
+                "TOPLEFT",
+                row.response,
+                "BOTTOMLEFT",
+                0,
+                -4
             )
-
         end
 
-        row.buttons[response] =
-            button
+        row.buttons[response] = button
 
         button:SetScript(
             "OnClick",
             function()
+                local playerName = UnitName("player")
+                local outcome = LootCouncil.Session:SubmitApplicantResponse(
+                    playerName,
+                    itemIndex,
+                    response
+                )
 
-                local playerName =
-                    UnitName("player")
-
-                local outcome =
-                    LootCouncil.Session:SubmitApplicantResponse(
-
-                        playerName,
-
-                        itemIndex,
-
-                        response
-
-                    )
-
-                if outcome == "RECORDED"
-                or outcome == "CHANGED" then
-
+                if outcome == "RECORDED" or outcome == "CHANGED" then
                     LootCouncil.UI.LootTab:Refresh()
-
                     LootCouncil.UI.VotingTab:Refresh()
-
+                    if LootCouncil.UI.LootPopup then
+                        LootCouncil.UI.LootPopup:Refresh()
+                    end
                 end
-
             end
         )
 
@@ -489,7 +500,7 @@ function view:CreateItemRow(
     end
 
     ---------------------------------------------------
-    -- Button 4
+    -- Button 4 (Hidden)
     ---------------------------------------------------
 
     row.button4 =
@@ -510,93 +521,19 @@ function view:CreateItemRow(
         0
     )
 
-    ---------------------------------------------------
-    -- Hidden Until Hover
-    ---------------------------------------------------
-
     row.button4:SetAlpha(0.01)
-
-    ---------------------------------------------------
-    -- Hover
-    ---------------------------------------------------
-
-    row.button4:SetScript(
-        "OnEnter",
-        function()
-
-            row.button4:SetAlpha(1)
-
-        end
-    )
-
-    row.button4:SetScript(
-        "OnLeave",
-        function()
-
-            row.button4:SetAlpha(0.01)
-
-        end
-    )
-
-    ---------------------------------------------------
-    -- Button 4 Click
-    ---------------------------------------------------
 
     row.button4:SetScript(
         "OnClick",
         function()
-
             row.response:SetText(
                 "Your Response: Troll"
             )
-
             DEFAULT_CHAT_FRAME:AddMessage(
                 "No."
             )
-
         end
     )
-
-    ---------------------------------------------------
-    -- Current Response
-    ---------------------------------------------------
-
-    local applicant =
-        item:FindApplicant(
-            UnitName("player")
-        )
-
-    local currentResponse
-
-    if applicant then
-
-        currentResponse =
-            "Your Response: " ..
-            applicant:GetResponse()
-
-    else
-
-        currentResponse =
-            "Your Response: None"
-
-    end
-
-    row.response =
-        LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
-            {
-                point = "TOPLEFT",
-                relativeTo =
-                    row.buttons["BIS"],
-                relativePoint =
-                    "BOTTOMLEFT",
-
-                x = 0,
-                y = -4,
-
-                text = currentResponse
-            }
-        )
 
     return row
 
@@ -778,4 +715,24 @@ function view:RefreshIcons()
             end
         end
     end
+end
+
+---------------------------------------------------
+-- Render in Custom Panel (for popup)
+---------------------------------------------------
+
+function view:RenderInPanel(panel)
+    local oldPanel = self.panel
+    local oldContent = self.content
+    
+    self.panel = panel
+    self.content = panel
+    
+    -- Reset the rows table so Refresh rebuilds everything
+    self.rows = {}
+    
+    self:Refresh()
+    
+    self.panel = oldPanel
+    self.content = oldContent
 end

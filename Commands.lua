@@ -1162,6 +1162,9 @@ commands["rolls"] = function()
         LootCouncil.Roll:ShowPopup()
     end
 end
+commands["loot"] = function()
+    LootCouncil.UI.LootPopup:Toggle()
+end
 
 ---------------------------------------------------
 -- Slash Command

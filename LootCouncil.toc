@@ -95,3 +95,4 @@ UI\NavigationTabManager.lua
 UI\TabManager.lua
 
 UI\MainWindow.lua
+UI\LootPopup.lua
