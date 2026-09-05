@@ -1236,6 +1236,10 @@ function LootCouncil.Session:End(remote)
     LootCouncil:Print("Session ended.")
     LootCouncil.Persistence:Save()
 
+        -- Close both windows
+    LootCouncil.UI:Hide()
+    LootCouncil.UI.LootPopup:Hide()
+
     -- Refresh UI with safety checks
     if LootCouncil.UI and LootCouncil.UI.TabManager then
         LootCouncil.UI.TabManager:Refresh()
@@ -1740,98 +1744,55 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:RemoveItem(number)
-
     if not session then
         return false
     end
 
-    local item =
-        self:GetItemByNumber(number)
-
+    local item = self:GetItemByNumber(number)
     if not item then
         return false
     end
 
-    ---------------------------------------------------
-    -- Find Current Array Index
-    ---------------------------------------------------
-
+    -- Find the array index
     local index
-
-    for currentIndex, currentItem in ipairs(
-        session.items
-    ) do
-
+    for currentIndex, currentItem in ipairs(session.items) do
         if currentItem == item then
-
             index = currentIndex
-
             break
-
         end
-
     end
 
     if not index then
         return false
     end
 
-    ---------------------------------------------------
-    -- Remove Item
-    ---------------------------------------------------
+    -- Remove the item
+    table.remove(session.items, index)
 
-    table.remove(
-        session.items,
-        index
-    )
-
-    ---------------------------------------------------
-    -- Selected Item
-    ---------------------------------------------------
-
+    -- Fix selected item
     if #session.items == 0 then
-
         session.selectedItem = nil
-
     elseif session.selectedItem == index then
-
         if index > #session.items then
-
-            session.selectedItem =
-                #session.items
-
+            session.selectedItem = #session.items
         else
-
-            session.selectedItem =
-                index
-
+            session.selectedItem = index
         end
-
     elseif session.selectedItem > index then
-
-        session.selectedItem =
-            session.selectedItem - 1
-
+        session.selectedItem = session.selectedItem - 1
     end
 
-    ---------------------------------------------------
-    -- Save
-    ---------------------------------------------------
+    -- Rebuild applicants for all remaining items
+    for _, remainingItem in ipairs(session.items) do
+        self:InitializeApplicants(remainingItem)
+    end
 
     LootCouncil.Persistence:Save()
-
-    ---------------------------------------------------
-    -- Refresh UI
-    ---------------------------------------------------
-
     LootCouncil.UI.TabManager:Refresh()
-
     LootCouncil.UI.VotingTab:Refresh()
-
     LootCouncil.UI.LootPopup:Refresh()
 
     return true
-
 end
 
 ---------------------------------------------------
@@ -1915,22 +1876,18 @@ function LootCouncil.Session:SubmitApplicantResponse(
 
 end
 
-function LootCouncil.Session:SubmitAward(
-
-    playerName,
-
-    itemIndex
-
-)
-
+function LootCouncil.Session:SubmitAward(playerName, itemIndex)
     ---------------------------------------------------
     -- Get Item
     ---------------------------------------------------
 
-    local item =
-        self:GetItem(itemIndex)
-
+    local item = self:GetItem(itemIndex)
     if not item then
+        return nil
+    end
+
+    -- If the item is already awarded, don't award it again
+    if item:IsAwarded() then
         return nil
     end
 
@@ -1938,35 +1895,17 @@ function LootCouncil.Session:SubmitAward(
     -- Get Applicant Response
     ---------------------------------------------------
 
-    local applicant =
-        item:FindApplicant(
-            playerName
-        )
-
-    local response =
-        "UNKNOWN"
-
+    local applicant = item:FindApplicant(playerName)
+    local response = "UNKNOWN"
     if applicant then
-
-        response =
-            applicant:GetResponse()
-
+        response = applicant:GetResponse()
     end
 
     ---------------------------------------------------
     -- Apply Locally
     ---------------------------------------------------
 
-    local outcome =
-
-        self:SetAward(
-
-            playerName,
-
-            itemIndex
-
-        )
-
+    local outcome = self:SetAward(playerName, itemIndex)
     if not outcome then
         return nil
     end
@@ -1982,15 +1921,12 @@ function LootCouncil.Session:SubmitAward(
     ---------------------------------------------------
 
     SendChatMessage(
-
         item:GetLink() ..
         " was awarded to " ..
         playerName ..
         " for " ..
         response,
-
         "RAID_WARNING"
-
     )
 
     ---------------------------------------------------
@@ -1998,33 +1934,20 @@ function LootCouncil.Session:SubmitAward(
     ---------------------------------------------------
 
     local message = LootCouncil.Message:New(
-
         "AWARD",
-
         {
-
             player = playerName,
-
             itemIndex = itemIndex,
-
         }
-
     )
 
     ---------------------------------------------------
     -- Route
     ---------------------------------------------------
 
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        UnitName("player")
-
-    )
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
 
     return outcome
-
 end
 
 function LootCouncil.Session:SetApplicantResponse(
@@ -2087,7 +2010,7 @@ function LootCouncil.Session:SetAward(playerName, itemIndex)
     -- Apply award
     item:Award(playerName)
 
-    -- Record history
+    -- Record history (only if not already awarded)
     if not wasAwarded and self:IsOwner() then
         LootCouncil.History:Add(
             time(),
@@ -2097,10 +2020,17 @@ function LootCouncil.Session:SetAward(playerName, itemIndex)
         )
     end
 
+    -- Remove the item from the session (but keep its number for history)
+    local itemNumber = item:GetNumber()
+    local removed = self:RemoveItem(itemNumber)  -- This removes it from session.items
+
+    if removed then
+        LootCouncil:Print("Item #" .. tostring(itemNumber) .. " awarded to " .. playerName .. " and removed from session.")
+    end
+
     -- Refresh UI
     LootCouncil.UI.TabManager:Refresh()
-    
-    -- Refresh the loot popup (so awarded items disappear)
+    LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.LootPopup:Refresh()
 
     return true
@@ -3026,30 +2956,18 @@ function LootCouncil.Session:OnResponseMessage(
 
 end
 
-function LootCouncil.Session:OnAwardMessage(
+function LootCouncil.Session:OnAwardMessage(message, sender)
+    -- Ignore if we sent this message ourselves
+    if sender == UnitName("player") then
+        return
+    end
 
-    message,
-
-    sender
-
-)
-
-    local payload =
-
-        message:GetPayload()
-
+    local payload = message:GetPayload()
     if not payload then
         return
     end
 
-    self:SetAward(
-
-        payload.player,
-
-        payload.itemIndex
-
-    )
-
+    self:SetAward(payload.player, payload.itemIndex)
 end
 
 ---------------------------------------------------

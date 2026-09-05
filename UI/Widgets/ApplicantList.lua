@@ -754,7 +754,7 @@ function widget:Refresh(frame, applicants)
                 "OnClick",
                 function()
 
-                    if not item then
+                    if not item or not row.applicant then
                         return
                     end
 

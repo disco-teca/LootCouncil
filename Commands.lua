@@ -1165,6 +1165,38 @@ end
 commands["loot"] = function()
     LootCouncil.UI.LootPopup:Toggle()
 end
+commands["remove"] = function(arguments)
+    if not LootCouncil.Session:IsActive() then
+        LootCouncil:Print("No active session.")
+        return
+    end
+
+    -- Permission check
+    if not LootCouncil.Session:IsCouncil(UnitName("player")) then
+        LootCouncil:Print("You do not have permission to remove loot.")
+        return
+    end
+
+    local number = tonumber(arguments)
+    if not number then
+        LootCouncil:Print("Usage: /lc remove <item number>")
+        return
+    end
+
+    local item = LootCouncil.Session:GetItemByNumber(number)
+    if not item then
+        LootCouncil:Print("No active item with number " .. tostring(number) .. ".")
+        return
+    end
+
+    -- Remove the item
+    local removed = LootCouncil.Session:RemoveItem(number)
+    if removed then
+        LootCouncil:Print("Removed item #" .. tostring(number) .. ": " .. item:GetName())
+    else
+        LootCouncil:Print("Unable to remove item.")
+    end
+end
 
 ---------------------------------------------------
 -- Slash Command
