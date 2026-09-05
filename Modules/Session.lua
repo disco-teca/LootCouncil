@@ -937,7 +937,6 @@ function LootCouncil.Session:Deserialize(data)
     LootCouncil.UI.TabManager:Refresh()
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.SettingsTab:Refresh()
-    LootCouncil.UI.MainWindow:RefreshButtons()
 
     ---------------------------------------------------
     -- Restore Items
@@ -1668,10 +1667,19 @@ function LootCouncil.Session:AddItem(data)
 
     end
 
-    LootCouncil:Print(
-        "Added item: " ..
-        item:GetName()
-    )
+    -- Only the session owner announces the item
+    if self:IsOwner() then
+        -- Send raid warning with item number and link
+        local msg = string.format(
+            "Item #%d added: %s",
+            item:GetNumber(),
+            item:GetLink()
+        )
+        SendChatMessage(msg, "RAID")
+        
+        -- Auto-show the main window
+        LootCouncil.UI:Show()
+    end
 
     LootCouncil.UI.TabManager:Refresh()
 
