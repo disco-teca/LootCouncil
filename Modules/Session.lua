@@ -475,62 +475,50 @@ function LootCouncil.Session:IsOwnerPresent()
 end
 
 function LootCouncil.Session:Serialize()
-
     if not session then
-
         return {
-
             active = false,
-
             id = nil,
-
             owner = nil,
-
             players = {},
-
             items = {},
-
             selectedItem = nil,
-
             nextItemNumber = nil,
-
         }
+    end
 
+    -- Prepare roll data for saving (store item number, not the full item object)
+    local activeRoll = LootCouncil.Roll:GetActiveRoll()
+    local rollData = nil
+    if activeRoll then
+        rollData = {
+            itemNumber = activeRoll.item and activeRoll.item:GetNumber() or nil,
+            rollType = activeRoll.rollType,
+            isActive = activeRoll.isActive,
+            isClosed = activeRoll.isClosed,
+            rolls = activeRoll.rolls,
+            startTime = activeRoll.startTime,
+            winner = activeRoll.winner,
+            timerStarted = activeRoll.timerStarted,
+            remainingTime = activeRoll.remainingTime,
+        }
     end
 
     return {
-
         active = true,
-
         id = session.id,
-
         owner = self:GetOwner(),
-
-        players =
-            self:SerializePlayers(),
-
-        items =
-            self:SerializeItems(),
-
-        selectedItem =
-            self:GetSelectedIndex(),
-
-        responses =
-            self:SerializeResponses(),
-
-        votes =
-            self:SerializeVotes(),
-
-        gear =
-            self:SerializeGear(),
-
-        nextItemNumber =
-            session.nextItemNumber,
-
+        players = self:SerializePlayers(),
+        items = self:SerializeItems(),
+        selectedItem = self:GetSelectedIndex(),
+        responses = self:SerializeResponses(),
+        votes = self:SerializeVotes(),
+        gear = self:SerializeGear(),
+        nextItemNumber = session.nextItemNumber,
         councilMembers = session.councilMembers or {},
-
+        rolls = rollData,  -- <-- Save the item number, not the full object
+        rollHistory = LootCouncil.Roll:GetHistory(),
     }
-
 end
 
 function LootCouncil.Session:SerializePlayers()
@@ -952,6 +940,17 @@ function LootCouncil.Session:Deserialize(data)
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.SettingsTab:Refresh()
     LootCouncil.UI.MainWindow:RefreshButtons()
+
+    ---------------------------------------------------
+    -- Restore Rolls (ADD THIS SECTION)
+    ---------------------------------------------------
+
+    if data.rolls then
+        LootCouncil.Roll:RestoreActiveRoll(data.rolls)
+    end
+    if data.rollHistory then
+        LootCouncil.Roll:RestoreHistory(data.rollHistory)
+    end
 
     ---------------------------------------------------
     -- Restore Items
@@ -3008,10 +3007,6 @@ function LootCouncil.Session:OnGearResponseMessage(
 
     if not item then
 
-        LootCouncil:Print(
-            "GEAR_RESPONSE: Item not found. Index: " ..
-            tostring(payload.itemIndex)
-        )
 
         return
 
@@ -3028,10 +3023,6 @@ function LootCouncil.Session:OnGearResponseMessage(
 
     if not applicant then
 
-        LootCouncil:Print(
-            "GEAR_RESPONSE: Applicant not found: " ..
-            tostring(payload.player)
-        )
 
         return
 
@@ -3631,7 +3622,7 @@ function LootCouncil.Session:OnOwnerGearRequest(message, sender)
         }
     )
     LootCouncil.MessageBus:Route(response, UnitName("player"))
-    LootCouncil:Print("Sent owner gear data to " .. sender)
+    
 end
 
 function LootCouncil.Session:OnOwnerGearResponse(message, sender)
@@ -3644,17 +3635,13 @@ function LootCouncil.Session:OnOwnerGearResponse(message, sender)
         return
     end
 
-    LootCouncil:Print("Received owner gear data from " .. payload.player)
-
     local item = self:GetItemByNumber(payload.itemNumber)
     if not item then
-        LootCouncil:Print("OWNER_GEAR_RESPONSE: Item not found. Number: " .. tostring(payload.itemNumber))
         return
     end
 
     local applicant = item:FindApplicant(payload.player)
     if not applicant then
-        LootCouncil:Print("OWNER_GEAR_RESPONSE: Applicant not found: " .. tostring(payload.player))
         return
     end
 

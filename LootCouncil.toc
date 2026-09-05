@@ -2,7 +2,7 @@
 ## Title: LootCouncil
 ## Notes: Standalone Loot Council for WoW 3.3.5a
 ## Author: Alex
-## Version: 0.8.0
+## Version: 0.8.2
 ## SavedVariables: LootCouncilDB
 
 ---------------------------------------------------
@@ -58,6 +58,7 @@ Modules\Comms.lua
 Modules\ResponseParser.lua
 Modules\Chat.lua
 Modules\TestMode.lua
+Modules\Roll.lua
 
 ---------------------------------------------------
 -- Events
@@ -94,3 +95,4 @@ UI\NavigationTabManager.lua
 UI\TabManager.lua
 
 UI\MainWindow.lua
+UI\RollPopup.lua

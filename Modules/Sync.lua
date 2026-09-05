@@ -298,7 +298,7 @@ function LootCouncil.Sync:RequestGearFromPlayer(playerName)
             }
         )
         LootCouncil.MessageBus:Route(gearRequest, UnitName("player"))
-        LootCouncil:Print("Sent OWNER_GEAR_REQUEST to " .. playerName .. " for item " .. item:GetNumber())
+        
     end
 end
 

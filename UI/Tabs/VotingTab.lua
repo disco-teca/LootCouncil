@@ -132,6 +132,87 @@ function view:CreateWidgets()
             }
         )
 
+        ---------------------------------------------------
+    -- Roll Controls (Right of item info, adjusted)
+    ---------------------------------------------------
+
+    -- Roll MS Button
+    self.rollMSButton = LootCouncil.UI.Widgets.Button:Create(
+        self.panel,
+        {
+            width = 70,
+            height = 22,
+            text = "Roll MS",
+        }
+    )
+    self.rollMSButton:SetPoint("LEFT", self.applicants, "RIGHT", 150, 10)
+    self.rollMSButton:SetScript("OnClick", function()
+        local item = LootCouncil.Session:GetSelectedItem()
+        if item then
+            LootCouncil.Roll:StartRoll(item, "MS")
+        end
+    end)
+
+    -- Roll OS Button
+    self.rollOSButton = LootCouncil.UI.Widgets.Button:Create(
+        self.panel,
+        {
+            width = 70,
+            height = 22,
+            text = "Roll OS",
+        }
+    )
+    self.rollOSButton:SetPoint("LEFT", self.rollMSButton, "RIGHT", 5, 0)
+    self.rollOSButton:SetScript("OnClick", function()
+        local item = LootCouncil.Session:GetSelectedItem()
+        if item then
+            LootCouncil.Roll:StartRoll(item, "OS")
+        end
+    end)
+
+    -- Timer Button (no icon)
+    self.timerButton = LootCouncil.UI.Widgets.Button:Create(
+        self.panel,
+        {
+            width = 100,
+            height = 22,
+            text = "Start 15s",
+        }
+    )
+    self.timerButton:SetPoint("LEFT", self.rollOSButton, "RIGHT", 10, 0)
+    self.timerButton:SetScript("OnClick", function()
+        if not LootCouncil.Roll:IsActive() then
+            return
+        end
+        
+        local activeRoll = LootCouncil.Roll:GetActiveRoll()
+        if activeRoll and activeRoll.timerStarted then
+            LootCouncil.Roll:CloseRoll()
+            self.timerButton:SetText("Start 15s")
+        else
+            LootCouncil.Roll:StartTimer()
+            self.timerButton:SetText("15s")
+        end
+    end)
+
+    -- Winner Label
+    self.winnerLabel = LootCouncil.UI.Widgets:CreateLabel(
+        self.panel,
+        {
+            point = "LEFT",
+            relativeTo = self.timerButton,
+            relativePoint = "RIGHT",
+            x = 15,
+            y = 0,
+            text = "Winner: —",
+        }
+    )
+
+    -- Hide roll controls initially (visibility handled in Refresh)
+    self.rollMSButton:Hide()
+    self.rollOSButton:Hide()
+    self.timerButton:Hide()
+    self.winnerLabel:Hide()
     ---------------------------------------------------
     -- Applicant Scroll Frame
     ---------------------------------------------------
@@ -233,6 +314,15 @@ function view:Refresh()
             self.applicantList
         )
 
+        ---------------------------------------------------
+        -- Hide Roll Controls
+        ---------------------------------------------------
+
+        self.rollMSButton:Hide()
+        self.rollOSButton:Hide()
+        self.timerButton:Hide()
+        self.winnerLabel:Hide()
+
         return
 
     end
@@ -315,6 +405,41 @@ function view:Refresh()
     end
 
     ---------------------------------------------------
+    -- Update Roll Controls Visibility
+    ---------------------------------------------------
+
+    local playerName = UnitName("player")
+    local isCouncil = LootCouncil.Session:IsCouncil(playerName)
+    local isAwarded = item:IsAwarded()
+
+    if isCouncil and not isAwarded then
+        self.rollMSButton:Show()
+        self.rollOSButton:Show()
+        self.timerButton:Show()
+        self.winnerLabel:Show()
+    else
+        self.rollMSButton:Hide()
+        self.rollOSButton:Hide()
+        self.timerButton:Hide()
+        self.winnerLabel:Hide()
+    end
+
+    -- Update timer and winner if a roll is active
+    local activeRoll = LootCouncil.Roll:GetActiveRoll()
+    if activeRoll then
+        if activeRoll.isClosed then
+            self:UpdateWinner(activeRoll.winner)
+            self.timerButton:SetText("▶ Start 15s Timer")
+        elseif activeRoll.timerStarted then
+            -- Timer is running, button shows remaining time
+            -- The timer update will be called from Roll:StartTimer
+        end
+    else
+        self:UpdateWinner(nil)
+        self.timerButton:SetText("▶ Start 15s Timer")
+    end
+
+    ---------------------------------------------------
     -- Update Applicant List
     ---------------------------------------------------
 
@@ -323,4 +448,32 @@ function view:Refresh()
         item:GetApplicants()
     )
 
+end
+
+---------------------------------------------------
+-- Update Timer Display
+---------------------------------------------------
+
+function view:UpdateTimer(remaining)
+    if self.timerButton then
+        if remaining and remaining > 0 then
+            self.timerButton:SetText("⏱ " .. remaining .. "s remaining")
+        else
+            self.timerButton:SetText("▶ Start 15s Timer")
+        end
+    end
+end
+
+---------------------------------------------------
+-- Update Winner Display
+---------------------------------------------------
+
+function view:UpdateWinner(winnerName)
+    if self.winnerLabel then
+        if winnerName then
+            self.winnerLabel:SetText("Winner: " .. winnerName)
+        else
+            self.winnerLabel:SetText("Winner: —")
+        end
+    end
 end

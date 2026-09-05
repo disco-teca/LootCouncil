@@ -1149,6 +1149,13 @@ commands["getgear"] = function(arguments)
     end
     LootCouncil.Sync:RequestGearFromPlayer(arguments)
 end
+commands["rolls"] = function()
+    if LootCouncil.Roll.popupFrame and LootCouncil.Roll.popupFrame:IsShown() then
+        LootCouncil.Roll.popupFrame:Hide()
+    else
+        LootCouncil.Roll:ShowPopup()
+    end
+end
 
 ---------------------------------------------------
 -- Slash Command
