@@ -516,8 +516,6 @@ function LootCouncil.Session:Serialize()
         gear = self:SerializeGear(),
         nextItemNumber = session.nextItemNumber,
         councilMembers = session.councilMembers or {},
-        rolls = rollData,  -- <-- Save the item number, not the full object
-        rollHistory = LootCouncil.Roll:GetHistory(),
     }
 end
 
@@ -940,17 +938,6 @@ function LootCouncil.Session:Deserialize(data)
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.SettingsTab:Refresh()
     LootCouncil.UI.MainWindow:RefreshButtons()
-
-    ---------------------------------------------------
-    -- Restore Rolls (ADD THIS SECTION)
-    ---------------------------------------------------
-
-    if data.rolls then
-        LootCouncil.Roll:RestoreActiveRoll(data.rolls)
-    end
-    if data.rollHistory then
-        LootCouncil.Roll:RestoreHistory(data.rollHistory)
-    end
 
     ---------------------------------------------------
     -- Restore Items
@@ -1511,7 +1498,6 @@ function LootCouncil.Session:AddCouncilMember(playerName)
     end
     
     table.insert(session.councilMembers, playerName)
-    LootCouncil.UI.MainWindow:RefreshButtons()
     LootCouncil.Persistence:Save()
     self:BroadcastCouncilRoster()
     LootCouncil:Print(playerName .. " is now council.")
@@ -1542,7 +1528,6 @@ function LootCouncil.Session:RemoveCouncilMember(playerName)
         if name == playerName then
             table.remove(session.councilMembers, i)
             LootCouncil.Persistence:Save()
-            LootCouncil.UI.MainWindow:RefreshButtons()
             self:BroadcastCouncilRoster()
             LootCouncil:Print(playerName .. " is no longer council.")
             return true
@@ -1594,7 +1579,6 @@ function LootCouncil.Session:OnCouncilRosterUpdate(message, sender)
     LootCouncil.UI.TabManager:Refresh()
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.SettingsTab:Refresh()
-    LootCouncil.UI.MainWindow:RefreshButtons()
 end
 
 ---------------------------------------------------

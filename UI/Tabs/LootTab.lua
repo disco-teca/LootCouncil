@@ -6,7 +6,6 @@ local view = LootCouncil.UI.LootTab
 
 view.initialized = false
 view.rows = {}
-view.rollStates = {}  -- itemNumber -> true/false
 
 ---------------------------------------------------
 -- Initialize
@@ -558,80 +557,6 @@ function view:CreateItemRow(
         end
     )
 
-        ---------------------------------------------------
-    -- ROLL BUTTONS (ALL ENABLED)
-    ---------------------------------------------------
-
-    local rollMS = LootCouncil.UI.Widgets.Button:Create(
-        self.content,
-        {
-            width = 70,
-            height = 20,
-            text = "Roll MS",
-        }
-    )
-    rollMS:SetPoint("LEFT", row.button4, "RIGHT", 10, 0)
-    rollMS:SetScript("OnClick", function()
-        StaticPopupDialogs["LOOTCOUNCIL_CONFIRM_ROLL"] = {
-            text = string.format("Roll on %s for MS?", item:GetLink()),
-            button1 = "Accept",
-            button2 = "Cancel",
-            timeout = 0,
-            whileDead = true,
-            hideOnEscape = true,
-            OnAccept = function()
-                local editBox = ChatEdit_GetLastActiveWindow()
-                if editBox then
-                    editBox:SetText("/roll 100")
-                    ChatEdit_SendText(editBox)
-                end
-            end,
-            OnCancel = function()
-                -- Do nothing
-            end,
-        }
-        StaticPopup_Show("LOOTCOUNCIL_CONFIRM_ROLL")
-    end)
-    rollMS:Enable()
-    rollMS:SetAlpha(1)
-
-    local rollOS = LootCouncil.UI.Widgets.Button:Create(
-        self.content,
-        {
-            width = 70,
-            height = 20,
-            text = "Roll OS",
-        }
-    )
-    rollOS:SetPoint("LEFT", rollMS, "RIGHT", 5, 0)
-    rollOS:SetScript("OnClick", function()
-        StaticPopupDialogs["LOOTCOUNCIL_CONFIRM_ROLL_OS"] = {
-            text = string.format("Roll on %s for OS?", item:GetLink()),
-            button1 = "Accept",
-            button2 = "Cancel",
-            timeout = 0,
-            whileDead = true,
-            hideOnEscape = true,
-            OnAccept = function()
-                local editBox = ChatEdit_GetLastActiveWindow()
-                if editBox then
-                    editBox:SetText("/roll 99")
-                    ChatEdit_SendText(editBox)
-                end
-            end,
-            OnCancel = function()
-                -- Do nothing
-            end,
-        }
-        StaticPopup_Show("LOOTCOUNCIL_CONFIRM_ROLL_OS")
-    end)
-    rollOS:Enable()
-    rollOS:SetAlpha(1)
-
-    -- Store references
-    row.rollMS = rollMS
-    row.rollOS = rollOS
-
     ---------------------------------------------------
     -- Current Response
     ---------------------------------------------------
@@ -830,15 +755,6 @@ function view:Refresh()
     C_Timer.After(0.5, function()
         self:RefreshIcons()
     end)
-end
-
----------------------------------------------------
--- Update Roll Buttons
----------------------------------------------------
-
-function view:UpdateRollButtons(itemNumber, enabled)
-    -- Just a placeholder — we'll use this later for disabling
-    -- For now, all buttons are always enabled
 end
 
 ---------------------------------------------------

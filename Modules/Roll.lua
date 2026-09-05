@@ -8,7 +8,6 @@ local module = LootCouncil.Roll
 
 local activeRoll = nil        -- Current active roll session
 local rollHistory = {}        -- History of completed rolls
-module.popupFrame = nil      -- Reference to the roll popup
 
 ---------------------------------------------------
 -- Initialize
@@ -55,9 +54,6 @@ function module:StartRoll(item, rollType)
     )
     SendChatMessage(message, "RAID_WARNING")
 
-    -- Show the popup
-    self:ShowPopup()
-
     -- Refresh the Loot tab
     LootCouncil.UI.LootTab:Refresh()
 
@@ -97,14 +93,9 @@ function module:TrackRoll(playerName, rollNumber, maxRoll)
         type = rollType,
     }
 
-    self:UpdatePopup()
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.Persistence:Save()
 end
-
----------------------------------------------------
--- Start Timer
----------------------------------------------------
 
 ---------------------------------------------------
 -- Start Timer
@@ -216,7 +207,6 @@ function module:CloseRoll()
 
     -- Update UI
     LootCouncil.UI.VotingTab:Refresh()
-    self:UpdatePopup()
     LootCouncil.Persistence:Save()
     LootCouncil:Print("Roll closed. Winner: " .. (winner or "None"))
 end
@@ -279,108 +269,4 @@ function module:GetHistoryForItem(itemNumber)
         end
     end
     return history
-end
-
----------------------------------------------------
--- Show Popup
----------------------------------------------------
-
-function module:ShowPopup()
-    if not LootCouncil.UI.RollPopup then
-        return
-    end
-
-    if module.popupFrame then
-        module.popupFrame:Show()
-        LootCouncil.UI.RollPopup:Refresh()
-        return
-    end
-
-    module.popupFrame = LootCouncil.UI.RollPopup:Create()
-    if module.popupFrame then
-        module.popupFrame:Show()
-        LootCouncil.UI.RollPopup:Refresh()
-    end
-end
-
----------------------------------------------------
--- Update Popup
----------------------------------------------------
-
-function module:UpdatePopup()
-    if module.popupFrame and module.popupFrame:IsShown() then
-        LootCouncil.UI.RollPopup:Refresh()
-    end
-end
-
----------------------------------------------------
--- Update Popup Timer
----------------------------------------------------
-
-function module:UpdatePopupTimer(remaining)
-    if popupFrame and popupFrame:IsShown() then
-        LootCouncil.UI.RollPopup:UpdateTimer(popupFrame, remaining)
-    end
-end
-
----------------------------------------------------
--- Close Popup
----------------------------------------------------
-
-function module:ClosePopup()
-    if module.popupFrame then
-        module.popupFrame:Hide()
-    end
-end
-
-function module:RestoreActiveRoll(savedRoll)
-    if not savedRoll then
-        return
-    end
-    
-    -- Reconstruct the item from its number
-    local item = nil
-    if savedRoll.itemNumber then
-        local items = LootCouncil.Session:GetItems()
-        for _, it in ipairs(items) do
-            if it:GetNumber() == savedRoll.itemNumber then
-                item = it
-                break
-            end
-        end
-    end
-    
-    if not item then
-        -- Item not found, can't restore the roll
-        return
-    end
-    
-    -- Rebuild the active roll with the proper item object
-    activeRoll = {
-        item = item,
-        rollType = savedRoll.rollType,
-        isActive = savedRoll.isActive,
-        isClosed = savedRoll.isClosed,
-        rolls = savedRoll.rolls or {},
-        startTime = savedRoll.startTime or time(),
-        winner = savedRoll.winner,
-        timerStarted = savedRoll.timerStarted or false,
-        remainingTime = savedRoll.remainingTime,
-        timer = nil,
-    }
-    
-    -- Refresh the popup if it was open
-    if module.popupFrame and module.popupFrame:IsShown() then
-        self:UpdatePopup()
-    end
-end
-
----------------------------------------------------
--- Restore History
----------------------------------------------------
-
-function module:RestoreHistory(savedHistory)
-    if savedHistory and type(savedHistory) == "table" then
-        rollHistory = savedHistory
-    end
 end

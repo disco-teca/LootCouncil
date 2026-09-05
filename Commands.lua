@@ -1149,6 +1149,12 @@ commands["getgear"] = function(arguments)
     end
     LootCouncil.Sync:RequestGearFromPlayer(arguments)
 end
+commands["council"] = function()
+    LootCouncil.Sync:RequestResponses()
+    LootCouncil.Sync:RequestVotes()
+    LootCouncil.Sync:RequestSyncGear()
+    LootCouncil:Print("Council sync complete.")
+end
 commands["rolls"] = function()
     if LootCouncil.Roll.popupFrame and LootCouncil.Roll.popupFrame:IsShown() then
         LootCouncil.Roll.popupFrame:Hide()

@@ -95,4 +95,3 @@ UI\NavigationTabManager.lua
 UI\TabManager.lua
 
 UI\MainWindow.lua
-UI\RollPopup.lua
