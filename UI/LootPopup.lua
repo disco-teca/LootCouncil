@@ -238,13 +238,29 @@ function popup:Create()
     title:SetPoint("CENTER")
     title:SetText("Loot")
 
+        -- Close Button
     local closeBtn = CreateFrame("Button", nil, frame)
     closeBtn:SetSize(24, 24)
     closeBtn:SetPoint("TOPRIGHT", -2, -2)
+    closeBtn:EnableMouse(true)
+    closeBtn:SetFrameLevel(frame:GetFrameLevel() + 10)  -- Make sure it's on top
+    
     local closeText = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     closeText:SetPoint("CENTER")
     closeText:SetText("X")
-    closeBtn:SetScript("OnClick", function() frame:Hide() end)
+    closeText:SetTextColor(1, 1, 1)
+    
+    closeBtn:SetScript("OnClick", function()
+        frame:Hide()
+    end)
+    
+    closeBtn:SetScript("OnEnter", function()
+        closeText:SetTextColor(1, 0.2, 0.2)
+    end)
+    
+    closeBtn:SetScript("OnLeave", function()
+        closeText:SetTextColor(1, 1, 1)
+    end)
 
     -- Roll Buttons
     local rollMS = LootCouncil.UI.Widgets.Button:Create(

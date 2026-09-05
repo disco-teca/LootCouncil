@@ -1,19 +1,41 @@
-LootCouncil.UI = LootCouncil.UI or {}
+LootCouncil.UI = {}
+
+---------------------------------------------------
+-- Show
+---------------------------------------------------
 
 function LootCouncil.UI:Show()
-    if not LootCouncil.UI.frame then
+
+    if not LootCouncil.Session:IsCouncil(UnitName("player")) then
+        LootCouncil:Print("This window is only available to council.")
         return
     end
-    LootCouncil.UI.frame:Show()
+
+    if LootCouncil.UI.frame then
+        LootCouncil.UI.frame:Show()
+    end
+
 end
 
+---------------------------------------------------
+-- Hide
+---------------------------------------------------
+
 function LootCouncil.UI:Hide()
-    self.frame:Hide()
+
+    if LootCouncil.UI.frame then
+        LootCouncil.UI.frame:Hide()
+    end
+
 end
+
+---------------------------------------------------
+-- Toggle
+---------------------------------------------------
 
 function LootCouncil.UI:Toggle()
 
-    if self.frame:IsShown() then
+    if LootCouncil.UI.frame and LootCouncil.UI.frame:IsShown() then
         self:Hide()
     else
         self:Show()

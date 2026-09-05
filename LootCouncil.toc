@@ -71,6 +71,7 @@ Events.lua
 ---------------------------------------------------
 
 UI\UI.lua
+UI\LootPopup.lua
 
 UI\Widgets\Widgets.lua
 UI\Widgets\Panel.lua
@@ -94,5 +95,3 @@ UI\NavigationTabManager.lua
 UI\TabManager.lua
 
 UI\MainWindow.lua
-UI\LootPopup.lua
-UI\UI.lua

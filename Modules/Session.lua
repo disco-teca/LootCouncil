@@ -850,18 +850,11 @@ function LootCouncil.Session:Deserialize(data)
     )
 
     if data.nextItemNumber then
-
-        session.nextItemNumber =
-            data.nextItemNumber
-
+        session.nextItemNumber = data.nextItemNumber
     end
 
     if data.owner then
-
-        self:SetOwner(
-            data.owner
-        )
-
+        self:SetOwner(data.owner)
     end
 
     ---------------------------------------------------
@@ -869,55 +862,23 @@ function LootCouncil.Session:Deserialize(data)
     ---------------------------------------------------
 
     if data.players then
-
         for _, playerData in ipairs(data.players) do
-
             local playerName
             local playerClass
 
-            ---------------------------------------------------
-            -- New Format
-            ---------------------------------------------------
-
             if type(playerData) == "table" then
-
-                playerName =
-                    playerData.name
-
-                playerClass =
-                    playerData.class
-
-            ---------------------------------------------------
-            -- Legacy Format
-            ---------------------------------------------------
-
+                playerName = playerData.name
+                playerClass = playerData.class
             else
-
-                playerName =
-                    playerData
-
-                playerClass =
-                    "UNKNOWN"
-
+                playerName = playerData
+                playerClass = "UNKNOWN"
             end
 
             if playerName then
-
-                local player =
-                    LootCouncil.Player:New(
-
-                        playerName,
-
-                        playerClass
-
-                    )
-
+                local player = LootCouncil.Player:New(playerName, playerClass)
                 self:AddPlayer(player)
-
             end
-
         end
-
     end
 
     ---------------------------------------------------
@@ -931,50 +892,37 @@ function LootCouncil.Session:Deserialize(data)
     end
 
     ---------------------------------------------------
-    -- Refresh UI After Restoring Council
+    -- Refresh UI After Restoring Council (with safety checks)
     ---------------------------------------------------
 
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.SettingsTab:Refresh()
+    if LootCouncil.UI and LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.SettingsTab then
+        LootCouncil.UI.SettingsTab:Refresh()
+    end
 
     ---------------------------------------------------
     -- Restore Items
     ---------------------------------------------------
 
     if data.items then
-
         for _, itemData in ipairs(data.items) do
-
-            local item =
-                LootCouncil.LootItem:New(
-                    itemData
-                )
-
-            ---------------------------------------------------
-            -- Restore Award Information
-            ---------------------------------------------------
+            local item = LootCouncil.LootItem:New(itemData)
 
             if itemData.winner then
-
-                item:SetWinner(
-                    itemData.winner
-                )
-
+                item:SetWinner(itemData.winner)
             end
 
             if itemData.awarded then
-
-                item:SetAwarded(
-                    itemData.awarded
-                )
-
+                item:SetAwarded(itemData.awarded)
             end
 
             self:AddRestoredItem(item)
-
         end
-
     end
 
     ---------------------------------------------------
@@ -982,43 +930,32 @@ function LootCouncil.Session:Deserialize(data)
     ---------------------------------------------------
 
     for _, item in ipairs(self:GetItems()) do
-
         self:InitializeApplicants(item)
-
     end
 
     ---------------------------------------------------
     -- Restore Responses
     ---------------------------------------------------
 
-    self:DeserializeResponses(
-        data.responses
-    )
+    self:DeserializeResponses(data.responses)
+    self:DeserializeVotes(data.votes)
+    self:DeserializeGear(data.gear)
 
-    self:DeserializeVotes(
-        data.votes
-    )
-
-    self:DeserializeGear(
-        data.gear
-    )
     ---------------------------------------------------
     -- Restore Selected Item
     ---------------------------------------------------
 
     if data.selectedItem then
-
-        self:SetSelectedIndex(
-            data.selectedItem
-        )
-
+        self:SetSelectedIndex(data.selectedItem)
     end
 
     ---------------------------------------------------
-    -- Refresh UI
+    -- Refresh UI (with safety checks)
     ---------------------------------------------------
 
-    LootCouncil.UI.TabManager:Refresh()
+    if LootCouncil.UI and LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
 
     ---------------------------------------------------
     -- Update Persistence
@@ -1195,8 +1132,6 @@ function LootCouncil.Session:Begin(
 
     LootCouncil.Persistence:Save()
 
-    LootCouncil.UI:Show()
-
 end
 
 ---------------------------------------------------
@@ -1205,6 +1140,10 @@ end
 
 function LootCouncil.Session:Start()
     if not session then
+        return
+    end
+
+    if not LootCouncil.UI or not LootCouncil.UI.TabManager then
         return
     end
 
@@ -1263,7 +1202,9 @@ function LootCouncil.Session:Start()
     -- Refresh UI
     ---------------------------------------------------
 
-    LootCouncil.UI.TabManager:Refresh()
+    if LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
 
     LootCouncil.UI.VotingTab:Refresh()
 
@@ -1282,44 +1223,31 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:End(remote)
-
     if not session then
         return false
     end
 
-    ---------------------------------------------------
-    -- Only Session Owner Can End Locally
-    ---------------------------------------------------
-
-    if not remote
-    and not self:IsOwner() then
-
-        LootCouncil:Print(
-            "Only the session owner can end the session."
-        )
-
+    if not remote and not self:IsOwner() then
+        LootCouncil:Print("Only the session owner can end the session.")
         return false
-
     end
 
-    ---------------------------------------------------
-    -- End Session
-    ---------------------------------------------------
-
     session = nil
-
-    LootCouncil:Print(
-        "Session ended."
-    )
-
+    LootCouncil:Print("Session ended.")
     LootCouncil.Persistence:Save()
 
-    LootCouncil.UI.TabManager:Refresh()
-
-    LootCouncil.UI.VotingTab:Refresh()
+    -- Refresh UI with safety checks
+    if LootCouncil.UI and LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Refresh()
+    end
 
     return true
-
 end
 
 function LootCouncil.Session:Toggle()
@@ -1676,21 +1604,28 @@ function LootCouncil.Session:AddItem(data)
             item:GetLink()
         )
         SendChatMessage(msg, "RAID")
+    end
         
-        -- Auto-show the main window
-        LootCouncil.UI:Show()
-        -- Auto-show the loot popup (instead of the main window)
+        -- Always show loot popup for everyone (it's not locked)
+    if LootCouncil.UI.LootPopup then
         LootCouncil.UI.LootPopup:Show()
     end
 
-    LootCouncil.UI.TabManager:Refresh()
+        -- Council also gets the main window (only if they're council)
+    if LootCouncil.Session:IsCouncil(UnitName("player")) then
+        LootCouncil.UI:Show()
+    end
 
-    LootCouncil.UI.VotingTab:Refresh()
-
-    LootCouncil.UI.LootPopup:Refresh()
-
-    -- After adding the item and refreshing tabs
-    LootCouncil.UI.LootPopup:Refresh()
+        -- Refresh UI with safety checks
+    if LootCouncil.UI and LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Refresh()
+    end
 
     return item
 
