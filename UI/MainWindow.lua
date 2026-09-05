@@ -153,7 +153,7 @@ workspace:SetPoint(
     toolbar,
     "BOTTOMLEFT",
     0,
-    -5
+    -20
 )
 
 workspace:SetPoint(
@@ -161,7 +161,7 @@ workspace:SetPoint(
     toolbar,
     "BOTTOMRIGHT",
     0,
-    -5
+    -20
 )
 
 workspace:SetPoint(

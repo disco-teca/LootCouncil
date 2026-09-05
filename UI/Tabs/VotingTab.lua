@@ -132,7 +132,7 @@ function view:CreateWidgets()
             }
         )
 
-        ---------------------------------------------------
+    ---------------------------------------------------
     -- Roll Controls (Right of item info, adjusted)
     ---------------------------------------------------
 
@@ -213,6 +213,25 @@ function view:CreateWidgets()
     self.rollOSButton:Hide()
     self.timerButton:Hide()
     self.winnerLabel:Hide()
+
+    ---------------------------------------------------
+    -- Pass Toggle Button
+    ---------------------------------------------------
+
+    self.passToggle = LootCouncil.UI.Widgets.Button:Create(
+        self.panel,
+        {
+            width = 100,
+            height = 22,
+            text = "Show Pass",
+        }
+    )
+    self.passToggle:SetPoint("TOPRIGHT", self.panel, "TOPRIGHT", -15, -60)
+    self.passToggle:SetScript("OnClick", function()
+        self:TogglePassVisibility()
+    end)
+    self.passToggle:Hide()  -- Hidden by default
+
     ---------------------------------------------------
     -- Applicant Scroll Frame
     ---------------------------------------------------
@@ -323,6 +342,9 @@ function view:Refresh()
         self.timerButton:Hide()
         self.winnerLabel:Hide()
 
+        -- Hide pass toggle
+        self.passToggle:Hide()
+
         return
 
     end
@@ -424,6 +446,21 @@ function view:Refresh()
         self.winnerLabel:Hide()
     end
 
+    -- Update pass toggle visibility (council only)
+    if isCouncil and not isAwarded then
+        self.passToggle:Show()
+        -- Update button text based on current state
+        local itemNumber = item:GetNumber()
+        local sessionData = LootCouncil.Session:Get()
+        if sessionData and sessionData._passVisibility and sessionData._passVisibility[itemNumber] then
+            self.passToggle:SetText("Show Pass")
+        else
+            self.passToggle:SetText("Hide Pass")
+        end
+    else
+        self.passToggle:Hide()
+    end
+
     -- Update timer and winner if a roll is active
     local activeRoll = LootCouncil.Roll:GetActiveRoll()
     if activeRoll then
@@ -443,9 +480,32 @@ function view:Refresh()
     -- Update Applicant List
     ---------------------------------------------------
 
+    local applicants = item:GetApplicants()
+    local itemNumber = item:GetNumber()
+
+    -- Check if pass responses should be hidden
+    local hidePass = false
+    local sessionData = LootCouncil.Session:Get()
+    if sessionData and sessionData._passVisibility and sessionData._passVisibility[itemNumber] == true then
+        hidePass = true
+    else
+    end
+
+    if hidePass then
+        local filteredApplicants = {}
+        for _, applicant in ipairs(applicants) do
+            local response = applicant:GetResponse()
+            local upperResponse = string.upper(response)
+            if upperResponse ~= "PASS" and upperResponse ~= "AUTO_PASS" and upperResponse ~= "AUTO PASS" then
+                table.insert(filteredApplicants, applicant)
+            end
+        end
+        applicants = filteredApplicants
+    end
+
     LootCouncil.UI.Widgets.ApplicantList:Refresh(
         self.applicantList,
-        item:GetApplicants()
+        applicants
     )
 
 end
@@ -476,4 +536,39 @@ function view:UpdateWinner(winnerName)
             self.winnerLabel:SetText("Winner: —")
         end
     end
+end
+
+---------------------------------------------------
+-- Toggle Pass Visibility
+---------------------------------------------------
+
+function view:TogglePassVisibility()
+    
+    local item = LootCouncil.Session:GetSelectedItem()
+    if not item then
+        return
+    end
+
+    local itemNumber = item:GetNumber()
+    
+    local sessionData = LootCouncil.Session:Get()
+    if not sessionData then
+        return
+    end
+
+    if not sessionData._passVisibility then
+        sessionData._passVisibility = {}
+    end
+
+    local currentState = sessionData._passVisibility[itemNumber] or false
+    
+    sessionData._passVisibility[itemNumber] = not currentState
+
+    if sessionData._passVisibility[itemNumber] then
+        self.passToggle:SetText("Show Pass")
+    else
+        self.passToggle:SetText("Hide Pass")
+    end
+
+    self:Refresh()
 end
