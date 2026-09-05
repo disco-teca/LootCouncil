@@ -1,7 +1,10 @@
 LootCouncil.UI = LootCouncil.UI or {}
 
 function LootCouncil.UI:Show()
-    self.frame:Show()
+    if not LootCouncil.UI.frame then
+        return
+    end
+    LootCouncil.UI.frame:Show()
 end
 
 function LootCouncil.UI:Hide()

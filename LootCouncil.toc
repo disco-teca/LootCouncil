@@ -89,10 +89,10 @@ UI\Tabs\PlayersTab.lua
 UI\Tabs\AttendanceTab.lua
 UI\Tabs\HistoryTab.lua
 UI\Tabs\BiSTab.lua
-UI\Tabs\LootTab.lua
 
 UI\NavigationTabManager.lua
 UI\TabManager.lua
 
 UI\MainWindow.lua
 UI\LootPopup.lua
+UI\UI.lua

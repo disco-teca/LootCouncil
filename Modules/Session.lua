@@ -1687,7 +1687,7 @@ function LootCouncil.Session:AddItem(data)
 
     LootCouncil.UI.VotingTab:Refresh()
 
-    LootCouncil.UI.LootTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
 
     -- After adding the item and refreshing tabs
     LootCouncil.UI.LootPopup:Refresh()
@@ -1893,7 +1893,7 @@ function LootCouncil.Session:RemoveItem(number)
 
     LootCouncil.UI.VotingTab:Refresh()
 
-    LootCouncil.UI.LootTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
 
     return true
 
@@ -2140,62 +2140,35 @@ function LootCouncil.Session:SetApplicantResponse(
 
 end
 
-function LootCouncil.Session:SetAward(
-    playerName,
-    itemIndex
-)
-
-    local item =
-        self:GetItem(itemIndex)
-
+function LootCouncil.Session:SetAward(playerName, itemIndex)
+    local item = self:GetItem(itemIndex)
     if not item then
         return nil
     end
 
-    ---------------------------------------------------
-    -- Prevent Duplicate History
-    ---------------------------------------------------
+    -- Prevent duplicate history
+    local wasAwarded = item:IsAwarded()
 
-    local wasAwarded =
-        item:IsAwarded()
+    -- Apply award
+    item:Award(playerName)
 
-    ---------------------------------------------------
-    -- Apply Award
-    ---------------------------------------------------
-
-    item:Award(
-        playerName
-    )
-
-    ---------------------------------------------------
-    -- Record History
-    ---------------------------------------------------
-
-    if not wasAwarded
-    and self:IsOwner() then
-
+    -- Record history
+    if not wasAwarded and self:IsOwner() then
         LootCouncil.History:Add(
-
             time(),
-
             self:GetID(),
-
             item:GetLink(),
-
             playerName
-
         )
-
     end
 
-    ---------------------------------------------------
     -- Refresh UI
-    ---------------------------------------------------
-
     LootCouncil.UI.TabManager:Refresh()
+    
+    -- Refresh the loot popup (so awarded items disappear)
+    LootCouncil.UI.LootPopup:Refresh()
 
     return true
-
 end
 
 function LootCouncil.Session:SetVote(
@@ -3723,7 +3696,7 @@ function LootCouncil.Session:OnPlayerJoinedMessage(message, sender)
     LootCouncil.Persistence:Save()
     LootCouncil.UI.TabManager:Refresh()
     LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
     
     LootCouncil:Print(playerName .. " joined the session")
 end
@@ -3820,11 +3793,11 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     LootCouncil.Persistence:Save()
     LootCouncil.UI.TabManager:Refresh()
     LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
 
     -- Schedule a UI refresh to load icons
     C_Timer.After(0.5, function()
-        LootCouncil.UI.LootTab:Refresh()
+        LootCouncil.UI.LootPopup:Refresh()
         LootCouncil.UI.VotingTab:Refresh()
         LootCouncil.UI.TabManager:Refresh()
     end)

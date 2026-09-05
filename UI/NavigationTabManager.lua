@@ -27,7 +27,6 @@ function manager:CreateTabs()
     local names = {
 
         "Voting",
-        "Loot",
         "Attendance",
         "History",
         "BiS",
@@ -115,7 +114,6 @@ function manager:Select(name)
     self:Refresh()
 
 end
-
 ---------------------------------------------------
 -- Refresh
 ---------------------------------------------------
@@ -148,9 +146,6 @@ function manager:Refresh()
     local votingPanel =
         LootCouncil.UI.MainWindow.votingPanel
 
-    local lootPanel =
-        LootCouncil.UI.MainWindow.lootPanel
-
     local settingsPanel =
         LootCouncil.UI.MainWindow.settingsPanel
 
@@ -159,10 +154,6 @@ function manager:Refresh()
 
     if votingPanel then
         votingPanel:Hide()
-    end
-
-    if lootPanel then
-        lootPanel:Hide()
     end
 
     if settingsPanel then
@@ -193,14 +184,6 @@ function manager:Refresh()
 
         LootCouncil.UI.VotingTab:Refresh()
 
-    elseif self.selected == "Loot" then
-
-        if lootPanel then
-            lootPanel:Show()
-        end
-
-        LootCouncil.UI.LootTab:Refresh()
-
     elseif self.selected == "History" then
 
         if historyPanel then
@@ -218,6 +201,8 @@ function manager:Refresh()
         LootCouncil.UI.SettingsTab:Refresh()
 
     end
+
+    -- Loot tab has been removed — it's now handled by LootPopup
 
 end
 

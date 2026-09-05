@@ -158,7 +158,7 @@ function module:OnEvent(event, ...)
                 -- Refresh UI
                 LootCouncil.UI.TabManager:Refresh()
                 LootCouncil.UI.VotingTab:Refresh()
-                LootCouncil.UI.LootTab:Refresh()
+                LootCouncil.UI.LootPopup:Refresh()
             end
         end
     end

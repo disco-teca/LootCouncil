@@ -55,7 +55,7 @@ function module:StartRoll(item, rollType)
     SendChatMessage(message, "RAID_WARNING")
 
     -- Refresh the Loot tab
-    LootCouncil.UI.LootTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
 
     -- Update Voting tab
     LootCouncil.UI.VotingTab:Refresh()

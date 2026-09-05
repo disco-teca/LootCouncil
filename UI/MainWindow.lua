@@ -208,30 +208,6 @@ LootCouncil.UI.MainWindow.votingPanel =
     votingPanel
 
 ---------------------------------------------------
--- Loot Panel
----------------------------------------------------
-
-local lootPanel =
-    LootCouncil.UI.Widgets:CreatePanel(
-        workspace
-    )
-
-lootPanel:SetPoint(
-    "TOPLEFT",
-    workspace,
-    "TOPLEFT"
-)
-
-lootPanel:SetPoint(
-    "BOTTOMRIGHT",
-    workspace,
-    "BOTTOMRIGHT"
-)
-
-LootCouncil.UI.MainWindow.lootPanel =
-    lootPanel
-
----------------------------------------------------
 -- Settings Panel
 ---------------------------------------------------
 
