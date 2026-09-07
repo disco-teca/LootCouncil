@@ -172,23 +172,45 @@ function popup:Refresh()
         return
     end
 
-    local activeItems = {}
-    for itemIndex, item in ipairs(items) do
+    local playerName = UnitName("player")
+
+    -- Filter: hide awarded items and items where player has AUTO_PASS
+    local visibleItems = {}
+    for _, item in ipairs(items) do
         if not item:IsAwarded() then
-            table.insert(activeItems, { item = item, index = itemIndex })
+            local applicant = item:FindApplicant(playerName)
+            if applicant then
+                local response = applicant:GetResponse()
+                if response and not string.find(response, "AUTO") then
+                    table.insert(visibleItems, item)
+                end
+            else
+                table.insert(visibleItems, item)
+            end
         end
     end
 
-    if #activeItems == 0 then
+    if #visibleItems == 0 then
         return
     end
 
-    for displayIndex, entry in ipairs(activeItems) do
-        local row = self:CreateItemRow(entry.item, entry.index, displayIndex)
+    -- Build rows from visibleItems instead of all items
+    for displayIndex, item in ipairs(visibleItems) do
+        -- Note: We need the item's array index for response submission
+        -- Find the original index from the full items list
+        local originalIndex = nil
+        for idx, fullItem in ipairs(items) do
+            if fullItem == item then
+                originalIndex = idx
+                break
+            end
+        end
+        
+        local row = self:CreateItemRow(item, originalIndex or displayIndex, displayIndex)
         table.insert(rows, row)
     end
 
-    local contentHeight = 15 + (#activeItems * rowHeight) + 15
+    local contentHeight = 15 + (#visibleItems * rowHeight) + 15
     content:SetHeight(math.max(contentHeight, scrollFrame:GetHeight()))
 end
 
