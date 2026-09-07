@@ -17,6 +17,9 @@ local responseOrder = {
 
 }
 
+-- Create the dropdown menu frame once
+local responseMenu = CreateFrame("Frame", "LootCouncilResponseMenu", UIParent, "UIDropDownMenuTemplate")
+
 local function SortApplicants(applicants)
 
     local sorted = {}
@@ -179,7 +182,8 @@ function widget:Create(parent)
         frame.header.cells[column] =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
-                font = "GameFontNormalLarge",
+                font = "GameFontHighlight",
+                fontSize = 13,
                 point = "TOPLEFT",
                 relativeTo = frame,
                 relativePoint = "TOPLEFT",
@@ -213,6 +217,9 @@ function widget:Create(parent)
         row.selected = false
         row.highlighted = false
 
+        -- Initialize cells table
+        row.cells = {}
+
         ---------------------------------------------------
         -- Player Cell
         ---------------------------------------------------
@@ -220,7 +227,8 @@ function widget:Create(parent)
         local playerCell =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
-                font = "GameFontNormalLarge",
+                font = "GameFontHighlight",
+                fontSize = 13,
                 point = "TOPLEFT",
                 relativeTo = previous,
                 relativePoint = "BOTTOMLEFT",
@@ -229,6 +237,8 @@ function widget:Create(parent)
                 y = -6,
 
             })
+
+        row.cells.Player = playerCell
 
         ---------------------------------------------------
         -- Equipped Icons
@@ -270,10 +280,6 @@ function widget:Create(parent)
         -- Text Cells
         ---------------------------------------------------
 
-        row.cells = {}
-
-        row.cells.Player = playerCell
-
         local textColumns = {
 
             "Response",
@@ -287,8 +293,10 @@ function widget:Create(parent)
             row.cells[column] =
                 LootCouncil.UI.Widgets:CreateLabel(frame, {
 
-                    font = "GameFontNormalLarge",
+                    font = "GameFontHighlight",
+                    fontSize = 13,
                     point = "TOPLEFT",
+
                     relativeTo = playerCell,
                     relativePoint = "TOPLEFT",
 
@@ -344,7 +352,8 @@ function widget:Create(parent)
         row.cells.Votes =
             LootCouncil.UI.Widgets:CreateLabel(frame, {
 
-                font = "GameFontNormalLarge",
+                font = "GameFontHighlight",
+                fontSize = 13,
                 point = "LEFT",
                 relativeTo = row.cells.Vote,
                 relativePoint = "RIGHT",
@@ -415,19 +424,52 @@ function widget:Create(parent)
 
         )
 
-                -- Divider line between rows
-        local divider = frame:CreateTexture(nil, "BACKGROUND")
-        divider:SetHeight(1)
-        divider:SetPoint("TOPLEFT", playerCell, "BOTTOMLEFT", 0, -2)
-        divider:SetPoint("TOPRIGHT", row.cells.Award, "BOTTOMRIGHT", 0, -2)
-        divider:SetTexture(0.3, 0.3, 0.3, 0.5)
-        row.divider = divider
+        -- Store the row on the frame for the right-click handler
+        frame.clickedRow = row
 
         frame.rows[i] = row
 
         previous = playerCell
 
     end
+
+    -- Enable mouse on the frame for right-click
+    frame:EnableMouse(true)
+    frame:SetScript("OnMouseDown", function(self, button)
+        if button == "RightButton" then
+            local clickedRow = self.clickedRow
+            if not clickedRow or not clickedRow.applicant then
+                return
+            end
+            
+            if not LootCouncil.Session:IsCouncil(UnitName("player")) then
+                return
+            end
+            
+            local playerName = clickedRow.applicant:GetPlayer():GetName()
+            local item = LootCouncil.Session:GetSelectedItem()
+            if not item then
+                return
+            end
+            
+            local itemIndex = LootCouncil.Session:GetSelectedIndex()
+            
+            local menu = CreateFrame("Frame", "LootCouncilResponseMenu", UIParent, "UIDropDownMenuTemplate")
+            local info = {}
+            
+            local responses = {"BIS", "MS", "OS", "PASS", "DISENCHANT"}
+            for _, response in ipairs(responses) do
+                info = {}
+                info.text = response
+                info.func = function()
+                    LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+                end
+                UIDropDownMenu_AddButton(info)
+            end
+            
+            UIDropDownMenu_Display(menu, nil, "cursor")
+        end
+    end)
 
     return frame
 
@@ -458,100 +500,177 @@ function widget:Refresh(frame, applicants)
 
         local row = frame.rows[i]
 
-        row.applicant = applicants[i]
+        -- Safety check: skip rows that aren't properly initialized
+        if row and row.cells then
 
-        if row.applicant then
+            row.applicant = applicants[i]
 
-            -- Show divider for this row
-            if row.divider then
-                row.divider:Show()
-            end
+            if row.applicant then
 
-            ---------------------------------------------------
-            -- Player
-            ---------------------------------------------------
+                -- Show divider for this row
+                if row.divider then
+                    row.divider:Show()
+                end
 
-            local player =
-                row.applicant:GetPlayer()
+                ---------------------------------------------------
+                -- Player
+                ---------------------------------------------------
 
-            local class =
-                player:GetClass()
+                local player =
+                    row.applicant:GetPlayer()
 
-            local color =
-                LootCouncil.Constants.ClassColors[
-                    string.upper(class)
-                ]
+                local class =
+                    player:GetClass()
 
-            if color then
+                local color =
+                    LootCouncil.Constants.ClassColors[
+                        string.upper(class)
+                    ]
 
-                row.cells.Player:SetTextColor(
-                    color[1],
-                    color[2],
-                    color[3]
-                )
+                if color then
 
-            else
-
-                row.cells.Player:SetTextColor(
-                    1,
-                    1,
-                    1
-                )
-
-            end
-
-            row.cells.Player:SetText(
-                player:GetName()
-            )
-
-            ---------------------------------------------------
-            -- Equipped Icons
-            ---------------------------------------------------
-
-            local comparisonSlots = {}
-
-            if item then
-
-                comparisonSlots =
-                    LootCouncil.Comparison:GetComparisonSlots(
-                        item
+                    row.cells.Player:SetTextColor(
+                        color[1],
+                        color[2],
+                        color[3]
                     )
 
-            end
+                else
 
-            for iconIndex = 1, 2 do
+                    row.cells.Player:SetTextColor(
+                        1,
+                        1,
+                        1
+                    )
 
-                local icon =
-                    row.icons[iconIndex]
+                end
 
-                local slotID =
-                    comparisonSlots[iconIndex]
+                row.cells.Player:SetText(
+                    player:GetName()
+                )
 
-                if slotID then
+                -- Right-click button over the player name
+                if not row.playerButton then
+                    row.playerButton = LootCouncil.UI.Widgets.Button:Create(
+                        frame,
+                        {
+                            width = 80,
+                            height = 20,
+                            text = "",
+                        }
+                    )
+                    row.playerButton:SetPoint("TOPLEFT", row.cells.Player, "TOPLEFT", -2, 2)
+                    row.playerButton:SetPoint("BOTTOMRIGHT", row.cells.Player, "BOTTOMRIGHT", 2, -2)
+                    row.playerButton:SetAlpha(0)  -- Transparent
+                    
+                    -- Use OnMouseDown to detect right-click
+                    row.playerButton:SetScript("OnMouseDown", function(button, mouseButton)
+                        if mouseButton == "RightButton" then
+                            if not LootCouncil.Session:IsCouncil(UnitName("player")) then
+                                return
+                            end
+                            
+                            if not row.applicant then
+                                return
+                            end
+                            
+                            local playerName = row.applicant:GetPlayer():GetName()
+                            local item = LootCouncil.Session:GetSelectedItem()
+                            if not item then
+                                return
+                            end
+                            
+                            local itemIndex = LootCouncil.Session:GetSelectedIndex()
+                            
+                            -- Create right-click menu using EasyMenu
+                            local menuItems = {}
+                            
+                            local responses = {"BIS", "MS", "OS", "PASS", "DISENCHANT"}
+                            for _, response in ipairs(responses) do
+                                table.insert(menuItems, {
+                                    text = response,
+                                    func = function()
+                                        LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+                                    end
+                                })
+                            end
+                            
+                            -- Add a separator and cancel option
+                            table.insert(menuItems, {
+                                text = "Cancel",
+                                func = function() end
+                            })
+                            
+                            -- Show the dropdown menu at cursor position
+                            EasyMenu(menuItems, LootCouncilResponseMenu, "cursor", 0, 0, "MENU")
+                        end
+                    end)
+                end
 
-                    local iconTexture =
-                        row.applicant:GetEquippedIconForSlot(
-                            slotID
+                ---------------------------------------------------
+                -- Equipped Icons
+                ---------------------------------------------------
+
+                local comparisonSlots = {}
+
+                if item then
+
+                    comparisonSlots =
+                        LootCouncil.Comparison:GetComparisonSlots(
+                            item
                         )
 
-                    local iconLink =
-                        row.applicant:GetEquippedLinkForSlot(
-                            slotID
-                        )
+                end
 
-                    if iconTexture then
+                for iconIndex = 1, 2 do
 
-                        LootCouncil.UI.Widgets.Icon:SetTexture(
-                            icon,
-                            iconTexture
-                        )
+                    local icon =
+                        row.icons[iconIndex]
 
-                        LootCouncil.UI.Widgets.Icon:SetItem(
-                            icon,
-                            iconLink
-                        )
+                    local slotID =
+                        comparisonSlots[iconIndex]
 
-                        icon:Show()
+                    if slotID then
+
+                        local iconTexture =
+                            row.applicant:GetEquippedIconForSlot(
+                                slotID
+                            )
+
+                        local iconLink =
+                            row.applicant:GetEquippedLinkForSlot(
+                                slotID
+                            )
+
+                        if iconTexture then
+
+                            LootCouncil.UI.Widgets.Icon:SetTexture(
+                                icon,
+                                iconTexture
+                            )
+
+                            LootCouncil.UI.Widgets.Icon:SetItem(
+                                icon,
+                                iconLink
+                            )
+
+                            icon:Show()
+
+                        else
+
+                            LootCouncil.UI.Widgets.Icon:SetTexture(
+                                icon,
+                                nil
+                            )
+
+                            LootCouncil.UI.Widgets.Icon:SetItem(
+                                icon,
+                                nil
+                            )
+
+                            icon:Hide()
+
+                        end
 
                     else
 
@@ -569,7 +688,276 @@ function widget:Refresh(frame, applicants)
 
                     end
 
+                end
+
+                ---------------------------------------------------
+                -- Response
+                ---------------------------------------------------
+
+                local response = row.applicant:GetResponse()
+                row.cells.Response:SetText(response)
+
+                -- Color coding
+                if response == "BIS" then
+                    row.cells.Response:SetTextColor(0.2, 1, 0.2)
+                elseif response == "MS" then
+                    row.cells.Response:SetTextColor(0.3, 0.5, 1)
+                elseif response == "OS" then
+                    row.cells.Response:SetTextColor(1, 0.6, 0.1)
+                elseif response == "PENDING" then
+                    row.cells.Response:SetTextColor(1, 1, 1)
+                elseif response == "PASS" or response == "AUTO_PASS" then
+                    row.cells.Response:SetTextColor(0.5, 0.5, 0.5)
                 else
+                    row.cells.Response:SetTextColor(1, 1, 1)
+                end
+
+                ---------------------------------------------------
+                -- Item Level
+                ---------------------------------------------------
+
+                row.cells.ItemLevel:SetText(
+                    row.applicant:GetItemLevelComparison()
+                )
+
+                ---------------------------------------------------
+                -- BiS
+                ---------------------------------------------------
+
+                row.cells.BiS:SetText("")
+
+                ---------------------------------------------------
+                -- Vote
+                ---------------------------------------------------
+
+                local councilMember =
+                    UnitName("player")
+
+                local hasVoted = false
+
+                for _, voter in ipairs(
+                    row.applicant:GetVotes()
+                ) do
+
+                    if voter == councilMember then
+
+                        hasVoted = true
+                        break
+
+                    end
+
+                end
+
+                if hasVoted then
+
+                    row.cells.Vote:SetText(
+                        "Voted"
+                    )
+
+                else
+
+                    row.cells.Vote:SetText(
+                        "Vote"
+                    )
+
+                end
+
+                ---------------------------------------------------
+                -- Vote Count
+                ---------------------------------------------------
+
+                row.cells.Votes:SetText(
+                    tostring(
+                        row.applicant:GetVoteCount()
+                    )
+                )
+
+                ---------------------------------------------------
+                -- Vote Tooltip
+                ---------------------------------------------------
+
+                row.cells.VotesTooltip:SetScript(
+
+                    "OnEnter",
+
+                    function()
+
+                        local votes =
+                            row.applicant:GetVotes()
+
+                        if #votes == 0 then
+                            return
+                        end
+
+                        GameTooltip:SetOwner(
+
+                            row.cells.VotesTooltip,
+
+                            "ANCHOR_RIGHT"
+
+                        )
+
+                        GameTooltip:SetText(
+                            "Votes"
+                        )
+
+                        for _, voter in ipairs(votes) do
+
+                            GameTooltip:AddLine(
+                                voter
+                            )
+
+                        end
+
+                        GameTooltip:Show()
+
+                    end
+
+                )
+
+                row.cells.VotesTooltip:SetScript(
+
+                    "OnLeave",
+
+                    function()
+
+                        GameTooltip:Hide()
+
+                    end
+
+                )
+
+                row.cells.Vote:Show()
+
+                ---------------------------------------------------
+                -- Vote Button
+                ---------------------------------------------------
+
+                row.cells.Vote:SetScript(
+
+                    "OnClick",
+
+                    function()
+
+                        if not item or not row.applicant then
+                            return
+                        end
+
+                        LootCouncil.Session:ToggleVote(
+
+                            UnitName("player"),
+
+                            row.applicant:GetPlayer():GetName(),
+
+                            LootCouncil.Session:GetSelectedIndex()
+
+                        )
+
+                    end
+
+                )
+
+                ---------------------------------------------------
+                -- Award Button
+                ---------------------------------------------------
+
+                if item and
+                   item:GetWinner() ==
+                   row.applicant:GetPlayer():GetName() then
+
+                    row.cells.Award:SetText(
+                        "Awarded"
+                    )
+
+                else
+
+                    row.cells.Award:SetText(
+                        "Award"
+                    )
+
+                end
+
+                row.cells.Award:Show()
+
+                row.cells.Award:SetScript(
+                    "OnClick",
+                    function()
+
+                        if not item or not row.applicant then
+                            return
+                        end
+
+                        local playerName =
+                            row.applicant:GetPlayer():GetName()
+
+                        local response =
+                            row.applicant:GetResponse()
+
+                        local itemLink =
+                            item:GetLink()
+
+                        ---------------------------------------------------
+                        -- Confirmation
+                        ---------------------------------------------------
+
+                        StaticPopupDialogs[
+                            "LOOTCOUNCIL_CONFIRM_AWARD"
+                        ] = {
+
+                            text =
+                                "Award " ..
+                                itemLink ..
+                                " to " ..
+                                playerName ..
+                                " for " ..
+                                response ..
+                                "?",
+
+                            button1 = "Award",
+
+                            button2 = "Cancel",
+
+                            OnAccept = function()
+
+                                LootCouncil.Session:SubmitAward(
+                                    playerName,
+                                    LootCouncil.Session:GetSelectedIndex()
+                                )
+
+                            end,
+
+                            timeout = 0,
+
+                            whileDead = true,
+
+                            hideOnEscape = true,
+
+                            preferredIndex = 3,
+
+                        }
+
+                        StaticPopup_Show(
+                            "LOOTCOUNCIL_CONFIRM_AWARD"
+                        )
+
+                    end
+                )
+
+            else
+
+                -- Hide divider for empty rows
+                if row.divider then
+                    row.divider:Hide()
+                end
+
+                ---------------------------------------------------
+                -- Clear Icons
+                ---------------------------------------------------
+
+                for iconIndex = 1, 2 do
+
+                    local icon =
+                        row.icons[iconIndex]
 
                     LootCouncil.UI.Widgets.Icon:SetTexture(
                         icon,
@@ -585,328 +973,50 @@ function widget:Refresh(frame, applicants)
 
                 end
 
-            end
+                ---------------------------------------------------
+                -- Clear Text
+                ---------------------------------------------------
 
-            ---------------------------------------------------
-            -- Response
-            ---------------------------------------------------
+                for key, cell in pairs(row.cells) do
 
-            local response = row.applicant:GetResponse()
-            row.cells.Response:SetText(response)
+                    if key ~= "Award" and
+                       key ~= "Vote" then
 
-            -- Color coding
-            if response == "BIS" then
-                row.cells.Response:SetTextColor(0.2, 1, 0.2)
-            elseif response == "MS" then
-                row.cells.Response:SetTextColor(0.3, 0.5, 1)
-            elseif response == "OS" then
-                row.cells.Response:SetTextColor(1, 0.6, 0.1)
-            elseif response == "PENDING" then
-                row.cells.Response:SetTextColor(1, 1, 1)
-            elseif response == "PASS" or response == "AUTO_PASS" then
-                row.cells.Response:SetTextColor(0.5, 0.5, 0.5)
-            else
-                row.cells.Response:SetTextColor(1, 1, 1)
-            end
-
-            ---------------------------------------------------
-            -- Item Level
-            ---------------------------------------------------
-
-            row.cells.ItemLevel:SetText(
-                row.applicant:GetItemLevelComparison()
-            )
-
-            ---------------------------------------------------
-            -- BiS
-            ---------------------------------------------------
-
-            row.cells.BiS:SetText("")
-
-            ---------------------------------------------------
-            -- Vote
-            ---------------------------------------------------
-
-            local councilMember =
-                UnitName("player")
-
-            local hasVoted = false
-
-            for _, voter in ipairs(
-                row.applicant:GetVotes()
-            ) do
-
-                if voter == councilMember then
-
-                    hasVoted = true
-                    break
-
-                end
-
-            end
-
-            if hasVoted then
-
-                row.cells.Vote:SetText(
-                    "Voted"
-                )
-
-            else
-
-                row.cells.Vote:SetText(
-                    "Vote"
-                )
-
-            end
-
-            ---------------------------------------------------
-            -- Vote Count
-            ---------------------------------------------------
-
-            row.cells.Votes:SetText(
-                tostring(
-                    row.applicant:GetVoteCount()
-                )
-            )
-
-            ---------------------------------------------------
-            -- Vote Tooltip
-            ---------------------------------------------------
-
-            row.cells.VotesTooltip:SetScript(
-
-                "OnEnter",
-
-                function()
-
-                    local votes =
-                        row.applicant:GetVotes()
-
-                    if #votes == 0 then
-                        return
-                    end
-
-                    GameTooltip:SetOwner(
-
-                        row.cells.VotesTooltip,
-
-                        "ANCHOR_RIGHT"
-
-                    )
-
-                    GameTooltip:SetText(
-                        "Votes"
-                    )
-
-                    for _, voter in ipairs(votes) do
-
-                        GameTooltip:AddLine(
-                            voter
-                        )
+                        cell:SetText("")
 
                     end
 
-                    GameTooltip:Show()
-
                 end
 
-            )
+                ---------------------------------------------------
+                -- Clear Vote Tooltip
+                ---------------------------------------------------
 
-            row.cells.VotesTooltip:SetScript(
-
-                "OnLeave",
-
-                function()
-
-                    GameTooltip:Hide()
-
-                end
-
-            )
-
-            row.cells.Vote:Show()
-
-            ---------------------------------------------------
-            -- Vote Button
-            ---------------------------------------------------
-
-            row.cells.Vote:SetScript(
-
-                "OnClick",
-
-                function()
-
-                    if not item or not row.applicant then
-                        return
-                    end
-
-                    LootCouncil.Session:ToggleVote(
-
-                        UnitName("player"),
-
-                        row.applicant:GetPlayer():GetName(),
-
-                        LootCouncil.Session:GetSelectedIndex()
-
-                    )
-
-                end
-
-            )
-
-            ---------------------------------------------------
-            -- Award Button
-            ---------------------------------------------------
-
-            if item and
-               item:GetWinner() ==
-               row.applicant:GetPlayer():GetName() then
-
-                row.cells.Award:SetText(
-                    "Awarded"
+                row.cells.VotesTooltip:SetScript(
+                    "OnEnter",
+                    nil
                 )
 
-            else
-
-                row.cells.Award:SetText(
-                    "Award"
+                row.cells.VotesTooltip:SetScript(
+                    "OnLeave",
+                    nil
                 )
+
+                ---------------------------------------------------
+                -- Hide Buttons
+                ---------------------------------------------------
+
+                row.cells.Vote:Hide()
+
+                row.cells.Award:Hide()
 
             end
-
-            row.cells.Award:Show()
-
-            row.cells.Award:SetScript(
-                "OnClick",
-                function()
-
-                    if not item or not row.applicant then
-                        return
-                    end
-
-                    local playerName =
-                        row.applicant:GetPlayer():GetName()
-
-                    local response =
-                        row.applicant:GetResponse()
-
-                    local itemLink =
-                        item:GetLink()
-
-                    ---------------------------------------------------
-                    -- Confirmation
-                    ---------------------------------------------------
-
-                    StaticPopupDialogs[
-                        "LOOTCOUNCIL_CONFIRM_AWARD"
-                    ] = {
-
-                        text =
-                            "Award " ..
-                            itemLink ..
-                            " to " ..
-                            playerName ..
-                            " for " ..
-                            response ..
-                            "?",
-
-                        button1 = "Award",
-
-                        button2 = "Cancel",
-
-                        OnAccept = function()
-
-                            LootCouncil.Session:SubmitAward(
-                                playerName,
-                                LootCouncil.Session:GetSelectedIndex()
-                            )
-
-                        end,
-
-                        timeout = 0,
-
-                        whileDead = true,
-
-                        hideOnEscape = true,
-
-                        preferredIndex = 3,
-
-                    }
-
-                    StaticPopup_Show(
-                        "LOOTCOUNCIL_CONFIRM_AWARD"
-                    )
-
-                end
-            )
 
         else
-
-            -- Hide divider for empty rows
-            if row.divider then
-                row.divider:Hide()
+            -- Row not initialized, skip it
+            if row then
+                row.applicant = nil
             end
-
-            ---------------------------------------------------
-            -- Clear Icons
-            ---------------------------------------------------
-
-            for iconIndex = 1, 2 do
-
-                local icon =
-                    row.icons[iconIndex]
-
-                LootCouncil.UI.Widgets.Icon:SetTexture(
-                    icon,
-                    nil
-                )
-
-                LootCouncil.UI.Widgets.Icon:SetItem(
-                    icon,
-                    nil
-                )
-
-                icon:Hide()
-
-            end
-
-            ---------------------------------------------------
-            -- Clear Text
-            ---------------------------------------------------
-
-            for key, cell in pairs(row.cells) do
-
-                if key ~= "Award" and
-                   key ~= "Vote" then
-
-                    cell:SetText("")
-
-                end
-
-            end
-
-            ---------------------------------------------------
-            -- Clear Vote Tooltip
-            ---------------------------------------------------
-
-            row.cells.VotesTooltip:SetScript(
-                "OnEnter",
-                nil
-            )
-
-            row.cells.VotesTooltip:SetScript(
-                "OnLeave",
-                nil
-            )
-
-            ---------------------------------------------------
-            -- Hide Buttons
-            ---------------------------------------------------
-
-            row.cells.Vote:Hide()
-
-            row.cells.Award:Hide()
-
         end
 
     end
@@ -921,56 +1031,61 @@ function widget:Clear(frame)
 
     for i = 1, #frame.rows do
 
-        local row =
-            frame.rows[i]
+        local row = frame.rows[i]
 
-        row.applicant = nil
-
-        ---------------------------------------------------
-        -- Clear Equipped Icons
-        ---------------------------------------------------
+        -- Safety check
+        if not row or not row.icons then
+            return
+        end
 
         for iconIndex = 1, 2 do
 
-            local icon =
-                row.icons[iconIndex]
+            local icon = row.icons[iconIndex]
 
-            LootCouncil.UI.Widgets.Icon:SetTexture(
-                icon,
-                nil
-            )
+            if icon then
+                LootCouncil.UI.Widgets.Icon:SetTexture(
+                    icon,
+                    nil
+                )
 
-            LootCouncil.UI.Widgets.Icon:SetItem(
-                icon,
-                nil
-            )
+                LootCouncil.UI.Widgets.Icon:SetItem(
+                    icon,
+                    nil
+                )
 
-            icon:Hide()
-
-        end
-
-        ---------------------------------------------------
-        -- Clear Text
-        ---------------------------------------------------
-
-        for key, cell in pairs(row.cells) do
-
-            if key ~= "Award" and
-               key ~= "Vote" then
-
-                cell:SetText("")
-
+                icon:Hide()
             end
 
         end
 
-        ---------------------------------------------------
-        -- Hide Buttons
-        ---------------------------------------------------
+        -- Clear text cells
+        if row.cells then
+            for key, cell in pairs(row.cells) do
+                if key ~= "Award" and key ~= "Vote" then
+                    if cell and cell.SetText then
+                        cell:SetText("")
+                    end
+                end
+            end
+        end
 
-        row.cells.Vote:Hide()
+        -- Hide buttons
+        if row.cells then
+            if row.cells.Vote then
+                row.cells.Vote:Hide()
+            end
+            if row.cells.Award then
+                row.cells.Award:Hide()
+            end
+        end
 
-        row.cells.Award:Hide()
+        -- Clear vote tooltip
+        if row.cells and row.cells.VotesTooltip then
+            row.cells.VotesTooltip:SetScript("OnEnter", nil)
+            row.cells.VotesTooltip:SetScript("OnLeave", nil)
+        end
+
+        row.applicant = nil
 
     end
 

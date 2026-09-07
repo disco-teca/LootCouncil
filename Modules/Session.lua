@@ -3155,6 +3155,12 @@ function LootCouncil.Session:Initialize()
         self.OnOwnerGearResponse
     )
 
+    LootCouncil.MessageBus:Register(
+        "RESPONSE_OVERRIDE",
+        self,
+        self.OnResponseOverride
+    )
+
 end
 
 function LootCouncil.Session:OnVoteMessage(
@@ -3677,3 +3683,91 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
 end
 
 LootCouncil:Print("Session.lua loaded successfully")
+
+---------------------------------------------------
+-- Set Player Response (Council Manual Override)
+---------------------------------------------------
+
+function LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+    if not self:IsActive() then
+        return
+    end
+    
+    -- Only council can do this
+    if not self:IsCouncil(UnitName("player")) then
+        return
+    end
+    
+    local item = self:GetItem(itemIndex)
+    if not item then
+        return
+    end
+    
+    local player = self:GetPlayer(playerName)
+    if not player then
+        return
+    end
+    
+    local applicant = item:FindApplicant(player)
+    if not applicant then
+        return
+    end
+    
+    -- Set the response
+    applicant:SetResponse(response)
+    
+    -- Save
+    LootCouncil.Persistence:Save()
+    
+    -- Broadcast to all clients
+    local message = LootCouncil.Message:New(
+        "RESPONSE_OVERRIDE",
+        {
+            player = playerName,
+            itemIndex = itemIndex,
+            response = response,
+        }
+    )
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+    
+    -- Refresh UI
+    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
+    
+    LootCouncil:Print(playerName .. " response set to " .. response)
+end
+
+---------------------------------------------------
+-- Receive Response Override
+---------------------------------------------------
+
+function LootCouncil.Session:OnResponseOverride(message, sender)
+    local payload = message:GetPayload()
+    if not payload then
+        return
+    end
+    
+    local playerName = payload.player
+    local itemIndex = payload.itemIndex
+    local response = payload.response
+    
+    local item = self:GetItem(itemIndex)
+    if not item then
+        return
+    end
+    
+    local player = self:GetPlayer(playerName)
+    if not player then
+        return
+    end
+    
+    local applicant = item:FindApplicant(player)
+    if not applicant then
+        return
+    end
+    
+    applicant:SetResponse(response)
+    LootCouncil.Persistence:Save()
+    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.LootPopup:Refresh()
+end
