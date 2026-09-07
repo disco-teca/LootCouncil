@@ -54,14 +54,15 @@ function module:Refresh()
                 _,
                 _,
                 _,
-                class =
+                _,
+                classToken =
                 GetRaidRosterInfo(i)
 
             table.insert(
                 self.players,
                 LootCouncil.Player:New(
                     name,
-                    class
+                    classToken
                 )
             )
 

@@ -86,9 +86,9 @@ LootCouncil.Constants.ClassOrder = {
 LootCouncil.Constants.ClassColors = {
 
     DEATHKNIGHT = {
-        0.77,
-        0.12,
-        0.23,
+        1.0,
+        0.1,
+        0.1,
     },
 
     DRUID = {

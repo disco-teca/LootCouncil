@@ -1,5 +1,7 @@
 LootCouncil.Session = {}
 
+LootCouncil:Print("Session.lua is loading")
+
 local session = nil
 
 local pendingOwnershipTransfer = nil
@@ -3519,39 +3521,55 @@ function LootCouncil.Session:OnPlayerJoinedMessage(message, sender)
     if not self:IsOwner() then
         return
     end
-    
+
     if not self:IsActive() then
         return
     end
-    
+
     local payload = message:GetPayload()
     if not payload or not payload.player then
         return
     end
-    
+
     local playerName = payload.player
-    
+
     -- Check if player is already in the session
     if self:FindPlayer(playerName) then
         return
     end
-    
-    -- Add the player to the session
-    local player = LootCouncil.Player:New(playerName, "UNKNOWN")
+
+    -- FIXED: Dynamically fetch the correct uppercase class token if available
+    local playerClass = "UNKNOWN"
+    if UnitExists(playerName) then
+        playerClass = select(6, UnitClass(playerName)) or "UNKNOWN"
+    else
+        -- If they aren't close enough to inspect via UnitClass, check the raid data
+        for i = 1, GetNumRaidMembers() do
+            local name, _, _, _, _, classToken = GetRaidRosterInfo(i)
+            if name == playerName then
+                playerClass = classToken or "UNKNOWN"
+                break
+            end
+        end
+    end
+
+    -- Add the player to the session with their correct class token
+    local player = LootCouncil.Player:New(playerName, playerClass)
     self:AddPlayer(player)
-    
+
     -- Add them as an applicant to all items
     for _, item in ipairs(self:GetItems()) do
         self:InitializeApplicants(item)
     end
-    
+
     -- Save and refresh
     LootCouncil.Persistence:Save()
     LootCouncil.UI.TabManager:Refresh()
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.LootPopup:Refresh()
-    
+
     LootCouncil:Print(playerName .. " joined the session")
+
 end
 
 ---------------------------------------------------
@@ -3657,3 +3675,5 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
 
     return true
 end
+
+LootCouncil:Print("Session.lua loaded successfully")

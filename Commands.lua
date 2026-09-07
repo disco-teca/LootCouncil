@@ -510,11 +510,9 @@ local function PrintHelp()
 
     LootCouncil:Print("LootCouncil Commands:")
     LootCouncil:Print("/lc - Open the LootCouncil window")
-    LootCouncil:Print("/lc test - Toggle developer test mode")
-    LootCouncil:Print("/lc debug - Print session information")
-    LootCouncil:Print("/lc item <itemID> - Display Blizzard item information")
-    LootCouncil:Print("/lc roster - Print the current party/raid roster")
-    LootCouncil:Print("Cache command registered.")
+    LootCouncil:Print("/lc loot - Open the loot window")
+    LootCouncil:Print("/lc sync - Join active session. ASK RAID LEADER FIRST.")
+    LootCouncil:Print("/lc councilsync - Sync to the council. ONLY FOR COUNCIL MEMBERS.")
 
 end
 

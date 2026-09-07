@@ -17,7 +17,7 @@ function LootCouncil:Initialize()
     self.MessageBus:Initialize()
 
     self.Session:Initialize()
-
+    
     self.Persistence:Initialize()
 
     self.Permissions:Initialize()
