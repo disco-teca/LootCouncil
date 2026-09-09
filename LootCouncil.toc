@@ -72,6 +72,7 @@ Events.lua
 
 UI\UI.lua
 UI\LootPopup.lua
+UI\LootWindow.lua
 
 UI\Widgets\Widgets.lua
 UI\Widgets\Panel.lua

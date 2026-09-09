@@ -509,11 +509,26 @@ end
 local function PrintHelp()
 
     LootCouncil:Print("LootCouncil Commands:")
+    LootCouncil:Print("/lc help - Print available raider commands")
     LootCouncil:Print("/lc - Open the LootCouncil window")
     LootCouncil:Print("/lc loot - Open the loot window")
-    LootCouncil:Print("/lc sync - Join active session. ASK RAID LEADER FIRST.")
-    LootCouncil:Print("/lc councilsync - Sync to the council. ONLY FOR COUNCIL MEMBERS.")
+    LootCouncil:Print("/lc sync - Join active session (use carefully)")
 
+end
+
+local function PrintCouncilHelp()
+    LootCouncil:Print("LootCouncil Council Commands:")
+    LootCouncil:Print("/lc - Toggle main council window")
+    LootCouncil:Print("/lc help - Show this help message")
+    LootCouncil:Print("/lc loot - Toggle raider loot popup")
+    LootCouncil:Print("/lc start - Start a session (Raid Leader only)")
+    LootCouncil:Print("/lc end - End a session (Raid Leader only)")
+    LootCouncil:Print("/lc add <link> - Add item(s) to loot queue")
+    LootCouncil:Print("/lc addone <link> - Add item directly to session")
+    LootCouncil:Print("/lc remove <number> - Remove item from session")
+    LootCouncil:Print("/lc transfer <player> - Transfer session ownership")
+    LootCouncil:Print("/lc sync - Sync late joiners (use carefully)")
+    LootCouncil:Print("/lc council - Council sync (use after /lc sync)")
 end
 
 ---------------------------------------------------
@@ -586,87 +601,81 @@ end
 ---------------------------------------------------
 
 local function AddItem(arguments)
-
     if not LootCouncil.Session:IsActive() then
-
-        LootCouncil:Print(
-            "No active session."
-        )
-
+        LootCouncil:Print("No active session.")
         return
-
     end
 
-    ---------------------------------------------------
-    -- Permission
-    ---------------------------------------------------
-
-    if not LootCouncil.Permissions:CanManageSession(
-        UnitName("player")
-    ) then
-
-        LootCouncil:Print(
-            "You do not have permission to add loot."
-        )
-
+    if not LootCouncil.Permissions:CanManageSession(UnitName("player")) then
+        LootCouncil:Print("You do not have permission to add loot.")
         return
-
     end
 
     if not arguments or arguments == "" then
-
-        LootCouncil:Print(
-            "Usage: /lc add <item link>"
-        )
-
+        LootCouncil.UI.LootWindow:Show()
         return
-
     end
 
-    local data =
-        LootCouncil.Loot:CreateItemData(
-            arguments
-        )
+    -- Extract item links from the arguments
+    local links = {}
+    local remaining = arguments
+    while remaining and remaining ~= "" do
+        local startPos, endPos = string.find(remaining, "|Hitem[^|]+|h[^|]+|h")
+        if startPos then
+            local link = string.sub(remaining, startPos, endPos)
+            table.insert(links, link)
+            remaining = string.sub(remaining, endPos + 1)
+        else
+            break
+        end
+    end
 
+    if #links == 0 then
+        LootCouncil:Print("No valid item links provided.")
+        return
+    end
+
+    local addedCount = 0
+    for _, link in ipairs(links) do
+        local data = LootCouncil.Loot:CreateItemData(link)
+        if data then
+            LootCouncil.UI.LootWindow:AddItem(data)
+            addedCount = addedCount + 1
+        else
+            LootCouncil:Print("Invalid item link: " .. link)
+        end
+    end
+
+    if addedCount > 0 then
+        LootCouncil.UI.LootWindow:Show()
+    end
+end
+
+local function AddItemDirect(arguments)
+
+    if not LootCouncil.Session:IsActive() then
+        LootCouncil:Print("No active session.")
+        return
+    end
+
+    if not LootCouncil.Permissions:CanManageSession(UnitName("player")) then
+        LootCouncil:Print("You do not have permission to add loot.")
+        return
+    end
+
+    if not arguments or arguments == "" then
+        LootCouncil:Print("Usage: /lc addone <item link>")
+        return
+    end
+
+    local data = LootCouncil.Loot:CreateItemData(arguments)
     if not data then
-
-        LootCouncil:Print(
-            "Invalid item link."
-        )
-
+        LootCouncil:Print("Invalid item link.")
         return
-
     end
 
-    ---------------------------------------------------
-    -- Create Message
-    ---------------------------------------------------
-
-    local message =
-
-        LootCouncil.Message:New(
-
-            "ADD_ITEM",
-
-            {
-
-                itemID = data.id
-
-            }
-
-        )
-
-    ---------------------------------------------------
-    -- Route Message
-    ---------------------------------------------------
-
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        UnitName("player")
-
-    )
+    LootCouncil.Session:AddItem(data)
+    LootCouncil:Print("Added item directly to session.")
 
 end
 
@@ -1194,6 +1203,10 @@ commands["remove"] = function(arguments)
     else
         LootCouncil:Print("Unable to remove item.")
     end
+end
+commands["addone"] = AddItemDirect
+commands["councilhelp"] = function()
+    PrintCouncilHelp()
 end
 
 ---------------------------------------------------
