@@ -1601,7 +1601,7 @@ function LootCouncil.Session:AddItem(data)
 
     end
 
-    -- Only the session owner announces the item
+    -- Only the session owner announces the item and broadcasts
     if self:IsOwner() then
         -- Send raid warning with item number and link
         local msg = string.format(
@@ -1610,19 +1610,28 @@ function LootCouncil.Session:AddItem(data)
             item:GetLink()
         )
         SendChatMessage(msg, "RAID")
+
+        -- Broadcast ADD_ITEM to the raid
+        local broadcast = LootCouncil.Message:New(
+            "ADD_ITEM",
+            {
+                itemID = item:GetID(),
+            }
+        )
+        LootCouncil.MessageBus:Route(broadcast, UnitName("player"))
     end
-        
-        -- Always show loot popup for everyone (it's not locked)
+
+    -- Always show loot popup for everyone (it's not locked)
     if LootCouncil.UI.LootPopup then
         LootCouncil.UI.LootPopup:Show()
     end
 
-        -- Council also gets the main window (only if they're council)
+    -- Council also gets the main window (only if they're council)
     if LootCouncil.Session:IsCouncil(UnitName("player")) then
         LootCouncil.UI:Show()
     end
 
-        -- Refresh UI with safety checks
+    -- Refresh UI with safety checks
     if LootCouncil.UI and LootCouncil.UI.TabManager then
         LootCouncil.UI.TabManager:Refresh()
     end
@@ -2531,40 +2540,40 @@ end
 
 ---------------------------------------------------
 
-function LootCouncil.Session:OnAddItemMessage(
-
-    message,
-
-    sender
-
-)
-
-    local payload =
-        message:GetPayload()
-
+function LootCouncil.Session:OnAddItemMessage(message, sender)
+    local payload = message:GetPayload()
     if not payload then
         return
     end
 
-    local data =
-        LootCouncil.Loot:CreateItemData(
-
-            tostring(payload.itemID)
-
-        )
-
-    if not data then
-
-        LootCouncil:Print(
-            "Unable to create item data."
-        )
-
+    -- Ignore if we sent this message ourselves
+    if sender == UnitName("player") then
         return
+    end
 
+    local data = LootCouncil.Loot:CreateItemData(tostring(payload.itemID))
+    if not data then
+        LootCouncil:Print("Unable to create item data.")
+        return
     end
 
     self:AddItem(data)
 
+    -- Open the loot popup for the receiving client
+    if LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Show()
+    end
+
+    -- Refresh UI with safety checks
+    if LootCouncil.UI and LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+    if LootCouncil.UI and LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Refresh()
+    end
 end
 
 ---------------------------------------------------

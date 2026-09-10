@@ -9,21 +9,7 @@ local frame = CreateFrame("Frame", "LootCouncilMainWindow", UIParent)
 frame:SetSize(1000, 650)
 frame:SetPoint("CENTER")
 
-frame:SetBackdrop({
-    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    tile = true,
-    tileSize = 16,
-    edgeSize = 16,
-    insets = {
-        left = 4,
-        right = 4,
-        top = 4,
-        bottom = 4
-    }
-})
-
-frame:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
+LootCouncil.UI.Widgets:ApplyThemeBackdrop(frame, false)
 
 frame:EnableMouse(true)
 frame:SetMovable(true)

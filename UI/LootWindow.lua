@@ -188,15 +188,7 @@ function window:Create()
     frame:SetFrameStrata("DIALOG")
     frame:SetFrameLevel(100)
 
-    frame:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true,
-        tileSize = 16,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
+    LootCouncil.UI.Widgets:ApplyThemeBackdrop(frame, false)
 
     -- Title Bar
     local titleBar = CreateFrame("Frame", nil, frame)

@@ -1,7 +1,7 @@
 function LootCouncil.UI.Widgets:CreateTab(parent, data)
 
+    local theme = LootCouncil.Constants.Theme
     local constants = LootCouncil.Constants.UI.Tab
-    local colors = LootCouncil.Constants.Colors
 
     local button = CreateFrame("Button", nil, parent)
 
@@ -16,10 +16,10 @@ function LootCouncil.UI.Widgets:CreateTab(parent, data)
     background:SetAllPoints()
 
     background:SetTexture(
-        colors.Background[1],
-        colors.Background[2],
-        colors.Background[3],
-        colors.Background[4]
+        theme.TabBackground[1],
+        theme.TabBackground[2],
+        theme.TabBackground[3],
+        theme.TabBackground[4]
     )
 
     button.Background = background
@@ -65,29 +65,26 @@ function LootCouncil.UI.Widgets:CreateTab(parent, data)
         if selected then
 
             self.Background:SetTexture(
-                colors.Selected[1],
-                colors.Selected[2],
-                colors.Selected[3],
-                colors.Selected[4]
+                theme.TabSelected[1],
+                theme.TabSelected[2],
+                theme.TabSelected[3],
+                theme.TabSelected[4]
             )
 
         else
 
             self.Background:SetTexture(
-                colors.Background[1],
-                colors.Background[2],
-                colors.Background[3],
-                colors.Background[4]
+                theme.TabBackground[1],
+                theme.TabBackground[2],
+                theme.TabBackground[3],
+                theme.TabBackground[4]
             )
 
         end
 
     end
 
-    LootCouncil.UI.Widgets:AddTooltip(
-    button,
-    data.text or ""
-)
+    LootCouncil.UI.Widgets:AddTooltip(button, data.text or "")
 
     button:SetSelected(false)
 
