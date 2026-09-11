@@ -195,3 +195,42 @@ local function HookButtonText(button)
         widget:SetText(self, text)
     end
 end
+
+---------------------------------------------------
+-- Update Theme
+---------------------------------------------------
+
+function widget:UpdateTheme(button)
+
+    if not button or not button.Text then
+        return
+    end
+
+    local theme = LootCouncil.Constants.Theme
+
+    button.Text:SetTextColor(
+        theme.TextPrimary[1],
+        theme.TextPrimary[2],
+        theme.TextPrimary[3],
+        theme.TextPrimary[4]
+    )
+
+    if button.Background then
+        button.Background:SetTexture(
+            theme.TabBackground[1],
+            theme.TabBackground[2],
+            theme.TabBackground[3],
+            theme.TabBackground[4]
+        )
+    end
+
+    if button.Border then
+        button.Border:SetBackdropBorderColor(
+            theme.BorderColor[1],
+            theme.BorderColor[2],
+            theme.BorderColor[3],
+            theme.BorderColor[4]
+        )
+    end
+
+end

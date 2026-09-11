@@ -199,54 +199,135 @@ function LootCouncil.Constants:GetInventorySlotName(slotID)
 end
 
 ---------------------------------------------------
--- Theme
+-- Themes
 ---------------------------------------------------
 
-LootCouncil.Constants.Theme = {
+LootCouncil.Constants.Themes = {
 
     ---------------------------------------------------
-    -- Backgrounds
+    -- Dark (default)
     ---------------------------------------------------
 
-    WindowBackground = {0.04, 0.04, 0.04, 0.95},
+    Dark = {
 
-    PanelBackground = {0.05, 0.05, 0.05, 0.92},
+        WindowBackground = {0.04, 0.04, 0.04, 0.95},
+        PanelBackground = {0.07, 0.07, 0.07, 0.92},
+        TabBackground = {0.12, 0.12, 0.12, 1},
+        TabSelected = {0.18, 0.38, 0.70, 1},
 
-    TabBackground = {0.12, 0.12, 0.12, 1},
+        BorderColor = {0.20, 0.20, 0.20, 1},
+        BorderSize = 1,
 
-    TabSelected = {0.18, 0.38, 0.70, 1},
+        TextPrimary = {1, 1, 1, 1},
+        TextMuted = {0.55, 0.55, 0.55, 1},
+        TextDisabled = {0.35, 0.35, 0.35, 1},
 
-    ---------------------------------------------------
-    -- Borders
-    ---------------------------------------------------
+        DividerColor = {0.20, 0.20, 0.20, 0.6},
 
-    BorderColor = {0.20, 0.20, 0.20, 1},
-    BorderSize = 1,
+        WindowPadding = 16,
+        PanelPadding = 12,
+        RowHeight = 28,
+        TabHeight = 28,
+        IconSizeSmall = 16,
+        IconSizeMedium = 20,
+        IconSizeLarge = 24,
 
-    ---------------------------------------------------
-    -- Text
-    ---------------------------------------------------
-
-    TextPrimary = {1, 1, 1, 1},
-    TextMuted = {0.55, 0.55, 0.55, 1},
-    TextDisabled = {0.35, 0.35, 0.35, 1},
-
-    ---------------------------------------------------
-    -- Dividers
-    ---------------------------------------------------
-
-    DividerColor = {0.20, 0.20, 0.20, 0.6},
+    },
 
     ---------------------------------------------------
-    -- Spacing
+    -- Light
     ---------------------------------------------------
 
-    WindowPadding = 16,
-    PanelPadding = 12,
-    RowHeight = 28,
-    TabHeight = 28,
-    IconSizeSmall = 16,
-    IconSizeMedium = 20,
-    IconSizeLarge = 24,
+    Light = {
+
+        WindowBackground = {0.92, 0.92, 0.92, 0.95},  -- Off-white
+        PanelBackground = {0.82, 0.82, 0.82, 0.92},   -- Light gray
+        TabBackground = {0.95, 0.95, 0.95, 1},        -- Near-white (buttons)
+        TabSelected = {0.18, 0.38, 0.70, 1},          -- Light blue
+
+        BorderColor = {0.45, 0.45, 0.45, 1},          -- Medium gray border
+        BorderSize = 1,
+
+        TextPrimary = {0.0, 0.0, 0.0, 1},             -- Black text
+        TextMuted = {0.35, 0.35, 0.35, 1},            -- Dark gray
+        TextDisabled = {0.55, 0.55, 0.55, 1},         -- Light gray
+
+        DividerColor = {0.45, 0.45, 0.45, 0.6},
+
+        WindowPadding = 16,
+        PanelPadding = 12,
+        RowHeight = 28,
+        TabHeight = 28,
+        IconSizeSmall = 16,
+        IconSizeMedium = 20,
+        IconSizeLarge = 24,
+
+    },
+
+    ---------------------------------------------------
+    -- Warm (ElvUI gold-style)
+    ---------------------------------------------------
+
+    Warm = {
+
+        WindowBackground = {0.10, 0.08, 0.05, 0.95},
+        PanelBackground = {0.15, 0.12, 0.08, 0.92},
+        TabBackground = {0.18, 0.15, 0.10, 1},
+        TabSelected = {0.80, 0.65, 0.20, 1},
+
+        BorderColor = {0.50, 0.40, 0.20, 1},
+        BorderSize = 1,
+
+        TextPrimary = {1.0, 0.9, 0.7, 1},
+        TextMuted = {0.70, 0.60, 0.40, 1},
+        TextDisabled = {0.40, 0.35, 0.25, 1},
+
+        DividerColor = {0.50, 0.40, 0.20, 0.6},
+
+        WindowPadding = 16,
+        PanelPadding = 12,
+        RowHeight = 28,
+        TabHeight = 28,
+        IconSizeSmall = 16,
+        IconSizeMedium = 20,
+        IconSizeLarge = 24,
+
+    },
+
+    ---------------------------------------------------
+    -- Cool (blue/cyan accent)
+    ---------------------------------------------------
+
+    Cool = {
+
+        WindowBackground = {0.04, 0.06, 0.09, 0.95},
+        PanelBackground = {0.06, 0.09, 0.13, 0.92},
+        TabBackground = {0.08, 0.12, 0.18, 1},
+        TabSelected = {0.20, 0.60, 0.80, 1},
+
+        BorderColor = {0.15, 0.30, 0.45, 1},
+        BorderSize = 1,
+
+        TextPrimary = {0.85, 0.95, 1.0, 1},
+        TextMuted = {0.50, 0.65, 0.80, 1},
+        TextDisabled = {0.30, 0.40, 0.50, 1},
+
+        DividerColor = {0.15, 0.30, 0.45, 0.6},
+
+        WindowPadding = 16,
+        PanelPadding = 12,
+        RowHeight = 28,
+        TabHeight = 28,
+        IconSizeSmall = 16,
+        IconSizeMedium = 20,
+        IconSizeLarge = 24,
+
+    },
 
 }
+
+---------------------------------------------------
+-- Active Theme (default)
+---------------------------------------------------
+
+LootCouncil.Constants.Theme = LootCouncil.Constants.Themes.Dark

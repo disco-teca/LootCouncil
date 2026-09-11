@@ -3743,7 +3743,6 @@ function LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
     LootCouncil.UI.VotingTab:Refresh()
     LootCouncil.UI.LootPopup:Refresh()
     
-    LootCouncil:Print(playerName .. " response set to " .. response)
 end
 
 ---------------------------------------------------

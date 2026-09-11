@@ -2,7 +2,7 @@
 ## Title: LootCouncil
 ## Notes: Standalone Loot Council for WoW 3.3.5a
 ## Author: Alex
-## Version: 0.8.6
+## Version: 0.9.0
 ## SavedVariables: LootCouncilDB
 
 ---------------------------------------------------
@@ -84,6 +84,7 @@ UI\Widgets\Button.lua
 UI\Widgets\ScrollFrame.lua
 UI\Widgets\ApplicantList.lua
 UI\Widgets\ItemSummary.lua
+UI\Widgets\Dropdown.lua
 
 UI\Tabs\VotingTab.lua
 UI\Tabs\SettingsTab.lua
@@ -92,6 +93,7 @@ UI\Tabs\AttendanceTab.lua
 UI\Tabs\HistoryTab.lua
 UI\Tabs\BiSTab.lua
 
+UI\SettingsTab.lua
 UI\NavigationTabManager.lua
 UI\TabManager.lua
 

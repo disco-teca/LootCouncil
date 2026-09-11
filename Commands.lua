@@ -915,10 +915,6 @@ local function AwardItem()
 
     LootCouncil.Persistence:Save()
 
-    LootCouncil:Print(
-        "Awarded to " .. winner
-    )
-
 end
 
 ---------------------------------------------------
