@@ -46,6 +46,67 @@ title:SetPoint("CENTER", titleBar, "CENTER", 0, 0)
 title:SetText("LootCouncil v" .. LootCouncil.version)
 
 ---------------------------------------------------
+-- Refresh Button
+---------------------------------------------------
+
+local refreshButton = LootCouncil.UI.Widgets.Button:Create(
+    titleBar,
+    {
+        width = 70,
+        height = 22,
+        text = "Refresh",
+    }
+)
+
+refreshButton:SetPoint("RIGHT", titleBar, "RIGHT", -30, 0)
+
+refreshButton:SetScript("OnClick", function()
+
+    ---------------------------------------------------
+    -- Refresh Navigation
+    ---------------------------------------------------
+
+    if LootCouncil.UI.NavigationTabManager then
+        LootCouncil.UI.NavigationTabManager:Refresh()
+    end
+
+    ---------------------------------------------------
+    -- Refresh Item Tabs
+    ---------------------------------------------------
+
+    if LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+
+    ---------------------------------------------------
+    -- Refresh Workspaces
+    ---------------------------------------------------
+
+    if LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+
+    if LootCouncil.UI.SettingsTab then
+        LootCouncil.UI.SettingsTab:Refresh()
+    end
+
+    if LootCouncil.UI.HistoryTab then
+        LootCouncil.UI.HistoryTab:Refresh()
+    end
+
+    ---------------------------------------------------
+    -- Refresh Loot Popup
+    ---------------------------------------------------
+
+    if LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Refresh()
+    end
+
+    LootCouncil:Print("UI refreshed.")
+
+end)
+
+---------------------------------------------------
 -- Close Button
 ---------------------------------------------------
 

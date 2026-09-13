@@ -212,6 +212,8 @@ function popup:Refresh()
 
     local contentHeight = 15 + (#visibleItems * rowHeight) + 15
     content:SetHeight(math.max(contentHeight, scrollFrame:GetHeight()))
+
+    scrollFrame:SetVerticalScroll(0)
 end
 
 ---------------------------------------------------
@@ -251,6 +253,25 @@ function popup:Create()
     local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("CENTER")
     title:SetText("Loot")
+
+    local refreshButton = LootCouncil.UI.Widgets.Button:Create(
+        titleBar,
+        {
+            width = 70,
+            height = 22,
+            text = "Refresh",
+        }
+    )
+
+    refreshButton:SetPoint("RIGHT", titleBar, "RIGHT", -30, 0)
+
+    refreshButton:SetScript("OnClick", function()
+
+        popup:Refresh()
+
+        LootCouncil:Print("Loot popup refreshed.")
+
+    end)
 
         -- Close Button
     local closeBtn = CreateFrame("Button", nil, frame)

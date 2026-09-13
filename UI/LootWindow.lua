@@ -144,6 +144,8 @@ function window:Refresh()
 
     local contentHeight = 15 + (#itemQueue * ROW_HEIGHT) + 15
     content:SetHeight(math.max(contentHeight, scrollFrame:GetHeight()))
+
+    scrollFrame:SetVerticalScroll(0)
 end
 
 ---------------------------------------------------

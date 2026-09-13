@@ -81,6 +81,18 @@ local clothExcludedClasses = {
 }
 
 ---------------------------------------------------
+-- Shield Rules
+---------------------------------------------------
+
+local shieldTypes = {
+
+    PALADIN = true,
+    SHAMAN = true,
+    WARRIOR = true,
+
+}
+
+---------------------------------------------------
 -- Relic Rules
 ---------------------------------------------------
 
@@ -308,6 +320,16 @@ function module:CanEquip(
     end
 
     ---------------------------------------------------
+    -- Accessories (Necks, Rings, Trinkets)
+    ---------------------------------------------------
+
+    if equipSlot == "INVTYPE_NECK"
+    or equipSlot == "INVTYPE_FINGER"
+    or equipSlot == "INVTYPE_TRINKET" then
+        return true
+    end
+
+    ---------------------------------------------------
     -- Armor
     ---------------------------------------------------
 
@@ -327,6 +349,17 @@ function module:CanEquip(
             end
 
             return rules[class] == true
+
+        end
+
+        ---------------------------------------------------
+        -- Shields
+        ---------------------------------------------------
+
+        if itemSubType == "Shields"
+        or equipSlot == "INVTYPE_SHIELD" then
+
+            return shieldTypes[class] == true
 
         end
 
@@ -353,14 +386,18 @@ function module:CanEquip(
         -- Armor Proficiency
         ---------------------------------------------------
 
-        local rules =
-            armorTypes[class]
+        local rules = armorTypes[class]
 
         if not rules then
             return true
         end
 
         if not itemSubType then
+            return true
+        end
+
+        -- If the subtype isn't a known armor type, don't auto-pass
+        if not rules[itemSubType] then
             return true
         end
 
