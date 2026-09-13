@@ -135,7 +135,7 @@ function popup:CreateItemRow(item, itemIndex, displayIndex)
 
         button:SetScript("OnClick", function()
             local playerName = UnitName("player")
-            local outcome = LootCouncil.Session:SubmitApplicantResponse(playerName, itemIndex, response)
+            local outcome = LootCouncil.Session:SubmitApplicantResponse(playerName, item:GetNumber(), response)
 
             if outcome == "RECORDED" or outcome == "CHANGED" then
                 popup:Refresh()

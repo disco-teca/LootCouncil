@@ -601,17 +601,15 @@ function LootCouncil.Session:SerializeResponses()
 
     local responses = {}
 
-    for itemIndex, item in ipairs(
-        self:GetItems()
-    ) do
+    for _, item in ipairs(self:GetItems()) do
 
-        responses[itemIndex] = {}
+        local itemNumber = item:GetNumber()
 
-        for _, applicant in ipairs(
-            item:GetApplicants()
-        ) do
+        responses[itemNumber] = {}
 
-            responses[itemIndex][
+        for _, applicant in ipairs(item:GetApplicants()) do
+
+            responses[itemNumber][
                 applicant:GetPlayer():GetName()
             ] = applicant:GetResponse()
 
@@ -631,27 +629,23 @@ function LootCouncil.Session:SerializeVotes()
 
     local votes = {}
 
-    for itemIndex, item in ipairs(
-        self:GetItems()
-    ) do
+    for _, item in ipairs(self:GetItems()) do
 
-        votes[itemIndex] = {}
+        local itemNumber = item:GetNumber()
 
-        for _, applicant in ipairs(
-            item:GetApplicants()
-        ) do
+        votes[itemNumber] = {}
 
-            votes[itemIndex][
+        for _, applicant in ipairs(item:GetApplicants()) do
+
+            votes[itemNumber][
                 applicant:GetPlayer():GetName()
             ] = {}
 
-            for _, voter in ipairs(
-                applicant:GetVotes()
-            ) do
+            for _, voter in ipairs(applicant:GetVotes()) do
 
                 table.insert(
 
-                    votes[itemIndex][
+                    votes[itemNumber][
                         applicant:GetPlayer():GetName()
                     ],
 
@@ -679,30 +673,25 @@ function LootCouncil.Session:DeserializeVotes(data)
         return
     end
 
-    for itemIndex, itemVotes in pairs(data) do
+    for itemNumber, itemVotes in pairs(data) do
 
-        local item =
-            self:GetItem(itemIndex)
+        local item = self:GetItemByNumber(itemNumber)
 
         if item then
 
             for playerName, voters in pairs(itemVotes) do
 
-                local player =
-                    self:FindPlayer(playerName)
+                local player = self:FindPlayer(playerName)
 
                 if player then
 
-                    local applicant =
-                        item:FindApplicant(player)
+                    local applicant = item:FindApplicant(player)
 
                     if applicant then
 
                         for _, voter in ipairs(voters) do
 
-                            applicant:AddVote(
-                                voter
-                            )
+                            applicant:AddVote(voter)
 
                         end
 
@@ -726,32 +715,25 @@ function LootCouncil.Session:SerializeGear()
 
     local gear = {}
 
-    for itemIndex, item in ipairs(
-        self:GetItems()
-    ) do
+    for _, item in ipairs(self:GetItems()) do
 
-        gear[itemIndex] = {}
+        local itemNumber = item:GetNumber()
 
-        for _, applicant in ipairs(
-            item:GetApplicants()
-        ) do
+        gear[itemNumber] = {}
 
-            local playerName =
-                applicant:GetPlayer():GetName()
+        for _, applicant in ipairs(item:GetApplicants()) do
 
-            gear[itemIndex][playerName] = {}
+            local playerName = applicant:GetPlayer():GetName()
 
-            for slotID, slotGear in pairs(
-                applicant.gear
-            ) do
+            gear[itemNumber][playerName] = {}
 
-                gear[itemIndex][playerName][slotID] = {
+            for slotID, slotGear in pairs(applicant.gear) do
 
-                    itemID =
-                        slotGear.itemID,
+                gear[itemNumber][playerName][slotID] = {
 
-                    link =
-                        slotGear.link,
+                    itemID = slotGear.itemID,
+
+                    link = slotGear.link,
 
                 }
 
@@ -775,38 +757,31 @@ function LootCouncil.Session:DeserializeGear(data)
         return
     end
 
-    for itemIndex, itemGear in pairs(data) do
+    for itemNumber, itemGear in pairs(data) do
 
-        local item =
-            self:GetItem(itemIndex)
+        local item = self:GetItemByNumber(itemNumber)
 
         if item then
 
             for playerName, gearData in pairs(itemGear) do
 
-                local player =
-                    self:FindPlayer(playerName)
+                local player = self:FindPlayer(playerName)
 
                 if player then
 
-                    local applicant =
-                        item:FindApplicant(player)
+                    local applicant = item:FindApplicant(player)
 
                     if applicant then
 
                         applicant.gear = {}
 
-                        for slotID, slotGear in pairs(
-                            gearData
-                        ) do
+                        for slotID, slotGear in pairs(gearData) do
 
                             applicant.gear[slotID] = {
 
-                                itemID =
-                                    slotGear.itemID,
+                                itemID = slotGear.itemID,
 
-                                link =
-                                    slotGear.link,
+                                link = slotGear.link,
 
                             }
 
@@ -823,14 +798,6 @@ function LootCouncil.Session:DeserializeGear(data)
     end
 
 end
-
----------------------------------------------------
--- Deserialize Roles
----------------------------------------------------
-
----------------------------------------------------
--- Loading
----------------------------------------------------
 
 function LootCouncil.Session:Deserialize(data)
 
@@ -973,21 +940,19 @@ function LootCouncil.Session:DeserializeResponses(data)
         return
     end
 
-    for itemIndex, itemResponses in pairs(data) do
+    for itemNumber, itemResponses in pairs(data) do
 
-        local item = self:GetItem(itemIndex)
+        local item = self:GetItemByNumber(itemNumber)
 
         if item then
 
             for playerName, response in pairs(itemResponses) do
 
-                local player =
-                    self:FindPlayer(playerName)
+                local player = self:FindPlayer(playerName)
 
                 if player then
 
-                    local applicant =
-                        item:FindApplicant(player)
+                    local applicant = item:FindApplicant(player)
 
                     if applicant then
 
@@ -1557,8 +1522,8 @@ function LootCouncil.Session:AddItem(data)
 
     if self:IsOwner() then
 
-        local itemIndex =
-            #session.items
+        local itemNumber =
+            item:GetNumber()
 
         local comparisonSlots =
             LootCouncil.Comparison:GetComparisonSlots(
@@ -1578,8 +1543,8 @@ function LootCouncil.Session:AddItem(data)
                     {
                         target = playerName,
 
-                        itemIndex =
-                            itemIndex,
+                        itemNumber =
+                            itemNumber,
 
                         slots =
                             comparisonSlots,
@@ -1811,30 +1776,20 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:SubmitApplicantResponse(
-
     playerName,
-
-    itemIndex,
-
+    itemNumber,
     response
-
 )
 
     ---------------------------------------------------
     -- Apply Locally
     ---------------------------------------------------
 
-    local outcome =
-
-        self:SetApplicantResponse(
-
-            playerName,
-
-            itemIndex,
-
-            response
-
-        )
+    local outcome = self:SetApplicantResponse(
+        playerName,
+        itemNumber,
+        response
+    )
 
     if not outcome then
         return nil
@@ -1856,19 +1811,12 @@ function LootCouncil.Session:SubmitApplicantResponse(
     ---------------------------------------------------
 
     local message = LootCouncil.Message:New(
-
         "RESPONSE",
-
         {
-
             player = playerName,
-
-            itemIndex = itemIndex,
-
-            response = response
-
+            itemNumber = itemNumber,
+            response = response,
         }
-
     )
 
     ---------------------------------------------------
@@ -1876,23 +1824,21 @@ function LootCouncil.Session:SubmitApplicantResponse(
     ---------------------------------------------------
 
     LootCouncil.MessageBus:Route(
-
         message,
-
         UnitName("player")
-
     )
 
     return outcome
 
 end
 
-function LootCouncil.Session:SubmitAward(playerName, itemIndex)
+function LootCouncil.Session:SubmitAward(playerName, itemNumber)
+
     ---------------------------------------------------
     -- Get Item
     ---------------------------------------------------
 
-    local item = self:GetItem(itemIndex)
+    local item = self:GetItemByNumber(itemNumber)
     if not item then
         return nil
     end
@@ -1916,7 +1862,7 @@ function LootCouncil.Session:SubmitAward(playerName, itemIndex)
     -- Apply Locally
     ---------------------------------------------------
 
-    local outcome = self:SetAward(playerName, itemIndex)
+    local outcome = self:SetAward(playerName, itemNumber)
     if not outcome then
         return nil
     end
@@ -1948,7 +1894,7 @@ function LootCouncil.Session:SubmitAward(playerName, itemIndex)
         "AWARD",
         {
             player = playerName,
-            itemIndex = itemIndex,
+            itemNumber = itemNumber,
         }
     )
 
@@ -1959,15 +1905,16 @@ function LootCouncil.Session:SubmitAward(playerName, itemIndex)
     LootCouncil.MessageBus:Route(message, UnitName("player"))
 
     return outcome
+
 end
 
 function LootCouncil.Session:SetApplicantResponse(
     playerName,
-    itemIndex,
+    itemNumber,
     response
 )
 
-    local item = self:GetItem(itemIndex)
+    local item = self:GetItemByNumber(itemNumber)
 
     if not item then
         return false
@@ -2009,8 +1956,9 @@ function LootCouncil.Session:SetApplicantResponse(
 
 end
 
-function LootCouncil.Session:SetAward(playerName, itemIndex)
-    local item = self:GetItem(itemIndex)
+function LootCouncil.Session:SetAward(playerName, itemNumber)
+
+    local item = self:GetItemByNumber(itemNumber)
     if not item then
         return nil
     end
@@ -2032,8 +1980,7 @@ function LootCouncil.Session:SetAward(playerName, itemIndex)
     end
 
     -- Remove the item from the session (but keep its number for history)
-    local itemNumber = item:GetNumber()
-    local removed = self:RemoveItem(itemNumber)  -- This removes it from session.items
+    local removed = self:RemoveItem(itemNumber)
 
     if removed then
         LootCouncil:Print("Item #" .. tostring(itemNumber) .. " awarded to " .. playerName .. " and removed from session.")
@@ -2045,33 +1992,28 @@ function LootCouncil.Session:SetAward(playerName, itemIndex)
     LootCouncil.UI.LootPopup:Refresh()
 
     return true
+
 end
 
 function LootCouncil.Session:SetVote(
-
     councilMember,
-
     playerName,
-
-    itemIndex
-
+    itemNumber
 )
 
-    local item = self:GetItem(itemIndex)
+    local item = self:GetItemByNumber(itemNumber)
 
     if not item then
         return nil
     end
 
-    local applicant =
-        item:FindApplicant(playerName)
+    local applicant = item:FindApplicant(playerName)
 
     if not applicant then
         return nil
     end
 
-    local added =
-        applicant:AddVote(councilMember)
+    local added = applicant:AddVote(councilMember)
 
     if added then
         LootCouncil.UI.TabManager:Refresh()
@@ -2082,24 +2024,18 @@ function LootCouncil.Session:SetVote(
 end
 
 function LootCouncil.Session:ToggleVote(
-
     councilMember,
-
     playerName,
-
-    itemIndex
-
+    itemNumber
 )
 
-    local item =
-        self:GetItem(itemIndex)
+    local item = self:GetItemByNumber(itemNumber)
 
     if not item then
         return nil
     end
 
-    local applicant =
-        item:FindApplicant(playerName)
+    local applicant = item:FindApplicant(playerName)
 
     if not applicant then
         return nil
@@ -2109,63 +2045,34 @@ function LootCouncil.Session:ToggleVote(
     -- Check Existing Vote
     ---------------------------------------------------
 
-    for _, voter in ipairs(
-        applicant:GetVotes()
-    ) do
+    for _, voter in ipairs(applicant:GetVotes()) do
 
         if voter == councilMember then
 
-            local removed =
-                applicant:RemoveVote(
-                    councilMember
-                )
+            local removed = applicant:RemoveVote(councilMember)
 
             if not removed then
                 return nil
             end
 
-            ---------------------------------------------------
-            -- Save Persistence
-            ---------------------------------------------------
-
             LootCouncil.Persistence:Save()
-
-            ---------------------------------------------------
-            -- Refresh Local UI
-            ---------------------------------------------------
-
             LootCouncil.UI.TabManager:Refresh()
 
             ---------------------------------------------------
             -- Broadcast Vote Removal
             ---------------------------------------------------
 
-            local message =
-                LootCouncil.Message:New(
-
-                    "VOTE",
-
-                    {
-
-                        councilMember = councilMember,
-
-                        player = playerName,
-
-                        itemIndex = itemIndex,
-
-                        action = "REMOVE",
-
-                    }
-
-                )
-
-            LootCouncil.MessageBus:Route(
-
-                message,
-
-                UnitName("player")
-
+            local message = LootCouncil.Message:New(
+                "VOTE",
+                {
+                    councilMember = councilMember,
+                    player = playerName,
+                    itemNumber = itemNumber,
+                    action = "REMOVE",
+                }
             )
+
+            LootCouncil.MessageBus:Route(message, UnitName("player"))
 
             return false
 
@@ -2177,57 +2084,30 @@ function LootCouncil.Session:ToggleVote(
     -- Add Vote
     ---------------------------------------------------
 
-    local added =
-        applicant:AddVote(
-            councilMember
-        )
+    local added = applicant:AddVote(councilMember)
 
     if not added then
         return nil
     end
 
-    ---------------------------------------------------
-    -- Save Persistence
-    ---------------------------------------------------
-
     LootCouncil.Persistence:Save()
-
-    ---------------------------------------------------
-    -- Refresh Local UI
-    ---------------------------------------------------
-
     LootCouncil.UI.TabManager:Refresh()
 
     ---------------------------------------------------
     -- Broadcast Vote Addition
     ---------------------------------------------------
 
-    local message =
-        LootCouncil.Message:New(
-
-            "VOTE",
-
-            {
-
-                councilMember = councilMember,
-
-                player = playerName,
-
-                itemIndex = itemIndex,
-
-                action = "ADD",
-
-            }
-
-        )
-
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        UnitName("player")
-
+    local message = LootCouncil.Message:New(
+        "VOTE",
+        {
+            councilMember = councilMember,
+            player = playerName,
+            itemNumber = itemNumber,
+            action = "ADD",
+        }
     )
+
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
 
     return true
 
@@ -2541,6 +2421,7 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:OnAddItemMessage(message, sender)
+
     local payload = message:GetPayload()
     if not payload then
         return
@@ -2557,7 +2438,37 @@ function LootCouncil.Session:OnAddItemMessage(message, sender)
         return
     end
 
-    self:AddItem(data)
+    local item = self:AddItem(data)
+    if not item then
+        return
+    end
+
+    ---------------------------------------------------
+    -- If we're council, request gear for this item
+    ---------------------------------------------------
+
+    if self:IsCouncil(UnitName("player")) then
+
+        local itemNumber = item:GetNumber()
+        local comparisonSlots = LootCouncil.Comparison:GetComparisonSlots(item)
+
+        for _, applicant in ipairs(item:GetApplicants()) do
+
+            local playerName = applicant:GetPlayer():GetName()
+
+            local gearRequest = LootCouncil.Message:New(
+                "GEAR_REQUEST",
+                {
+                    target = playerName,
+                    itemNumber = itemNumber,
+                    slots = comparisonSlots,
+                }
+            )
+
+            LootCouncil.MessageBus:Route(gearRequest, UnitName("player"))
+
+        end
+    end
 
     -- Open the loot popup for the receiving client
     if LootCouncil.UI.LootPopup then
@@ -2574,6 +2485,7 @@ function LootCouncil.Session:OnAddItemMessage(message, sender)
     if LootCouncil.UI and LootCouncil.UI.LootPopup then
         LootCouncil.UI.LootPopup:Refresh()
     end
+
 end
 
 ---------------------------------------------------
@@ -2717,17 +2629,9 @@ local function DecodeGearLink(encoded)
 
 end
 
-function LootCouncil.Session:OnGearRequestMessage(
+function LootCouncil.Session:OnGearRequestMessage(message, sender)
 
-    message,
-
-    sender
-
-)
-
-    local payload =
-        message:GetPayload()
-
+    local payload = message:GetPayload()
     if not payload then
         return
     end
@@ -2737,89 +2641,43 @@ function LootCouncil.Session:OnGearRequestMessage(
     end
 
     local slots = {}
-
     local items = {}
-
     local links = {}
-
-    local responseItems = {}
 
     for _, slotID in ipairs(payload.slots or {}) do
 
-        local itemID =
-            GetInventoryItemID(
-                "player",
-                slotID
-            )
+        local itemLink = GetInventoryItemLink("player", slotID)
+        local itemID = nil
+        if itemLink then
+            itemID = tonumber(string.match(itemLink, "item:(%d+)"))
+        end
 
-        table.insert(
-            slots,
-            tostring(slotID)
-        )
+        table.insert(slots, tostring(slotID))
 
         if itemID then
 
             items[slotID] = itemID
 
-            ---------------------------------------------------
-            -- Encode Live Item Link
-            ---------------------------------------------------
-
-            local link =
-                GetInventoryItemLink(
-                    "player",
-                    slotID
-                )
-
-            if link then
-
-                links[slotID] =
-                    EncodeGearLink(link)
-
+            if itemLink then
+                links[slotID] = EncodeGearLink(itemLink)
             end
-
-            table.insert(
-                responseItems,
-                tostring(slotID) ..
-                "=" ..
-                tostring(itemID)
-            )
-
-        else
 
         end
 
     end
 
-    local response =
-
-        LootCouncil.Message:New(
-
-            "GEAR_RESPONSE",
-
-            {
-
-                player = UnitName("player"),
-
-                itemIndex = payload.itemIndex,
-
-                slots = payload.slots,
-
-                items = items,
-
-                links = links
-
-            }
-
-        )
-
-    LootCouncil.MessageBus:Route(
-
-        response,
-
-        UnitName("player")
-
+    local response = LootCouncil.Message:New(
+        "GEAR_RESPONSE",
+        {
+            player = UnitName("player"),
+            itemNumber = payload.itemNumber,
+            slots = payload.slots,
+            items = items,
+            links = links,
+        }
     )
+
+    LootCouncil.MessageBus:Route(response, UnitName("player"))
 
 end
 
@@ -2827,17 +2685,9 @@ end
 -- GEAR_RESPONSE Message
 ---------------------------------------------------
 
-function LootCouncil.Session:OnGearResponseMessage(
+function LootCouncil.Session:OnGearResponseMessage(message, sender)
 
-    message,
-
-    sender
-
-)
-
-    local payload =
-        message:GetPayload()
-
+    local payload = message:GetPayload()
     if not payload then
         return
     end
@@ -2846,64 +2696,39 @@ function LootCouncil.Session:OnGearResponseMessage(
     -- Find Loot Item
     ---------------------------------------------------
 
-    local item =
-        self:GetItem(
-            payload.itemIndex
-        )
+    local item = self:GetItemByNumber(payload.itemNumber)
 
     if not item then
-
-
         return
-
     end
 
     ---------------------------------------------------
     -- Find Applicant
     ---------------------------------------------------
 
-    local applicant =
-        item:FindApplicant(
-            payload.player
-        )
+    local applicant = item:FindApplicant(payload.player)
 
     if not applicant then
-
-
         return
-
     end
 
     ---------------------------------------------------
     -- Clear Requested Gear
     ---------------------------------------------------
 
-    for _, slotID in ipairs(
-        payload.slots or {}
-    ) do
-
+    for _, slotID in ipairs(payload.slots or {}) do
         applicant.gear[slotID] = nil
-
     end
 
     ---------------------------------------------------
     -- Store Current Gear
     ---------------------------------------------------
 
-    for slotID, itemID in pairs(
-        payload.items or {}
-    ) do
+    for slotID, itemID in pairs(payload.items or {}) do
 
         applicant.gear[slotID] = {
-
             itemID = itemID,
-
-            link =
-                payload.links and
-                DecodeGearLink(
-                    payload.links[slotID]
-                )    
-
+            link = payload.links and DecodeGearLink(payload.links[slotID]) or nil,
         }
 
     end
@@ -2914,10 +2739,6 @@ function LootCouncil.Session:OnGearResponseMessage(
 
     LootCouncil.UI.VotingTab:Refresh()
 
-    ---------------------------------------------------
-    -- Debug
-    ---------------------------------------------------
-
 end
 
 ---------------------------------------------------
@@ -2925,30 +2746,20 @@ end
 ---------------------------------------------------
 
 function LootCouncil.Session:OnResponseMessage(
-
     message,
-
     sender
-
 )
 
-    local payload =
-        message:GetPayload()
-
+    local payload = message:GetPayload()
     if not payload then
         return
     end
 
-    local outcome =
-        self:SetApplicantResponse(
-
-            payload.player,
-
-            payload.itemIndex,
-
-            payload.response
-
-        )
+    local outcome = self:SetApplicantResponse(
+        payload.player,
+        payload.itemNumber,
+        payload.response
+    )
 
     if not outcome then
         return
@@ -2968,6 +2779,7 @@ function LootCouncil.Session:OnResponseMessage(
 end
 
 function LootCouncil.Session:OnAwardMessage(message, sender)
+
     -- Ignore if we sent this message ourselves
     if sender == UnitName("player") then
         return
@@ -2978,7 +2790,8 @@ function LootCouncil.Session:OnAwardMessage(message, sender)
         return
     end
 
-    self:SetAward(payload.player, payload.itemIndex)
+    self:SetAward(payload.player, payload.itemNumber)
+
 end
 
 ---------------------------------------------------
@@ -3173,33 +2986,22 @@ function LootCouncil.Session:Initialize()
 end
 
 function LootCouncil.Session:OnVoteMessage(
-
     message,
-
     sender
-
 )
 
-    local payload =
-        message:GetPayload()
-
+    local payload = message:GetPayload()
     if not payload then
         return
     end
 
-    local item =
-        self:GetItem(
-            payload.itemIndex
-        )
+    local item = self:GetItemByNumber(payload.itemNumber)
 
     if not item then
         return
     end
 
-    local applicant =
-        item:FindApplicant(
-            payload.player
-        )
+    local applicant = item:FindApplicant(payload.player)
 
     if not applicant then
         return
@@ -3211,15 +3013,11 @@ function LootCouncil.Session:OnVoteMessage(
 
     if payload.action == "ADD" then
 
-        applicant:AddVote(
-            payload.councilMember
-        )
+        applicant:AddVote(payload.councilMember)
 
     elseif payload.action == "REMOVE" then
 
-        applicant:RemoveVote(
-            payload.councilMember
-        )
+        applicant:RemoveVote(payload.councilMember)
 
     else
 
@@ -3361,13 +3159,15 @@ function LootCouncil.Session:OnSyncGearRequest(message, sender)
     local links = {}
 
     for _, slotID in ipairs(payload.slots or {}) do
-        local itemID = GetInventoryItemID("player", slotID)
+        local itemLink = GetInventoryItemLink("player", slotID)
+        local itemID = nil
+        if itemLink then
+            itemID = tonumber(string.match(itemLink, "item:(%d+)"))
+        end
+
         if itemID then
             items[slotID] = itemID
-            local link = GetInventoryItemLink("player", slotID)
-            if link then
-                links[slotID] = EncodeGearLink(link)
-            end
+            links[slotID] = EncodeGearLink(itemLink)
         end
     end
 
@@ -3440,13 +3240,15 @@ function LootCouncil.Session:OnOwnerGearRequest(message, sender)
     local links = {}
 
     for _, slotID in ipairs(payload.slots or {}) do
-        local itemID = GetInventoryItemID("player", slotID)
+        local itemLink = GetInventoryItemLink("player", slotID)
+        local itemID = nil
+        if itemLink then
+            itemID = tonumber(string.match(itemLink, "item:(%d+)"))
+        end
+
         if itemID then
             items[slotID] = itemID
-            local link = GetInventoryItemLink("player", slotID)
-            if link then
-                links[slotID] = EncodeGearLink(link)
-            end
+            links[slotID] = EncodeGearLink(itemLink)
         end
     end
 
@@ -3462,7 +3264,6 @@ function LootCouncil.Session:OnOwnerGearRequest(message, sender)
         }
     )
     LootCouncil.MessageBus:Route(response, UnitName("player"))
-    
 end
 
 function LootCouncil.Session:OnOwnerGearResponse(message, sender)

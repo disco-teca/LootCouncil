@@ -452,7 +452,7 @@ function widget:Create(parent)
                 return
             end
             
-            local itemIndex = LootCouncil.Session:GetSelectedIndex()
+            local itemNumber = item:GetNumber()
             
             local menu = CreateFrame("Frame", "LootCouncilResponseMenu", UIParent, "UIDropDownMenuTemplate")
             local info = {}
@@ -462,12 +462,13 @@ function widget:Create(parent)
                 info = {}
                 info.text = response
                 info.func = function()
-                    LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+                    LootCouncil.Session:SetPlayerResponse(playerName, itemNumber, response)
                 end
                 UIDropDownMenu_AddButton(info)
             end
             
             UIDropDownMenu_Display(menu, nil, "cursor")
+            
         end
     end)
 
@@ -580,7 +581,7 @@ function widget:Refresh(frame, applicants)
                                 return
                             end
                             
-                            local itemIndex = LootCouncil.Session:GetSelectedIndex()
+                            local itemNumber = item:GetNumber()
                             
                             -- Create right-click menu using EasyMenu
                             local menuItems = {}
@@ -590,7 +591,7 @@ function widget:Refresh(frame, applicants)
                                 table.insert(menuItems, {
                                     text = response,
                                     func = function()
-                                        LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+                                        LootCouncil.Session:SetPlayerResponse(playerName, itemNumber, response)
                                     end
                                 })
                             end
@@ -849,7 +850,7 @@ function widget:Refresh(frame, applicants)
 
                             row.applicant:GetPlayer():GetName(),
 
-                            LootCouncil.Session:GetSelectedIndex()
+                            item:GetNumber()
 
                         )
 
@@ -921,7 +922,7 @@ function widget:Refresh(frame, applicants)
 
                                 LootCouncil.Session:SubmitAward(
                                     playerName,
-                                    LootCouncil.Session:GetSelectedIndex()
+                                    item:GetNumber()
                                 )
 
                             end,

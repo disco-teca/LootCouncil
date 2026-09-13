@@ -681,128 +681,6 @@ local function AddItemDirect(arguments)
 end
 
 ---------------------------------------------------
--- Remove Item
----------------------------------------------------
-
-local function RemoveItem(arguments)
-
-    if not LootCouncil.Session:IsActive() then
-
-        LootCouncil:Print(
-            "No active session."
-        )
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Permission
-    ---------------------------------------------------
-
-    if not LootCouncil.Permissions:CanManageSession(
-        UnitName("player")
-    ) then
-
-        LootCouncil:Print(
-            "You do not have permission to remove loot."
-        )
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Item Number
-    ---------------------------------------------------
-
-    local number =
-        tonumber(arguments)
-
-    if not number then
-
-        LootCouncil:Print(
-            "Usage: /lc remove <item number>"
-        )
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Find Item
-    ---------------------------------------------------
-
-    local item =
-        LootCouncil.Session:GetItemByNumber(
-            number
-        )
-
-    if not item then
-
-        LootCouncil:Print(
-            "No active item with number " ..
-            tostring(number) ..
-            "."
-        )
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Remove Locally
-    ---------------------------------------------------
-
-    local removed =
-        LootCouncil.Session:RemoveItem(
-            number
-        )
-
-    if not removed then
-
-        LootCouncil:Print(
-            "Unable to remove item."
-        )
-
-        return
-
-    end
-
-    ---------------------------------------------------
-    -- Broadcast Removal
-    ---------------------------------------------------
-
-    local message =
-        LootCouncil.Message:New(
-
-            "REMOVE_ITEM",
-
-            {
-                number = number
-            }
-
-        )
-
-    LootCouncil.MessageBus:Route(
-        message,
-        UnitName("player")
-    )
-
-    ---------------------------------------------------
-    -- Confirmation
-    ---------------------------------------------------
-
-    LootCouncil:Print(
-        "Removed item " ..
-        tostring(number) ..
-        ": " ..
-        item:GetName()
-    )
-
-end
-
----------------------------------------------------
 -- Response
 ---------------------------------------------------
 
@@ -841,7 +719,7 @@ local function ResponsePlayer(arguments)
 
             playerName,
 
-            LootCouncil.Session:GetSelectedIndex(),
+            LootCouncil.Session:GetSelectedItem(),
 
             response
 
@@ -1183,13 +1061,23 @@ commands["remove"] = function(arguments)
         return
     end
 
-    -- Remove the item
+    -- Remove the item locally
     local removed = LootCouncil.Session:RemoveItem(number)
-    if removed then
-        LootCouncil:Print("Removed item #" .. tostring(number) .. ": " .. item:GetName())
-    else
+    if not removed then
         LootCouncil:Print("Unable to remove item.")
+        return
     end
+
+    -- Broadcast REMOVE_ITEM to the raid
+    local message = LootCouncil.Message:New(
+        "REMOVE_ITEM",
+        {
+            number = number,
+        }
+    )
+    LootCouncil.MessageBus:Route(message, UnitName("player"))
+
+    LootCouncil:Print("Removed item #" .. tostring(number) .. ": " .. item:GetName())
 end
 commands["addone"] = AddItemDirect
 commands["councilhelp"] = function()
