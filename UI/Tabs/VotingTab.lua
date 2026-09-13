@@ -496,7 +496,7 @@ function view:Refresh()
         for _, applicant in ipairs(applicants) do
             local response = applicant:GetResponse()
             local upperResponse = string.upper(response)
-            if upperResponse ~= "PASS" and upperResponse ~= "AUTO_PASS" and upperResponse ~= "AUTO PASS" then
+            if upperResponse ~= "PASS" and upperResponse ~= "AUTO_PASS" and upperResponse ~= "AUTO_PASS" then
                 table.insert(filteredApplicants, applicant)
             end
         end

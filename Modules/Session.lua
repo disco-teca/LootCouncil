@@ -3651,7 +3651,7 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     -- Restore items
     session.items = {}
     for _, itemData in ipairs(snapshot.items or {}) do
-        local name, link, _, ilvl = GetItemInfo(itemData.id)
+        local name, link, _, ilvl, _, _, _, _, equipSlot = GetItemInfo(itemData.id)
         local item = LootCouncil.LootItem:New({
             id = itemData.id,
             number = itemData.number,
