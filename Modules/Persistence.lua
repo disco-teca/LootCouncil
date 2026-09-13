@@ -41,27 +41,6 @@ function module:GetNextSessionID()
 end
 
 ---------------------------------------------------
--- History
----------------------------------------------------
-
-function module:SaveHistory()
-
-    LootCouncilDB.Persistence.History = {}
-
-    for _, record in ipairs(
-        LootCouncil.History:GetAll()
-    ) do
-
-        table.insert(
-            LootCouncilDB.Persistence.History,
-            record
-        )
-
-    end
-
-end
-
----------------------------------------------------
 -- Save
 ---------------------------------------------------
 

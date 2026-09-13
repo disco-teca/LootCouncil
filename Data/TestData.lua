@@ -1,3 +1,11 @@
+---------------------------------------------------
+-- Developer Mode Check
+---------------------------------------------------
+
+if not (LootCouncilDB and LootCouncilDB.DevMode) then
+    return
+end
+
 LootCouncil.TestData = {}
 
 ---------------------------------------------------
@@ -27,17 +35,13 @@ LootCouncil.TestData.Items = {
 
     {
         id = 45612,
-
         applicants = {
-
             { player = "Alex",  response = "BIS" },
             { player = "Brian", response = "MS" },
             { player = "Chris", response = "BIS" },
             { player = "David", response = "OS" },
             { player = "Emily", response = "PASS" },
-
         },
-
     },
 
     {

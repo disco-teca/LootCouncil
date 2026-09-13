@@ -27,3 +27,13 @@ function module:DeepCopy(object)
     return copy
 
 end
+
+---------------------------------------------------
+-- Developer Mode
+---------------------------------------------------
+
+function module:IsDevMode()
+
+    return LootCouncilDB and LootCouncilDB.DevMode == true
+
+end

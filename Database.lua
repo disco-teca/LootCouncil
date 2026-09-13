@@ -11,6 +11,8 @@ function LootCouncil.Database:Initialize()
 
     LootCouncilDB.Theme = LootCouncilDB.Theme or "Dark"
 
+    LootCouncilDB.DevMode = LootCouncilDB.DevMode or false
+
     LootCouncil:Print("Database initialized.")
 
 end

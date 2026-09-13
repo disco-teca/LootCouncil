@@ -1,3 +1,11 @@
+---------------------------------------------------
+-- Developer Mode Check
+---------------------------------------------------
+
+if not (LootCouncilDB and LootCouncilDB.DevMode) then
+    return
+end
+
 LootCouncil.TestMode = {}
 
 local active = false

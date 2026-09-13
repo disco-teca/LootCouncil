@@ -513,6 +513,7 @@ local function PrintHelp()
     LootCouncil:Print("/lc - Open the LootCouncil window")
     LootCouncil:Print("/lc loot - Open the loot window")
     LootCouncil:Print("/lc sync - Join active session (use carefully)")
+    LootCouncil:Print("/lc devmode - Toggle developer mode")
 
 end
 
@@ -1100,28 +1101,18 @@ end
 -- Command Table
 ---------------------------------------------------
 
-commands["test"] = ToggleTest
 commands["start"] = StartSession
 commands["end"] = EndSession
-commands["save"] = SaveSession
-commands["debug"] = DebugSession
 commands["help"] = PrintHelp
 commands["compare"] = CompareItem
 commands["response"] = ResponsePlayer
 commands["award"] = AwardItem
 commands["roster"] = RefreshRoster
 commands["add"] = AddItem
-commands["remove"] = RemoveItem
-commands["ping"] = Ping
-commands["testadd"] = TestAddPacket
-commands["testhello"] = TestHelloPacket
-commands["testiteminfo"] = TestItemInfo
 commands["yes"] = AcceptOwnershipTransfer
 commands["no"] = RejectOwnershipTransfer
 commands["transfer"] = TransferOwnership
 commands["owner"] = ShowOwner
-commands["testpopup"] = TestOwnershipPopup
-commands["testsync"] = TestSyncRequest
 commands["sync"] = function(arguments)
     LootCouncil.Sync:RequestSync()
 end
@@ -1203,6 +1194,42 @@ end
 commands["addone"] = AddItemDirect
 commands["councilhelp"] = function()
     PrintCouncilHelp()
+end
+
+---------------------------------------------------
+-- Developer Commands
+---------------------------------------------------
+
+if LootCouncil.Utils:IsDevMode() then
+
+    commands["test"] = ToggleTest
+    commands["testadd"] = TestAddPacket
+    commands["testhello"] = TestHelloPacket
+    commands["testiteminfo"] = TestItemInfo
+    commands["testpopup"] = TestOwnershipPopup
+    commands["testsync"] = TestSyncRequest
+    commands["debug"] = DebugSession
+    commands["ping"] = Ping
+    commands["save"] = SaveSession
+
+end
+
+---------------------------------------------------
+-- Developer Mode Toggle
+---------------------------------------------------
+
+commands["devmode"] = function()
+
+    LootCouncilDB.DevMode = not LootCouncilDB.DevMode
+
+    if LootCouncilDB.DevMode then
+        LootCouncil:Print("Developer mode: ON")
+        LootCouncil:Print("Reload UI to apply changes.")
+    else
+        LootCouncil:Print("Developer mode: OFF")
+        LootCouncil:Print("Reload UI to apply changes.")
+    end
+
 end
 
 ---------------------------------------------------
