@@ -209,14 +209,6 @@ function widget:Create(parent)
 
         local row = {}
 
-        ---------------------------------------------------
-        -- State
-        ---------------------------------------------------
-
-        row.applicant = nil
-        row.selected = false
-        row.highlighted = false
-
         -- Initialize cells table
         row.cells = {}
 
@@ -424,65 +416,13 @@ function widget:Create(parent)
 
         )
 
-        -- Store the row on the frame for the right-click handler
-        frame.clickedRow = row
-
         frame.rows[i] = row
 
         previous = playerCell
 
     end
 
-    -- Enable mouse on the frame for right-click
-    frame:EnableMouse(true)
-    frame:SetScript("OnMouseDown", function(self, button)
-        if button == "RightButton" then
-            local clickedRow = self.clickedRow
-            if not clickedRow or not clickedRow.applicant then
-                return
-            end
-            
-            if not LootCouncil.Session:IsCouncil(UnitName("player")) then
-                return
-            end
-            
-            local playerName = clickedRow.applicant:GetPlayer():GetName()
-            local item = LootCouncil.Session:GetSelectedItem()
-            if not item then
-                return
-            end
-            
-            local itemNumber = item:GetNumber()
-            
-            local menu = CreateFrame("Frame", "LootCouncilResponseMenu", UIParent, "UIDropDownMenuTemplate")
-            local info = {}
-            
-            local responses = {"BIS", "MS", "OS", "PASS", "DISENCHANT"}
-            for _, response in ipairs(responses) do
-                info = {}
-                info.text = response
-                info.func = function()
-                    LootCouncil.Session:SetPlayerResponse(playerName, itemNumber, response)
-                end
-                UIDropDownMenu_AddButton(info)
-            end
-            
-            UIDropDownMenu_Display(menu, nil, "cursor")
-            
-        end
-    end)
-
     return frame
-
-end
-
----------------------------------------------------
--- Layout
----------------------------------------------------
-
-function widget:Layout(frame, ...)
-
-    frame:SetPoint(...)
 
 end
 
@@ -507,11 +447,6 @@ function widget:Refresh(frame, applicants)
             row.applicant = applicants[i]
 
             if row.applicant then
-
-                -- Show divider for this row
-                if row.divider then
-                    row.divider:Show()
-                end
 
                 ---------------------------------------------------
                 -- Player
@@ -945,11 +880,6 @@ function widget:Refresh(frame, applicants)
                 )
 
             else
-
-                -- Hide divider for empty rows
-                if row.divider then
-                    row.divider:Hide()
-                end
 
                 ---------------------------------------------------
                 -- Clear Icons

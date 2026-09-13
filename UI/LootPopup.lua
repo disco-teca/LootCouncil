@@ -44,7 +44,7 @@ end
 -- Create Item Row
 ---------------------------------------------------
 
-function popup:CreateItemRow(item, itemIndex, displayIndex)
+function popup:CreateItemRow(item, displayIndex)
     local row = {}
     row.itemNumber = item:GetNumber()
 
@@ -145,14 +145,6 @@ function popup:CreateItemRow(item, itemIndex, displayIndex)
         previous = button
     end
 
-    -- Button 4 (hidden)
-    row.button4 = LootCouncil.UI.Widgets.Button:Create(
-        content,
-        { width = 55, height = 20, text = "Button 4" }
-    )
-    row.button4:SetPoint("LEFT", previous, "RIGHT", 5, 0)
-    row.button4:SetAlpha(0.01)
-
     return row
 end
 
@@ -194,26 +186,14 @@ function popup:Refresh()
         return
     end
 
-    -- Build rows from visibleItems instead of all items
     for displayIndex, item in ipairs(visibleItems) do
-        -- Note: We need the item's array index for response submission
-        -- Find the original index from the full items list
-        local originalIndex = nil
-        for idx, fullItem in ipairs(items) do
-            if fullItem == item then
-                originalIndex = idx
-                break
-            end
-        end
-        
-        local row = self:CreateItemRow(item, originalIndex or displayIndex, displayIndex)
+        local row = self:CreateItemRow(item, displayIndex)
         table.insert(rows, row)
     end
 
     local contentHeight = 15 + (#visibleItems * rowHeight) + 15
     content:SetHeight(math.max(contentHeight, scrollFrame:GetHeight()))
 
-    scrollFrame:SetVerticalScroll(0)
 end
 
 ---------------------------------------------------

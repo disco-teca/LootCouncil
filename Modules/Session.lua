@@ -1,7 +1,5 @@
 LootCouncil.Session = {}
 
-LootCouncil:Print("Session.lua is loading")
-
 local session = nil
 
 local pendingOwnershipTransfer = nil
@@ -173,20 +171,6 @@ function LootCouncil.Session:IsRaidLeader(
 
     return playerName ==
         self:GetRaidLeader()
-
-end
-
----------------------------------------------------
--- Session Owner
----------------------------------------------------
-
-function LootCouncil.Session:GetAuthority()
-
-    if not session then
-        return nil
-    end
-
-    return session.owner
 
 end
 
@@ -486,23 +470,6 @@ function LootCouncil.Session:Serialize()
             items = {},
             selectedItem = nil,
             nextItemNumber = nil,
-        }
-    end
-
-    -- Prepare roll data for saving (store item number, not the full item object)
-    local activeRoll = LootCouncil.Roll:GetActiveRoll()
-    local rollData = nil
-    if activeRoll then
-        rollData = {
-            itemNumber = activeRoll.item and activeRoll.item:GetNumber() or nil,
-            rollType = activeRoll.rollType,
-            isActive = activeRoll.isActive,
-            isClosed = activeRoll.isClosed,
-            rolls = activeRoll.rolls,
-            startTime = activeRoll.startTime,
-            winner = activeRoll.winner,
-            timerStarted = activeRoll.timerStarted,
-            remainingTime = activeRoll.remainingTime,
         }
     end
 
@@ -1053,8 +1020,6 @@ function LootCouncil.Session:Create(
 
         players = {},
 
-        roles = {},
-
         items = {},
 
         selectedItem = nil,
@@ -1160,12 +1125,6 @@ function LootCouncil.Session:Start()
     end
 
     ---------------------------------------------------
-    -- Initialize Roles
-    ---------------------------------------------------
-
-    self:BroadcastState()
-
-    ---------------------------------------------------
     -- Refresh UI
     ---------------------------------------------------
 
@@ -1219,16 +1178,6 @@ function LootCouncil.Session:End(remote)
     end
 
     return true
-end
-
-function LootCouncil.Session:Toggle()
-
-    if self:IsActive() then
-        self:Destroy()
-    else
-        self:Create()
-    end
-
 end
 
 ---------------------------------------------------
@@ -1322,28 +1271,6 @@ function LootCouncil.Session:ClearPlayers()
 
     session.players = {}
 
-end
-
----------------------------------------------------
--- Initialize Roles
----------------------------------------------------
-
----------------------------------------------------
--- Get Role
----------------------------------------------------
-
-function LootCouncil.Session:GetRole(playerName)
-    -- Roles are temporarily disabled. Everyone is RAIDER.
-    return LootCouncil.Permissions.Role.RAIDER
-end
-
----------------------------------------------------
--- Get Roles
----------------------------------------------------
-
-function LootCouncil.Session:GetRoles()
-    -- Roles are temporarily disabled
-    return {}
 end
 
 ---------------------------------------------------
@@ -2161,52 +2088,6 @@ function LootCouncil.Session:GetSelectedItem()
 end
 
 ---------------------------------------------------
--- Loading
----------------------------------------------------
-
-function LootCouncil.Session:Load(data)
-
-    ---------------------------------------------------
-    -- Loot Items
-    ---------------------------------------------------
-
-    for _, itemData in ipairs(data.Items) do
-
-        self:AddItem(itemData)
-
-        local item = session.items[#session.items]
-
-        if itemData.applicants then
-
-        for _, applicantData in ipairs(itemData.applicants) do
-
-            for _, player in ipairs(session.players) do
-
-                if player:GetName() == applicantData.player then
-
-local applicant = item:AddApplicant(player)
-
-applicant:SetResponse(
-    applicantData.response
-)
-
-                    break
-
-                end
-
-            end
-
-        end
-
-    end
-
-end
-
-    LootCouncil.UI.TabManager:Refresh()
-
-end
-
----------------------------------------------------
 -- Applicant Initialization
 ---------------------------------------------------
 
@@ -2279,8 +2160,6 @@ function LootCouncil.Session:OnStartMessage(
     )
 
 end
-
----------------------------------------------------
 
 function LootCouncil.Session:OnEndMessage(
 
@@ -2810,16 +2689,6 @@ function LootCouncil.Session:Initialize()
 
     )
 
-    -- LootCouncil.MessageBus:Register(
-
-    --    "SESSION_STATE",
-
-    --   self,
-
-    --    self.OnSessionStateMessage
-
-    --)
-
     LootCouncil.MessageBus:Register(
 
         "END",
@@ -3301,35 +3170,6 @@ function LootCouncil.Session:OnOwnerGearResponse(message, sender)
 end
 
 ---------------------------------------------------
--- Broadcast Session State
----------------------------------------------------
-
-function LootCouncil.Session:BroadcastState()
-
-    if not session then
-        return
-    end
-
-    if not self:IsOwner() then
-        return
-    end
-
-    local message =
-        LootCouncil.Message:New(
-            "SESSION_STATE",
-            {
-                owner = self:GetOwner(),
-            }
-        )
-
-    LootCouncil.MessageBus:Route(
-        message,
-        UnitName("player")
-    )
-
-end
-
----------------------------------------------------
 -- Session State Message
 ---------------------------------------------------
 
@@ -3492,13 +3332,11 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     return true
 end
 
-LootCouncil:Print("Session.lua loaded successfully")
-
 ---------------------------------------------------
 -- Set Player Response (Council Manual Override)
 ---------------------------------------------------
 
-function LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
+function LootCouncil.Session:SetPlayerResponse(playerName, itemNumber, response)
     if not self:IsActive() then
         return
     end
@@ -3508,7 +3346,7 @@ function LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
         return
     end
     
-    local item = self:GetItem(itemIndex)
+    local item = self:GetItem(itemNumber)
     if not item then
         return
     end
@@ -3534,7 +3372,7 @@ function LootCouncil.Session:SetPlayerResponse(playerName, itemIndex, response)
         "RESPONSE_OVERRIDE",
         {
             player = playerName,
-            itemIndex = itemIndex,
+            itemNumber = itemNumber,
             response = response,
         }
     )
@@ -3557,10 +3395,10 @@ function LootCouncil.Session:OnResponseOverride(message, sender)
     end
     
     local playerName = payload.player
-    local itemIndex = payload.itemIndex
+    local itemNumber = payload.itemNumber
     local response = payload.response
     
-    local item = self:GetItem(itemIndex)
+    local item = self:GetItem(itemNumber)
     if not item then
         return
     end

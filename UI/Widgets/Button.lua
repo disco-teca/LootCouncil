@@ -177,26 +177,6 @@ function widget:Disable(button)
 end
 
 ---------------------------------------------------
--- Set Text (Direct)
----------------------------------------------------
-
-function widget:SetText(button, text)
-    if button.Text then
-        button.Text:SetText(text or "")
-    end
-end
-
----------------------------------------------------
--- Hook SetText for Direct Calls
----------------------------------------------------
-
-local function HookButtonText(button)
-    button.SetText = function(self, text)
-        widget:SetText(self, text)
-    end
-end
-
----------------------------------------------------
 -- Update Theme
 ---------------------------------------------------
 

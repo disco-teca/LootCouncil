@@ -149,6 +149,9 @@ function widget:ToggleMenu(button)
         end
     end
 
+    -- Clear the open menus list (they're all hidden now)
+    openMenus = {}
+
     -- Create menu if needed
     if not button.Menu then
         widget:CreateMenu(button)
@@ -198,8 +201,6 @@ function widget:CreateMenu(button)
     menu:EnableMouse(true)
 
     -- Create option buttons
-    local previous
-
     for i, item in ipairs(button.options) do
 
         local option = CreateFrame("Button", nil, menu)
@@ -251,8 +252,6 @@ function widget:CreateMenu(button)
             end
 
         end)
-
-        previous = option
 
     end
 

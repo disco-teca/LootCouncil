@@ -220,132 +220,6 @@ local function TestAddPacket()
 
 end
 
-local function ConfigureTestApplicants()
-
-    LootCouncil:Print(
-        "Configuring test applicants..."
-    )
-
-    local item =
-        LootCouncil.Session:GetSelectedItem()
-
-    if not item then
-        return
-    end
-
-    local applicants =
-        item:GetApplicants()
-
-    local responses = {
-
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.PENDING,
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.BIS,
-
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.PENDING,
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.PASS,
-
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.PENDING,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.PENDING,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.PASS,
-
-        LootCouncil.Constants.Response.BIS,
-        LootCouncil.Constants.Response.OS,
-
-        LootCouncil.Constants.Response.PENDING,
-        LootCouncil.Constants.Response.MS,
-        LootCouncil.Constants.Response.PASS,
-        LootCouncil.Constants.Response.BIS,
-
-        LootCouncil.Constants.Response.OS,
-        LootCouncil.Constants.Response.MS,
-
-    }
-
-    for i, applicant in ipairs(applicants) do
-
-        applicant:SetResponse(
-            responses[i]
-        )
-
-    end
-
-end
-
----------------------------------------------------
--- Test Gear Request Packet
----------------------------------------------------
-
-local function TestGearRequestPacket()
-
-    local item =
-        LootCouncil.Session:GetSelectedItem()
-
-    if not item then
-
-        LootCouncil:Print(
-            "No selected item."
-        )
-
-        return
-
-    end
-
-    local slots =
-        LootCouncil.Comparison:GetComparisonSlots(
-            item
-        )
-
-    local message =
-
-        LootCouncil.Message:New(
-
-            "GEAR_REQUEST",
-
-            {
-
-                target = UnitName("player"),
-
-                slots = slots,
-
-                itemIndex = LootCouncil.Session:GetSelectedIndex(),
-
-            }
-
-        )
-
-    LootCouncil.MessageBus:Route(
-
-        message,
-
-        UnitName("player")
-
-    )
-
-end
-
 local function TestItemInfo()
 
     local itemID = 45929
@@ -945,6 +819,11 @@ local function TestUnauthorizedOwnershipChange()
 
 end
 
+local function RefreshRoster()
+    LootCouncil.Roster:Refresh()
+    LootCouncil:Print("Roster refreshed.")
+end
+
 ---------------------------------------------------
 -- Show Session Owner
 ---------------------------------------------------
@@ -1008,9 +887,6 @@ end
 commands["votes"] = function()
     LootCouncil.Sync:RequestVotes()
 end
-commands["gear"] = function()
-    LootCouncil.Sync:RequestGear()
-end
 commands["syncgear"] = function()
     LootCouncil.Sync:RequestSyncGear()
 end
@@ -1026,13 +902,6 @@ commands["council"] = function()
     LootCouncil.Sync:RequestVotes()
     LootCouncil.Sync:RequestSyncGear()
     LootCouncil:Print("Council sync complete.")
-end
-commands["rolls"] = function()
-    if LootCouncil.Roll.popupFrame and LootCouncil.Roll.popupFrame:IsShown() then
-        LootCouncil.Roll.popupFrame:Hide()
-    else
-        LootCouncil.Roll:ShowPopup()
-    end
 end
 commands["loot"] = function()
     LootCouncil.UI.LootPopup:Toggle()

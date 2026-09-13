@@ -8,6 +8,25 @@ function LootCouncil.UI.Widgets:CreateLabel(parent, options)
         options.font or "GameFontHighlight"
     )
 
+    ---------------------------------------------------
+    -- Font Size (optional override)
+    ---------------------------------------------------
+
+    if options.fontSize then
+        local fontPath = label:GetFont()
+        if fontPath then
+            label:SetFont(
+                fontPath,
+                options.fontSize,
+                ""
+            )
+        end
+    end
+
+    ---------------------------------------------------
+    -- Position
+    ---------------------------------------------------
+
     if options.point then
 
         label:SetPoint(
