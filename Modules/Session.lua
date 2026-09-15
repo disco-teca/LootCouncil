@@ -2337,7 +2337,7 @@ function LootCouncil.Session:OnOwnerChangedMessage(
     -- Refresh UI
     ---------------------------------------------------
 
-    LootCouncil.UI.TabManager:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
 end
 
@@ -2991,7 +2991,8 @@ function LootCouncil.Session:OnVotesData(message, sender)
             for playerName, voterList in pairs(applicantVotes) do
                 local applicant = item:FindApplicant(playerName)
                 if applicant then
-                    -- Clear existing votes and add the new ones
+                    -- Sync is authoritative: replace local votes entirely
+                    applicant:ClearVotes()
                     for _, voter in ipairs(voterList) do
                         applicant:AddVote(voter)
                     end
@@ -3275,6 +3276,7 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
         version = 1,
         owner = self:GetOwner(),
         selectedItem = self:GetSelectedIndex(),
+        nextItemNumber = session.nextItemNumber,
         items = {},
         councilMembers = session.councilMembers or {},
     }
@@ -3303,7 +3305,12 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
 
     session.owner = snapshot.owner
     session.started = time()
-    session.nextItemNumber = #snapshot.items + 1
+
+    if snapshot.nextItemNumber then
+        session.nextItemNumber = snapshot.nextItemNumber
+    else
+        session.nextItemNumber = #snapshot.items + 1
+    end
 
         -- Restore council roster from snapshot
     session.councilMembers = snapshot.councilMembers or {}
@@ -3377,7 +3384,7 @@ function LootCouncil.Session:SetPlayerResponse(playerName, itemNumber, response)
         return
     end
     
-    local item = self:GetItem(itemNumber)
+    local item = self:GetItemByNumber(itemNumber)
     if not item then
         return
     end
@@ -3429,7 +3436,7 @@ function LootCouncil.Session:OnResponseOverride(message, sender)
     local itemNumber = payload.itemNumber
     local response = payload.response
     
-    local item = self:GetItem(itemNumber)
+    local item = self:GetItemByNumber(itemNumber)
     if not item then
         return
     end

@@ -196,6 +196,12 @@ function Applicant:AddVote(councilMember)
 
 end
 
+function Applicant:ClearVotes()
+
+    self.votes = {}
+
+end
+
 function Applicant:RemoveVote(councilMember)
 
     for i, voter in ipairs(self.votes) do

@@ -13,7 +13,7 @@ function LootItem:New(data)
             LootItem
         )
 
-    item.id =
+        item.id =
         data.id
 
     item.number =
@@ -28,13 +28,12 @@ function LootItem:New(data)
     item.ilvl =
         data.ilvl
 
-    item.equipSlot = data.equipSlot 
+    item.equipSlot = data.equipSlot
 
     item.icon = nil
     item.quality = nil
     item.itemType = nil
     item.itemSubType = nil
-    item.equipSlot = nil
 
     item.applicants = {}
     item.winner = nil

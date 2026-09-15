@@ -115,7 +115,7 @@ function widget:Create(parent)
     frame.columns = {
 
         Player = {
-            x = 0,
+            x = 26,
             width = 180,
             header = "Player",
         },
@@ -138,24 +138,17 @@ function widget:Create(parent)
             header = "iLvl",
         },
 
-        BiS = {
-            x = 510,
-            width = 50,
-            header = "BiS",
-        },
-
         Votes = {
-            x = 570,
+            x = 510,
             width = 120,
             header = "Votes",
         },
 
         Award = {
-            x = 700,
+            x = 640,
             width = 70,
             header = "Award",
         },
-
     }
 
     ---------------------------------------------------
@@ -170,7 +163,6 @@ function widget:Create(parent)
         "Equipped",
         "Response",
         "ItemLevel",
-        "BiS",
         "Votes",
         "Award",
     }
@@ -226,11 +218,27 @@ function widget:Create(parent)
                 relativePoint = "BOTTOMLEFT",
 
                 x = frame.columns.Player.x,
+                x = 0,
                 y = -6,
 
             })
 
         row.cells.Player = playerCell
+
+        ---------------------------------------------------
+        -- Class Icon
+        ---------------------------------------------------
+
+        row.classIcon = frame:CreateTexture(nil, "ARTWORK")
+        row.classIcon:SetSize(16, 16)
+        row.classIcon:SetPoint(
+            "LEFT",
+            playerCell,
+            "LEFT",
+            -26,
+            0
+        )
+        row.classIcon:Hide()
 
         ---------------------------------------------------
         -- Equipped Icons
@@ -276,7 +284,6 @@ function widget:Create(parent)
 
             "Response",
             "ItemLevel",
-            "BiS",
 
         }
 
@@ -485,6 +492,29 @@ function widget:Refresh(frame, applicants)
                     player:GetName()
                 )
 
+                ---------------------------------------------------
+                -- Class Icon
+                ---------------------------------------------------
+
+                local classToken = string.upper(class)
+                local coords = CLASS_ICON_TCOORDS
+                    and CLASS_ICON_TCOORDS[classToken]
+
+                if coords then
+                    row.classIcon:SetTexture(
+                        "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
+                    )
+                    row.classIcon:SetTexCoord(
+                        coords[1],
+                        coords[2],
+                        coords[3],
+                        coords[4]
+                    )
+                    row.classIcon:Show()
+                else
+                    row.classIcon:Hide()
+                end
+
                 -- Right-click button over the player name
                 if not row.playerButton then
                     row.playerButton = LootCouncil.UI.Widgets.Button:Create(
@@ -655,12 +685,6 @@ function widget:Refresh(frame, applicants)
                 row.cells.ItemLevel:SetText(
                     row.applicant:GetItemLevelComparison()
                 )
-
-                ---------------------------------------------------
-                -- BiS
-                ---------------------------------------------------
-
-                row.cells.BiS:SetText("")
 
                 ---------------------------------------------------
                 -- Vote
@@ -918,6 +942,8 @@ function widget:Refresh(frame, applicants)
                     end
 
                 end
+
+                row.classIcon:Hide()
 
                 ---------------------------------------------------
                 -- Clear Vote Tooltip

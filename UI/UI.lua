@@ -6,7 +6,8 @@ LootCouncil.UI = {}
 
 function LootCouncil.UI:Show()
 
-    if not LootCouncil.Session:IsCouncil(UnitName("player")) then
+    if LootCouncil.Session:IsActive()
+    and not LootCouncil.Session:IsCouncil(UnitName("player")) then
         LootCouncil:Print("This window is only available to council.")
         return
     end
