@@ -13,6 +13,9 @@ function LootCouncil.Database:Initialize()
 
     LootCouncilDB.DevMode = LootCouncilDB.DevMode or false
 
+    LootCouncilDB.GuildRoster = LootCouncilDB.GuildRoster or {}
+    LootCouncilDB.PreSessionCouncil = LootCouncilDB.PreSessionCouncil or {}
+
     LootCouncil:Print("Database initialized.")
 
 end

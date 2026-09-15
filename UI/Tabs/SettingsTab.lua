@@ -31,6 +31,7 @@ function manager:CreateTabs()
 
     local names = {
         "Roster",
+        "Guild",
         "Loot",
         "UI",
     }
@@ -123,6 +124,7 @@ function manager:Refresh()
 
     local panels = {
         "rosterPanel",
+        "guildPanel",
         "lootPanel",
         "uiPanel",
     }
@@ -148,6 +150,14 @@ function manager:Refresh()
         end
 
         view:RefreshRoster()
+
+    elseif self.selected == "Guild" then
+
+        if view.guildPanel then
+            view.guildPanel:Show()
+        end
+
+        LootCouncil.UI.GuildTab:Refresh()    
 
     elseif self.selected == "Loot" then
 
@@ -289,6 +299,18 @@ function view:CreateWidgets()
     self.rosterPanel:SetAllPoints()
 
     self:CreateRosterPanel()
+
+    ---------------------------------------------------
+    -- Guild Panel
+    ---------------------------------------------------
+
+    self.guildPanel =
+        LootCouncil.UI.Widgets:CreatePanel(
+            self.contentArea
+        )
+
+    self.guildPanel:SetAllPoints()
+    self.guildPanel:Hide()
 
     ---------------------------------------------------
     -- Loot Panel (placeholder)

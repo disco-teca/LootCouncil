@@ -968,7 +968,46 @@ commands["syncraid"] = function()
         end
         LootCouncil.Sync:TriggerPlayerSync(target)
     end
+commands["testcheckbox"] = function()
 
+    if LootCouncil.UI._testCheckbox then
+        LootCouncil.UI._testCheckbox:Hide()
+        LootCouncil.UI._testCheckbox = nil
+        return
+    end
+
+    local frame = CreateFrame("Frame", nil, UIParent)
+    frame:SetSize(200, 120)
+    frame:SetPoint("CENTER")
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    frame:SetBackdropColor(0.1, 0.1, 0.1, 1)
+    frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
+
+    local label = LootCouncil.UI.Widgets:CreateLabel(frame, {
+        point = "TOPLEFT",
+        relativeTo = frame,
+        relativePoint = "TOPLEFT",
+        x = 10,
+        y = -10,
+        text = "Click to toggle:",
+    })
+
+    local cb = LootCouncil.UI.Widgets.Checkbox:Create(frame, {
+        checked = false,
+        onToggle = function(checked)
+            LootCouncil:Print("Checkbox is now: " .. tostring(checked))
+        end,
+    })
+
+    cb:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -10)
+
+    LootCouncil.UI._testCheckbox = frame
+
+end
 ---------------------------------------------------
 -- Developer Commands
 ---------------------------------------------------
@@ -984,6 +1023,7 @@ if LootCouncil.Utils:IsDevMode() then
     commands["debug"] = DebugSession
     commands["ping"] = Ping
     commands["save"] = SaveSession
+    
 
 end
 

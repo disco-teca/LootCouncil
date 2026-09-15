@@ -1115,6 +1115,12 @@ function LootCouncil.Session:Start()
     end
 
     ---------------------------------------------------
+    -- Apply Pre-Session Roles
+    ---------------------------------------------------
+
+    self:ApplyPreSessionRoles()
+
+    ---------------------------------------------------
     -- Refresh UI
     ---------------------------------------------------
 
@@ -1322,6 +1328,42 @@ end
 -- Council Management
 ---------------------------------------------------
 
+---------------------------------------------------
+-- Apply Pre-Session Roles
+---------------------------------------------------
+
+function LootCouncil.Session:ApplyPreSessionRoles()
+
+    if not session then
+        return
+    end
+
+    local designations = LootCouncilDB.PreSessionCouncil or {}
+
+    for _, name in ipairs(designations) do
+
+        ---------------------------------------------------
+        -- Only apply to players who are actually in the raid
+        ---------------------------------------------------
+
+        if self:HasPlayer(name) then
+
+            ---------------------------------------------------
+            -- Skip if already council (idempotent)
+            ---------------------------------------------------
+
+            if not self:IsCouncil(name) then
+
+                self:AddCouncilMember(name)
+
+            end
+
+        end
+
+    end
+
+end
+
 function LootCouncil.Session:AddCouncilMember(playerName)
     if not session then
         LootCouncil:Print("No active session.")
@@ -1337,14 +1379,12 @@ function LootCouncil.Session:AddCouncilMember(playerName)
     end
     
     if self:IsCouncil(playerName) then
-        LootCouncil:Print(playerName .. " is already council.")
         return false
     end
     
     table.insert(session.councilMembers, playerName)
     LootCouncil.Persistence:Save()
     self:BroadcastCouncilRoster()
-    LootCouncil:Print(playerName .. " is now council.")
     return true
 end
 
@@ -1373,7 +1413,6 @@ function LootCouncil.Session:RemoveCouncilMember(playerName)
             table.remove(session.councilMembers, i)
             LootCouncil.Persistence:Save()
             self:BroadcastCouncilRoster()
-            LootCouncil:Print(playerName .. " is no longer council.")
             return true
         end
     end
