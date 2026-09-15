@@ -3,7 +3,7 @@ LootCouncil.UI.HistoryTab = {}
 local view = LootCouncil.UI.HistoryTab
 
 view.initialized = false
-view.rows = {}
+view.groups = {}
 
 ---------------------------------------------------
 -- Initialize
@@ -21,6 +21,36 @@ function view:Initialize()
     if not self.panel then
         return
     end
+
+    self:CreateWidgets()
+
+    self.initialized = true
+
+end
+
+---------------------------------------------------
+-- Create Widgets
+---------------------------------------------------
+
+function view:CreateWidgets()
+
+    ---------------------------------------------------
+    -- Empty State Label
+    ---------------------------------------------------
+
+    self.emptyLabel =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.panel,
+            {
+                font = "GameFontNormal",
+                point = "TOPLEFT",
+                relativeTo = self.panel,
+                relativePoint = "TOPLEFT",
+                x = 15,
+                y = -15,
+                text = "No loot history.",
+            }
+        )
 
     ---------------------------------------------------
     -- Scroll Frame
@@ -51,10 +81,6 @@ function view:Initialize()
         5
     )
 
-    ---------------------------------------------------
-    -- Mouse Wheel
-    ---------------------------------------------------
-
     self.scrollFrame:EnableMouseWheel(true)
 
     self.scrollFrame:SetScript(
@@ -70,9 +96,7 @@ function view:Initialize()
             local step = 40
 
             local newPosition =
-                current - (
-                    delta * step
-                )
+                current - (delta * step)
 
             if newPosition < 0 then
                 newPosition = 0
@@ -92,71 +116,127 @@ function view:Initialize()
     self.content =
         self.scrollFrame.content
 
-    self.rowHeight = 30
+end
 
-    self:CreateHeader()
+---------------------------------------------------
+-- Clear Groups
+---------------------------------------------------
 
-    self.initialized = true
+function view:ClearGroups()
+
+    for _, group in ipairs(self.groups) do
+        group:Hide()
+    end
+
+    self.groups = {}
 
 end
 
 ---------------------------------------------------
--- Header
+-- Group Entries By Session
 ---------------------------------------------------
 
-function view:CreateHeader()
+function view:GroupBySession(history)
 
-    self.header =
-        LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
-            {
-                font = "GameFontNormal",
+    local sessionMap = {}
 
-                point = "TOPLEFT",
-                relativeTo = self.content,
-                relativePoint = "TOPLEFT",
+    for index, record in ipairs(history) do
 
-                x = 10,
-                y = -5,
+        local sessionID = record.sessionID
 
-                text =
-                    "Session        Date / Time              Item                         Awarded To"
-            }
-        )
+        if sessionID then
 
-end
+            if not sessionMap[sessionID] then
 
----------------------------------------------------
--- Clear Rows
----------------------------------------------------
+                sessionMap[sessionID] = {
+                    sessionID = sessionID,
+                    entries = {},
+                    earliestTimestamp = record.timestamp,
+                }
 
-function view:ClearRows()
+            end
 
-    for _, row in ipairs(self.rows) do
+            local sessionData = sessionMap[sessionID]
 
-        if row.session then
-            row.session:Hide()
-        end
+            ---------------------------------------------------
+            -- Track Earliest Timestamp For Session Date
+            ---------------------------------------------------
 
-        if row.date then
-            row.date:Hide()
-        end
+            if record.timestamp
+            and record.timestamp < sessionData.earliestTimestamp then
+                sessionData.earliestTimestamp = record.timestamp
+            end
 
-        if row.item then
-            row.item:Hide()
-        end
+            ---------------------------------------------------
+            -- Store Entry With Original Index
+            ---------------------------------------------------
 
-        if row.awardedTo then
-            row.awardedTo:Hide()
-        end
+            table.insert(sessionData.entries, {
+                originalIndex = index,
+                timestamp = record.timestamp,
+                itemLink = record.itemLink,
+                awardedTo = record.awardedTo,
+            })
 
-        if row.delete then
-            row.delete:Hide()
         end
 
     end
 
-    self.rows = {}
+    ---------------------------------------------------
+    -- Sort Sessions By ID (Newest First)
+    ---------------------------------------------------
+
+    local sortedSessions = {}
+
+    for _, sessionData in pairs(sessionMap) do
+        table.insert(sortedSessions, sessionData)
+    end
+
+    table.sort(sortedSessions, function(a, b)
+        return tonumber(a.sessionID) > tonumber(b.sessionID)
+    end)
+
+    ---------------------------------------------------
+    -- Sort Entries Within Each Session (Newest First)
+    ---------------------------------------------------
+
+    for _, sessionData in ipairs(sortedSessions) do
+
+        table.sort(sessionData.entries, function(a, b)
+            return (a.timestamp or 0) > (b.timestamp or 0)
+        end)
+
+    end
+
+    return sortedSessions
+
+end
+
+---------------------------------------------------
+-- Format Session Header
+---------------------------------------------------
+
+function view:FormatHeader(sessionData)
+
+    local count = #sessionData.entries
+
+    local dateText = "Unknown Date"
+
+    if sessionData.earliestTimestamp then
+
+        dateText = date(
+            "%Y-%m-%d",
+            sessionData.earliestTimestamp
+        )
+
+    end
+
+    return sessionData.sessionID ..
+        " - " ..
+        dateText ..
+        " (" ..
+        count ..
+        ")"
 
 end
 
@@ -164,92 +244,60 @@ end
 -- Create Row
 ---------------------------------------------------
 
-function view:CreateRow(
-    record,
-    index
-)
+function view:CreateRow(group, entry)
 
-    local row = {}
+    local row = CreateFrame(
+        "Frame",
+        nil,
+        self.content
+    )
 
-    local yOffset =
-        -(
-            30 +
-            (
-                (index - 1) *
-                self.rowHeight
-            )
+    row:SetHeight(group.rowHeight)
+
+    ---------------------------------------------------
+    -- Timestamp
+    ---------------------------------------------------
+
+    local timeText = "--:--"
+
+    if entry.timestamp then
+
+        timeText = date(
+            "%H:%M",
+            entry.timestamp
         )
 
-    ---------------------------------------------------
-    -- Date / Time
-    ---------------------------------------------------
+    end
 
-    local dateText =
-        date(
-            "%m/%d/%y %H:%M",
-            record.timestamp
-        )
-
-    ---------------------------------------------------
-    -- Session
-    ---------------------------------------------------
-
-    row.session =
+    local timeLabel =
         LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
+            row,
             {
-                point = "TOPLEFT",
-                relativeTo = self.content,
-                relativePoint = "TOPLEFT",
-
-                x = 10,
-                y = yOffset,
-
-                text =
-                    tostring(
-                        record.sessionID
-                    )
+                font = "GameFontNormal",
+                point = "LEFT",
+                relativeTo = row,
+                relativePoint = "LEFT",
+                x = 4,
+                y = 0,
+                text = timeText,
             }
         )
 
     ---------------------------------------------------
-    -- Date / Time
+    -- Item Link
     ---------------------------------------------------
 
-    row.date =
+    local itemLabel =
         LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
+            row,
             {
-                point = "TOPLEFT",
-                relativeTo = row.session,
-                relativePoint = "TOPRIGHT",
-
-                x = 25,
+                font = "GameFontNormal",
+                point = "LEFT",
+                relativeTo = row,
+                relativePoint = "LEFT",
+                x = 60,
                 y = 0,
-
-                text = dateText
-            }
-        )
-
-    ---------------------------------------------------
-    -- Item
-    ---------------------------------------------------
-
-    row.item =
-        LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
-            {
-                point = "TOPLEFT",
-                relativeTo = row.date,
-                relativePoint = "TOPRIGHT",
-
-                x = 25,
-                y = 0,
-
-                text =
-                    tostring(
-                        record.itemLink
-                    )
+                text = tostring(entry.itemLink or "Unknown Item"),
             }
         )
 
@@ -257,63 +305,168 @@ function view:CreateRow(
     -- Awarded To
     ---------------------------------------------------
 
-    row.awardedTo =
+    local awardedLabel =
         LootCouncil.UI.Widgets:CreateLabel(
-            self.content,
+            row,
             {
-                point = "TOPLEFT",
-                relativeTo = row.item,
-                relativePoint = "TOPRIGHT",
-
-                x = 25,
+                font = "GameFontNormal",
+                point = "LEFT",
+                relativeTo = row,
+                relativePoint = "LEFT",
+                x = 400,
                 y = 0,
-
-                text =
-                    tostring(
-                        record.awardedTo
-                    )
+                text = tostring(entry.awardedTo or "Unknown"),
             }
         )
 
     ---------------------------------------------------
-    -- Delete
+    -- Delete Button
     ---------------------------------------------------
 
-    row.delete =
+    local deleteButton =
         LootCouncil.UI.Widgets.Button:Create(
-            self.content,
+            row,
             {
-                width = 50,
-                height = 20,
+                width = 60,
+                height = 18,
                 text = "Delete",
             }
         )
 
-    row.delete:SetPoint(
+    deleteButton:SetPoint(
         "LEFT",
-        row.awardedTo,
-        "RIGHT",
-        20,
+        row,
+        "LEFT",
+        560,
         0
     )
 
-    row.delete:SetScript(
+    deleteButton:SetScript(
         "OnClick",
         function()
 
             LootCouncil.History:Delete(
-                index
+                entry.originalIndex
             )
 
-            self:Refresh()
+            view:Refresh()
 
         end
     )
 
-    table.insert(
-        self.rows,
-        row
+    return row
+end
+
+---------------------------------------------------
+-- Render Groups
+---------------------------------------------------
+
+function view:RenderGroups()
+
+    self:ClearGroups()
+
+    local history =
+        LootCouncil.History:GetAll()
+
+    if not history or #history == 0 then
+
+        self.emptyLabel:Show()
+        self.content:SetHeight(
+            self.scrollFrame:GetHeight()
+        )
+        return
+
+    end
+
+    self.emptyLabel:Hide()
+
+    local sessions =
+        self:GroupBySession(history)
+
+    local previous = nil
+
+    for _, sessionData in ipairs(sessions) do
+
+        local headerText =
+            self:FormatHeader(sessionData)
+
+        local group =
+            LootCouncil.UI.Widgets.CollapsibleGroup:Create(
+                self.content,
+                {
+                    header = headerText,
+                }
+            )
+
+        if previous then
+
+            group:SetPoint(
+                "TOPLEFT",
+                previous,
+                "BOTTOMLEFT",
+                0,
+                -4
+            )
+
+            group:SetPoint(
+                "TOPRIGHT",
+                previous,
+                "BOTTOMRIGHT",
+                0,
+                0
+            )
+
+        else
+
+            group:SetPoint(
+                "TOPLEFT",
+                self.content,
+                "TOPLEFT",
+                0,
+                0
+            )
+
+            group:SetPoint(
+                "TOPRIGHT",
+                self.content,
+                "TOPRIGHT",
+                0,
+                0
+            )
+
+        end
+
+        for _, entry in ipairs(sessionData.entries) do
+
+            local row =
+                self:CreateRow(group, entry)
+
+            group:AddRow(row)
+
+        end
+
+        table.insert(self.groups, group)
+
+        previous = group
+
+    end
+
+    ---------------------------------------------------
+    -- Update Content Height
+    ---------------------------------------------------
+
+    local totalHeight = 0
+
+    for _, group in ipairs(self.groups) do
+        totalHeight = totalHeight + group:GetHeight() + 4
+    end
+
+    totalHeight = math.max(
+        totalHeight,
+        self.scrollFrame:GetHeight()
     )
+
+    self.content:SetHeight(totalHeight)
 
 end
 
@@ -329,82 +482,6 @@ function view:Refresh()
         return
     end
 
-    self:ClearRows()
-
-    local history =
-        LootCouncil.History:GetAll()
-
-    if not history
-    or #history == 0 then
-
-        self.header:SetText(
-            "No loot history."
-        )
-
-        self.content:SetHeight(
-            self.scrollFrame:GetHeight()
-        )
-
-        self.scrollFrame:SetVerticalScroll(
-            0
-        )
-
-        return
-
-    end
-
-    self.header:SetText(
-        "Session        Date / Time              Item                         Awarded To"
-    )
-
-    ---------------------------------------------------
-    -- Create Rows
-    ---------------------------------------------------
-
-    for index, record in ipairs(history) do
-
-        self:CreateRow(
-            record,
-            index
-        )
-
-    end
-
-    ---------------------------------------------------
-    -- Content Height
-    ---------------------------------------------------
-
-    local contentHeight =
-        30 +
-        (
-            #history *
-            self.rowHeight
-        ) +
-        15
-
-    self.content:SetHeight(
-        math.max(
-            contentHeight,
-            self.scrollFrame:GetHeight()
-        )
-    )
-
-    ---------------------------------------------------
-    -- Clamp Scroll
-    ---------------------------------------------------
-
-    local current =
-        self.scrollFrame:GetVerticalScroll()
-
-    local range =
-        self.scrollFrame:GetVerticalScrollRange()
-
-    if current > range then
-
-        self.scrollFrame:SetVerticalScroll(
-            range
-        )
-
-    end
+    self:RenderGroups()
 
 end
