@@ -952,6 +952,22 @@ commands["addone"] = AddItemDirect
 commands["councilhelp"] = function()
     PrintCouncilHelp()
 end
+commands["syncraid"] = function()
+        LootCouncil.Sync:TriggerRaidSync()
+    end
+
+    commands["synccouncil"] = function()
+        LootCouncil.Sync:TriggerCouncilSync()
+    end
+
+    commands["syncplayer"] = function(arguments)
+        local target = arguments and arguments:match("^%s*(.-)%s*$")
+        if not target or target == "" then
+            LootCouncil:Print("Usage: /lc syncplayer <player>")
+            return
+        end
+        LootCouncil.Sync:TriggerPlayerSync(target)
+    end
 
 ---------------------------------------------------
 -- Developer Commands

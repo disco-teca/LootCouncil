@@ -831,15 +831,7 @@ function LootCouncil.Session:Deserialize(data)
     -- Refresh UI After Restoring Council (with safety checks)
     ---------------------------------------------------
 
-    if LootCouncil.UI and LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.VotingTab then
-        LootCouncil.UI.VotingTab:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.SettingsTab then
-        LootCouncil.UI.SettingsTab:Refresh()
-    end
+    LootCouncil.UI.MainWindow:Refresh()
 
     ---------------------------------------------------
     -- Restore Items
@@ -889,9 +881,7 @@ function LootCouncil.Session:Deserialize(data)
     -- Refresh UI (with safety checks)
     ---------------------------------------------------
 
-    if LootCouncil.UI and LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
+    LootCouncil.UI.MainWindow:Refresh()
 
     ---------------------------------------------------
     -- Update Persistence
@@ -1128,13 +1118,7 @@ function LootCouncil.Session:Start()
     -- Refresh UI
     ---------------------------------------------------
 
-    if LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-
-    LootCouncil.UI.VotingTab:Refresh()
-
-    LootCouncil.UI.NavigationTabManager:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
     LootCouncil.Persistence:Save()
 
@@ -1166,18 +1150,53 @@ function LootCouncil.Session:End(remote)
     LootCouncil.UI:Hide()
     LootCouncil.UI.LootPopup:Hide()
 
-    -- Refresh UI with safety checks
-    if LootCouncil.UI and LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.VotingTab then
-        LootCouncil.UI.VotingTab:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.LootPopup then
-        LootCouncil.UI.LootPopup:Refresh()
-    end
+    -- Refresh UI
+    LootCouncil.UI.MainWindow:Refresh()
 
     return true
+end
+
+---------------------------------------------------
+-- Consider Leaving Group
+---------------------------------------------------
+
+function LootCouncil.Session:ConsiderLeavingGroup()
+
+    ---------------------------------------------------
+    -- Am I still in a group?
+    ---------------------------------------------------
+
+    local inGroup = GetNumRaidMembers() > 0
+        or GetNumPartyMembers() > 0
+
+    if inGroup then
+        return
+    end
+
+    ---------------------------------------------------
+    -- No session? Nothing to do.
+    ---------------------------------------------------
+
+    if not self:IsActive() then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Owners keep their session even if alone.
+    ---------------------------------------------------
+
+    if self:IsOwner() then
+        return
+    end
+
+    ---------------------------------------------------
+    -- Non-owner who left the group: clear local session.
+    ---------------------------------------------------
+
+    self:End(true)
+
+    LootCouncil:Print("You left the group. Session cleared locally.")
+
 end
 
 ---------------------------------------------------
@@ -1401,9 +1420,7 @@ function LootCouncil.Session:OnCouncilRosterUpdate(message, sender)
     LootCouncil.Persistence:Save()
     
     -- Refresh UI
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.SettingsTab:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 end
 
 ---------------------------------------------------
@@ -1524,15 +1541,7 @@ function LootCouncil.Session:AddItem(data)
     end
 
     -- Refresh UI with safety checks
-    if LootCouncil.UI and LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.VotingTab then
-        LootCouncil.UI.VotingTab:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.LootPopup then
-        LootCouncil.UI.LootPopup:Refresh()
-    end
+    LootCouncil.UI.MainWindow:Refresh()
 
     return item
 
@@ -1691,9 +1700,7 @@ function LootCouncil.Session:RemoveItem(number)
     end
 
     LootCouncil.Persistence:Save()
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootPopup:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
     return true
 end
@@ -1914,9 +1921,7 @@ function LootCouncil.Session:SetAward(playerName, itemNumber)
     end
 
     -- Refresh UI
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootPopup:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
     return true
 
@@ -2355,15 +2360,7 @@ function LootCouncil.Session:OnAddItemMessage(message, sender)
     end
 
     -- Refresh UI with safety checks
-    if LootCouncil.UI and LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.VotingTab then
-        LootCouncil.UI.VotingTab:Refresh()
-    end
-    if LootCouncil.UI and LootCouncil.UI.LootPopup then
-        LootCouncil.UI.LootPopup:Refresh()
-    end
+    LootCouncil.UI.MainWindow:Refresh()
 
 end
 
@@ -3087,7 +3084,7 @@ function LootCouncil.Session:OnSyncGearResponse(message, sender)
     end
 
     -- Force a full UI refresh
-    LootCouncil.UI.VotingTab:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
     LootCouncil.UI.Widgets.ApplicantList:Refresh(
         LootCouncil.UI.VotingTab.applicantList,
         item:GetApplicants()
@@ -3220,9 +3217,7 @@ function LootCouncil.Session:OnPlayerJoinedMessage(message, sender)
 
     -- Save and refresh
     LootCouncil.Persistence:Save()
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootPopup:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
     LootCouncil:Print(playerName .. " joined the session")
 
@@ -3318,15 +3313,12 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
 
     -- Save and refresh
     LootCouncil.Persistence:Save()
-    LootCouncil.UI.TabManager:Refresh()
-    LootCouncil.UI.VotingTab:Refresh()
-    LootCouncil.UI.LootPopup:Refresh()
+    LootCouncil.UI.MainWindow:Refresh()
 
     -- Schedule a UI refresh to load icons
     C_Timer.After(0.5, function()
         LootCouncil.UI.LootPopup:Refresh()
-        LootCouncil.UI.VotingTab:Refresh()
-        LootCouncil.UI.TabManager:Refresh()
+        LootCouncil.UI.MainWindow:Refresh()
     end)
 
     return true

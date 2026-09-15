@@ -1,6 +1,63 @@
 LootCouncil.UI.MainWindow = {}
 
 ---------------------------------------------------
+-- Refresh
+---------------------------------------------------
+
+function LootCouncil.UI.MainWindow:Refresh()
+
+    if LootCouncil.UI.TabManager then
+        LootCouncil.UI.TabManager:Refresh()
+    end
+
+    if LootCouncil.UI.NavigationTabManager then
+        LootCouncil.UI.NavigationTabManager:Refresh()
+    end
+
+    if LootCouncil.UI.VotingTab then
+        LootCouncil.UI.VotingTab:Refresh()
+    end
+
+    if LootCouncil.UI.SettingsTab then
+        LootCouncil.UI.SettingsTab:Refresh()
+    end
+
+    if LootCouncil.UI.HistoryTab then
+        LootCouncil.UI.HistoryTab:Refresh()
+    end
+
+    if LootCouncil.UI.LootPopup then
+        LootCouncil.UI.LootPopup:Refresh()
+    end
+
+    self:RefreshSyncButtons()
+
+end
+
+---------------------------------------------------
+-- Refresh Sync Buttons
+---------------------------------------------------
+
+function LootCouncil.UI.MainWindow:RefreshSyncButtons()
+
+    if not self.syncRaidButton or not self.syncCouncilButton then
+        return
+    end
+
+    local showButtons = LootCouncil.Session:IsActive()
+        and LootCouncil.Session:IsOwner()
+
+    if showButtons then
+        self.syncRaidButton:Show()
+        self.syncCouncilButton:Show()
+    else
+        self.syncRaidButton:Hide()
+        self.syncCouncilButton:Hide()
+    end
+
+end
+
+---------------------------------------------------
 -- Main Window
 ---------------------------------------------------
 
@@ -62,49 +119,56 @@ refreshButton:SetPoint("RIGHT", titleBar, "RIGHT", -30, 0)
 
 refreshButton:SetScript("OnClick", function()
 
-    ---------------------------------------------------
-    -- Refresh Navigation
-    ---------------------------------------------------
-
-    if LootCouncil.UI.NavigationTabManager then
-        LootCouncil.UI.NavigationTabManager:Refresh()
-    end
-
-    ---------------------------------------------------
-    -- Refresh Item Tabs
-    ---------------------------------------------------
-
-    if LootCouncil.UI.TabManager then
-        LootCouncil.UI.TabManager:Refresh()
-    end
-
-    ---------------------------------------------------
-    -- Refresh Workspaces
-    ---------------------------------------------------
-
-    if LootCouncil.UI.VotingTab then
-        LootCouncil.UI.VotingTab:Refresh()
-    end
-
-    if LootCouncil.UI.SettingsTab then
-        LootCouncil.UI.SettingsTab:Refresh()
-    end
-
-    if LootCouncil.UI.HistoryTab then
-        LootCouncil.UI.HistoryTab:Refresh()
-    end
-
-    ---------------------------------------------------
-    -- Refresh Loot Popup
-    ---------------------------------------------------
-
-    if LootCouncil.UI.LootPopup then
-        LootCouncil.UI.LootPopup:Refresh()
-    end
+    LootCouncil.UI.MainWindow:Refresh()
 
     LootCouncil:Print("UI refreshed.")
 
 end)
+
+---------------------------------------------------
+-- Sync Raid Button
+---------------------------------------------------
+
+local syncRaidButton = LootCouncil.UI.Widgets.Button:Create(
+    titleBar,
+    {
+        width = 80,
+        height = 22,
+        text = "Sync Raid",
+    }
+)
+
+syncRaidButton:SetPoint("RIGHT", refreshButton, "LEFT", -5, 0)
+
+syncRaidButton:SetScript("OnClick", function()
+    LootCouncil.Sync:TriggerRaidSync()
+end)
+
+LootCouncil.UI.MainWindow.syncRaidButton = syncRaidButton
+
+---------------------------------------------------
+-- Sync Council Button
+---------------------------------------------------
+
+local syncCouncilButton = LootCouncil.UI.Widgets.Button:Create(
+    titleBar,
+    {
+        width = 90,
+        height = 22,
+        text = "Sync Council",
+    }
+)
+
+syncCouncilButton:SetPoint("RIGHT", syncRaidButton, "LEFT", -5, 0)
+
+syncCouncilButton:SetScript("OnClick", function()
+    LootCouncil.Sync:TriggerCouncilSync()
+end)
+
+LootCouncil.UI.MainWindow.syncCouncilButton = syncCouncilButton
+
+syncRaidButton:Hide()
+syncCouncilButton:Hide()
 
 ---------------------------------------------------
 -- Close Button
@@ -340,9 +404,7 @@ LootCouncil.UI.TabManager:Initialize(
     itemBar
 )
 
-LootCouncil.UI.VotingTab:Refresh()
-
-LootCouncil.UI.TabManager:Refresh()
+LootCouncil.UI.MainWindow:Refresh()
 
 frame:Hide()
 

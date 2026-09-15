@@ -24,6 +24,9 @@ end
 handlers.RAID_ROSTER_UPDATE = function()
     LootCouncil.Roster:Refresh()
 
+    LootCouncil.Sync:ConsiderAutoSync()
+    LootCouncil.Session:ConsiderLeavingGroup()
+
     if not LootCouncil.Session:IsActive() then
         LootCouncil.UI.SettingsTab:Refresh()
         return

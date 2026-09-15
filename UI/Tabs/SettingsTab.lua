@@ -416,6 +416,10 @@ function view:ClearRows()
             row.gearButton:Hide()
         end
 
+        if row.syncButton then
+            row.syncButton:Hide()
+        end
+
     end
 
     self.rows = {}
@@ -538,6 +542,41 @@ function view:CreateRow(playerName, index)
     else
         row.gearButton:Disable()
         row.gearButton:SetText("")
+    end
+
+    ---------------------------------------------------
+    -- Sync Button (Owner only)
+    ---------------------------------------------------
+
+    row.syncButton = LootCouncil.UI.Widgets.Button:Create(
+        self.scrollContent,
+        {
+            width = 25,
+            height = 20,
+            text = "S",
+        }
+    )
+    row.syncButton:SetPoint(
+        "LEFT",
+        row.gearButton,
+        "RIGHT",
+        5,
+        0
+    )
+
+    -- Only the session owner can sync others
+    -- The owner can't sync themselves (no-op)
+    local canSync = LootCouncil.Session:IsOwner()
+        and playerName ~= UnitName("player")
+
+    if canSync then
+        row.syncButton:Enable()
+        row.syncButton:SetScript("OnClick", function()
+            LootCouncil.Sync:TriggerPlayerSync(playerName)
+        end)
+    else
+        row.syncButton:Disable()
+        row.syncButton:SetText("")
     end
 
     return row
