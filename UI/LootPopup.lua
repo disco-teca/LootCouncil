@@ -207,7 +207,7 @@ function popup:Create()
     end
 
     frame = CreateFrame("Frame", "LootCouncilLootPopup", UIParent)
-    frame:SetSize(350, 400)
+    frame:SetSize(350, 450)
     frame:SetPoint("CENTER")
     frame:SetClampedToScreen(true)
     frame:EnableMouse(true)
@@ -310,7 +310,7 @@ function popup:Create()
         { contentWidth = 310, contentHeight = 100 }
     )
     scrollFrame:SetPoint("TOPLEFT", 10, -75)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -25, 10)
 
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(scroll, delta)

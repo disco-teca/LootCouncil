@@ -4,7 +4,7 @@ local manager =
     LootCouncil.UI.NavigationTabManager
 
 manager.tabs = {}
-manager.selected = "Loot"
+manager.selected = nil
 
 ---------------------------------------------------
 -- Initialize
@@ -27,9 +27,7 @@ function manager:CreateTabs()
     local names = {
 
         "Voting",
-        "Attendance",
         "History",
-        "BiS",
         "Settings"
 
     }
@@ -165,12 +163,18 @@ function manager:Refresh()
     end
 
     ---------------------------------------------------
-    -- Item Tab Visibility
+    -- Item Sidebar Visibility
     ---------------------------------------------------
 
-    LootCouncil.UI.TabManager:SetVisible(
-        self.selected == "Voting"
-    )
+    if LootCouncil.UI.MainWindow.sidebar then
+
+        if self.selected == "Voting" then
+            LootCouncil.UI.MainWindow.sidebar:Show()
+        else
+            LootCouncil.UI.MainWindow.sidebar:Hide()
+        end
+
+    end
 
     ---------------------------------------------------
     -- Show Selected Panel

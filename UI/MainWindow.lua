@@ -30,6 +30,10 @@ function LootCouncil.UI.MainWindow:Refresh()
         LootCouncil.UI.LootPopup:Refresh()
     end
 
+    if self.sessionInfoBox then
+        self.sessionInfoBox:Refresh()
+    end
+
     self:RefreshSyncButtons()
 
 end
@@ -63,7 +67,7 @@ end
 
 local frame = CreateFrame("Frame", "LootCouncilMainWindow", UIParent)
 
-frame:SetSize(1000, 650)
+frame:SetSize(800, 560)
 frame:SetPoint("CENTER")
 
 LootCouncil.UI.Widgets:ApplyThemeBackdrop(frame, false)
@@ -100,7 +104,7 @@ end)
 local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 
 title:SetPoint("CENTER", titleBar, "CENTER", 0, 0)
-title:SetText("LootCouncil v" .. LootCouncil.version)
+title:SetText("I did it bitch")
 
 ---------------------------------------------------
 -- Refresh Button
@@ -229,30 +233,6 @@ navigationBar:SetHeight(30)
 LootCouncil.UI.MainWindow.navigationBar = navigationBar
 
 ---------------------------------------------------
--- Loot Item Bar
----------------------------------------------------
-
-local itemBar = CreateFrame("Frame", nil, content)
-
-itemBar:SetPoint("TOPLEFT", navigationBar, "BOTTOMLEFT", 0, -5)
-itemBar:SetPoint("TOPRIGHT", navigationBar, "BOTTOMRIGHT", 0, -5)
-itemBar:SetHeight(30)
-
-LootCouncil.UI.MainWindow.itemBar = itemBar
-
----------------------------------------------------
--- Action Toolbar
----------------------------------------------------
-
-local toolbar = CreateFrame("Frame", nil, content)
-
-toolbar:SetPoint("TOPLEFT", itemBar, "BOTTOMLEFT", 0, -5)
-toolbar:SetPoint("TOPRIGHT", itemBar, "BOTTOMRIGHT", 0, -5)
-toolbar:SetHeight(30)
-
-LootCouncil.UI.MainWindow.toolbar = toolbar
-
----------------------------------------------------
 -- Workspace
 ---------------------------------------------------
 
@@ -261,18 +241,18 @@ local workspace =
 
 workspace:SetPoint(
     "TOPLEFT",
-    toolbar,
+    navigationBar,
     "BOTTOMLEFT",
     0,
-    -20
+    -5
 )
 
 workspace:SetPoint(
     "TOPRIGHT",
-    toolbar,
+    navigationBar,
     "BOTTOMRIGHT",
     0,
-    -20
+    -5
 )
 
 workspace:SetPoint(
@@ -280,7 +260,7 @@ workspace:SetPoint(
     content,
     "BOTTOMLEFT",
     0,
-    25
+    0
 )
 
 workspace:SetPoint(
@@ -288,11 +268,85 @@ workspace:SetPoint(
     content,
     "BOTTOMRIGHT",
     0,
-    25
+    0
 )
 
 LootCouncil.UI.MainWindow.workspace =
     workspace
+
+---------------------------------------------------
+-- Sidebar
+---------------------------------------------------
+
+local sidebar = CreateFrame("Frame", nil, workspace)
+
+sidebar:SetWidth(180)
+sidebar:SetPoint("TOPLEFT", workspace, "TOPLEFT", 0, 0)
+sidebar:SetPoint("BOTTOMLEFT", workspace, "BOTTOMLEFT", 0, 0)
+
+LootCouncil.UI.MainWindow.sidebar = sidebar
+
+---------------------------------------------------
+-- Session Info Box
+---------------------------------------------------
+
+local sessionInfoBox =
+    LootCouncil.UI.Widgets.SessionInfoBox:Create(
+        sidebar,
+        {
+            width = 200,
+            height = 70,
+        }
+    )
+
+sessionInfoBox:SetPoint("TOPLEFT", sidebar, "TOPLEFT", 0, 0)
+sessionInfoBox:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, 0)
+
+LootCouncil.UI.MainWindow.sessionInfoBox = sessionInfoBox
+
+---------------------------------------------------
+-- Item List Scroll Frame
+---------------------------------------------------
+
+local itemScroll =
+    LootCouncil.UI.Widgets.ScrollFrame:Create(
+        sidebar,
+        {
+            contentWidth = 185,
+            contentHeight = 100,
+        }
+    )
+
+itemScroll:SetPoint("TOPLEFT", sessionInfoBox, "BOTTOMLEFT", 0, -5)
+itemScroll:SetPoint("BOTTOMRIGHT", sidebar, "BOTTOMRIGHT", 0, 0)
+
+itemScroll:EnableMouseWheel(true)
+
+itemScroll:SetScript(
+    "OnMouseWheel",
+    function(frame, delta)
+
+        local current = frame:GetVerticalScroll()
+        local range = frame:GetVerticalScrollRange()
+        local step = 40
+
+        local newPosition = current - (delta * step)
+
+        if newPosition < 0 then
+            newPosition = 0
+        end
+
+        if newPosition > range then
+            newPosition = range
+        end
+
+        frame:SetVerticalScroll(newPosition)
+
+    end
+)
+
+LootCouncil.UI.MainWindow.itemScroll = itemScroll
+LootCouncil.UI.MainWindow.itemContent = itemScroll.content
 
 ---------------------------------------------------
 -- Voting Panel
@@ -305,8 +359,10 @@ local votingPanel =
 
 votingPanel:SetPoint(
     "TOPLEFT",
-    workspace,
-    "TOPLEFT"
+    sidebar,
+    "TOPRIGHT",
+    5,
+    0
 )
 
 votingPanel:SetPoint(
@@ -367,18 +423,6 @@ LootCouncil.UI.MainWindow.historyPanel =
     historyPanel
 
 ---------------------------------------------------
--- Status Bar
----------------------------------------------------
-
-local statusBar = LootCouncil.UI.Widgets:CreatePanel(content)
-
-statusBar:SetPoint("BOTTOMLEFT")
-statusBar:SetPoint("BOTTOMRIGHT")
-statusBar:SetHeight(22)
-
-LootCouncil.UI.MainWindow.statusBar = statusBar
-
----------------------------------------------------
 -- Placeholder Workspace
 ---------------------------------------------------
 
@@ -401,7 +445,7 @@ LootCouncil.UI.NavigationTabManager:Initialize(
 )
 
 LootCouncil.UI.TabManager:Initialize(
-    itemBar
+    LootCouncil.UI.MainWindow.itemContent
 )
 
 LootCouncil.UI.MainWindow:Refresh()

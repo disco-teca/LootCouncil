@@ -2,7 +2,7 @@
 ## Title: LootCouncil
 ## Notes: Standalone Loot Council for WoW 3.3.5a
 ## Author: Alex
-## Version: 0.9.5
+## Version: 0.9.7
 ## SavedVariables: LootCouncilDB
 
 ---------------------------------------------------
@@ -59,7 +59,6 @@ Modules\Comms.lua
 Modules\ResponseParser.lua
 Modules\Chat.lua
 Modules\TestMode.lua
-Modules\Roll.lua
 
 ---------------------------------------------------
 -- Events
@@ -82,6 +81,8 @@ UI\Widgets\Tooltip.lua
 UI\Widgets\Label.lua
 UI\Widgets\Icon.lua
 UI\Widgets\Button.lua
+UI\Widgets\ListItem.lua
+UI\Widgets\SessionInfoBox.lua
 UI\Widgets\ScrollFrame.lua
 UI\Widgets\ApplicantList.lua
 UI\Widgets\Dropdown.lua
@@ -91,10 +92,7 @@ UI\Widgets\Checkbox.lua
 UI\Tabs\VotingTab.lua
 UI\Tabs\GuildTab.lua
 UI\Tabs\SettingsTab.lua
-UI\Tabs\PlayersTab.lua
-UI\Tabs\AttendanceTab.lua
 UI\Tabs\HistoryTab.lua
-UI\Tabs\BiSTab.lua
 
 UI\NavigationTabManager.lua
 UI\TabManager.lua

@@ -1008,6 +1008,35 @@ commands["testcheckbox"] = function()
     LootCouncil.UI._testCheckbox = frame
 
 end
+commands["testinfobox"] = function()
+
+    if LootCouncil.UI._testInfoBox then
+        LootCouncil.UI._testInfoBox:Hide()
+        LootCouncil.UI._testInfoBox = nil
+        return
+    end
+
+    local frame = CreateFrame("Frame", nil, UIParent)
+    frame:SetSize(220, 160)
+    frame:SetPoint("CENTER")
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    frame:SetBackdropColor(0.1, 0.1, 0.1, 1)
+    frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
+
+    local box = LootCouncil.UI.Widgets.SessionInfoBox:Create(frame, {
+        width = 200,
+        height = 130,
+    })
+
+    box:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -10)
+
+    LootCouncil.UI._testInfoBox = frame
+
+end
 ---------------------------------------------------
 -- Developer Commands
 ---------------------------------------------------

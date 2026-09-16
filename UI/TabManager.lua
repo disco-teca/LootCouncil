@@ -2,9 +2,8 @@ LootCouncil.UI.TabManager = {}
 
 local manager = LootCouncil.UI.TabManager
 
-manager.tabs = {}
+manager.entries = {}
 manager.initialized = false
-manager.visible = true
 
 ---------------------------------------------------
 -- Initialize
@@ -18,131 +17,73 @@ function manager:Initialize(parent)
 end
 
 ---------------------------------------------------
--- Set Visible
----------------------------------------------------
-
-function manager:SetVisible(visible)
-
-    self.visible = visible
-
-    if not self.initialized then
-        return
-    end
-
-    self:Refresh()
-
-end
-
----------------------------------------------------
 -- Clear
 ---------------------------------------------------
 
 function manager:Clear()
 
-    for _, tab in ipairs(self.tabs) do
-
-        tab:Hide()
-
+    for _, entry in ipairs(self.entries) do
+        entry:Hide()
     end
 
-    self.tabs = {}
+    self.entries = {}
 
 end
 
 ---------------------------------------------------
--- Add Tab
+-- Add Item
 ---------------------------------------------------
 
-function manager:AddTab(text, index)
+function manager:AddItem(item, index)
 
-    local tab =
-        LootCouncil.UI.Widgets:CreateTab(
+    local text =
+        tostring(item:GetNumber()) ..
+        ". " ..
+        tostring(item:GetName() or "Unknown Item")
+
+    local entry =
+        LootCouncil.UI.Widgets.ListItem:Create(
             self.parent,
             {
-                text = text
+                width = 185,
+                height = 22,
+                text = text,
             }
         )
 
-    local spacing =
-        LootCouncil.Constants.UI.Tab.Spacing
+    local previous = self.entries[#self.entries]
 
-    local tabWidth =
-        tab:GetWidth()
-
-    local parentWidth =
-        self.parent:GetWidth()
-
-    local previous =
-        self.tabs[#self.tabs]
-
-    if not previous then
-
-        self.currentRow = 1
-
-        tab:SetPoint(
+    if previous then
+        entry:SetPoint(
+            "TOPLEFT",
+            previous,
+            "BOTTOMLEFT",
+            0,
+            -2
+        )
+    else
+        entry:SetPoint(
             "TOPLEFT",
             self.parent,
-            "TOPLEFT"
+            "TOPLEFT",
+            0,
+            0
         )
-
-    else
-
-        local previousRight =
-            previous:GetRight()
-
-        local parentRight =
-            self.parent:GetRight()
-
-        if previousRight + spacing + tabWidth >
-           parentRight then
-
-            self.currentRow =
-                self.currentRow + 1
-
-            tab:SetPoint(
-                "TOPLEFT",
-                self.parent,
-                "TOPLEFT",
-                0,
-                -(
-                    (self.currentRow - 1) *
-                    (tab:GetHeight() + spacing)
-                )
-            )
-
-        else
-
-            tab:SetPoint(
-                "LEFT",
-                previous,
-                "RIGHT",
-                spacing,
-                0
-            )
-
-        end
-
     end
 
-    tab:SetScript(
-        "OnClick",
-        function()
+    entry:SetScript("OnClick", function()
 
-            LootCouncil.Session:SetSelectedIndex(
-                index
-            )
+        LootCouncil.Session:SetSelectedIndex(
+            item:GetNumber()
+        )
 
-            manager:Refresh()
+        manager:Refresh()
 
-        end
-    )
+    end)
 
-    table.insert(
-        self.tabs,
-        tab
-    )
+    table.insert(self.entries, entry)
 
-    return tab
+    return entry
 
 end
 
@@ -158,27 +99,16 @@ function manager:Refresh()
         return
     end
 
-    if not self.visible then
-        return
-    end
-
     if not LootCouncil.Session:IsActive() then
         return
     end
 
     ---------------------------------------------------
-    -- Voting Permission
+    -- Find Valid Selected Item
     ---------------------------------------------------
-
-    local playerName =
-        UnitName("player")
 
     local items =
         LootCouncil.Session:GetItems()
-
-    ---------------------------------------------------
-    -- Find Valid Selected Item
-    ---------------------------------------------------
 
     local selected =
         LootCouncil.Session:GetSelectedIndex()
@@ -186,15 +116,14 @@ function manager:Refresh()
     local selectedItem
 
     if selected then
-
-        selectedItem =
-            LootCouncil.Session:GetItem(
-                selected
-            )
-
+        selectedItem = LootCouncil.Session:GetItem(selected)
     end
 
-    if selectedItem and selectedItem:IsAwarded() then
+    ---------------------------------------------------
+    -- If Selected Was Awarded Or Removed, Pick Next
+    ---------------------------------------------------
+
+    if not selectedItem or selectedItem:IsAwarded() then
 
         selected = nil
 
@@ -202,17 +131,15 @@ function manager:Refresh()
         -- Prefer Next Unawarded Item
         ---------------------------------------------------
 
+        local previousSelection =
+            LootCouncil.Session:GetSelectedIndex()
+
         for index, item in ipairs(items) do
-
-            if index > LootCouncil.Session:GetSelectedIndex()
+            if index > (previousSelection or 0)
             and not item:IsAwarded() then
-
                 selected = index
-
                 break
-
             end
-
         end
 
         ---------------------------------------------------
@@ -222,53 +149,52 @@ function manager:Refresh()
         if not selected then
 
             for index, item in ipairs(items) do
-
                 if not item:IsAwarded() then
-
                     selected = index
-
                     break
-
                 end
-
             end
 
         end
 
-        LootCouncil.Session:SetSelectedIndex(
-            selected
-        )
+        LootCouncil.Session:SetSelectedIndex(selected)
 
     end
 
     ---------------------------------------------------
-    -- Create Voting Tabs
+    -- Build Item List
     ---------------------------------------------------
 
     for index, item in ipairs(items) do
 
         if not item:IsAwarded() then
 
-            local tabName =
-                tostring(
-                    item:GetNumber()
-                ) ..
-                ". " ..
-                item:GetName()
+            local entry =
+                self:AddItem(item, index)
 
-            local tab =
-                self:AddTab(
-                    tabName,
-                    index
-                )
-
-            tab:SetSelected(
-                index == selected
-            )
+            entry:SetSelected(index == selected)
 
         end
 
     end
+
+    ---------------------------------------------------
+    -- Update Content Height
+    ---------------------------------------------------
+
+    local contentHeight =
+        0
+
+    for _, entry in ipairs(self.entries) do
+        contentHeight = contentHeight + entry:GetHeight() + 2
+    end
+
+    self.parent:SetHeight(
+        math.max(
+            contentHeight,
+            LootCouncil.UI.MainWindow.itemScroll:GetHeight()
+        )
+    )
 
     ---------------------------------------------------
     -- Refresh Voting Workspace

@@ -56,6 +56,17 @@ function widget:Create(parent, options)
 
     scrollFrame.content = content
 
+    ---------------------------------------------------
+    -- Hide Scrollbar (keep scrolling functionality)
+    ---------------------------------------------------
+
+    local scrollBar = _G[frameName .. "ScrollBar"]
+
+    if scrollBar then
+        scrollBar:Hide()
+        scrollBar.Show = function() end
+    end
+
     return scrollFrame
 
 end

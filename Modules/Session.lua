@@ -476,6 +476,7 @@ function LootCouncil.Session:Serialize()
     return {
         active = true,
         id = session.id,
+        started = session.started,
         owner = self:GetOwner(),
         players = self:SerializePlayers(),
         items = self:SerializeItems(),
@@ -784,6 +785,10 @@ function LootCouncil.Session:Deserialize(data)
         true,
         data.id
     )
+
+    if data.started then
+        session.started = data.started
+    end
 
     if data.nextItemNumber then
         session.nextItemNumber = data.nextItemNumber
@@ -3275,6 +3280,7 @@ function LootCouncil.Session:SerializeRaiderSnapshot(requester)
     local snapshot = {
         version = 1,
         owner = self:GetOwner(),
+        started = session.started,
         selectedItem = self:GetSelectedIndex(),
         nextItemNumber = session.nextItemNumber,
         items = {},
@@ -3303,8 +3309,11 @@ function LootCouncil.Session:DeserializeRaiderSnapshot(snapshot, requester)
     -- Create new session with minimal data
     self:Create(true, "RAIDER_SYNC_" .. time())
 
-    session.owner = snapshot.owner
-    session.started = time()
+    if snapshot.started then
+        session.started = snapshot.started
+    else
+        session.started = time()
+    end
 
     if snapshot.nextItemNumber then
         session.nextItemNumber = snapshot.nextItemNumber

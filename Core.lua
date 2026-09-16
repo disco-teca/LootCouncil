@@ -4,7 +4,7 @@ LootCouncil.Modules = LootCouncil.Modules or {}
 LootCouncil.UI = LootCouncil.UI or {}
 
 LootCouncil.name = "LootCouncil"
-LootCouncil.version = "0.9.5"
+LootCouncil.version = "0.9.7"
 
 function LootCouncil:Print(message)
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootCouncil:|r " .. tostring(message))
@@ -30,8 +30,6 @@ function LootCouncil:Initialize()
     self.Comms:Initialize()
 
     self.Sync:Initialize()
-
-    self.Roll:Initialize() 
 
     ---------------------------------------------------
     -- Restore Persistent State

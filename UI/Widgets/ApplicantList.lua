@@ -113,43 +113,13 @@ function widget:Create(parent)
     ---------------------------------------------------
 
     frame.columns = {
-
-        Player = {
-            x = 26,
-            width = 180,
-            header = "Player",
-        },
-
-        Equipped = {
-            x = 190,
-            width = 90,
-            header = "Equipped",
-        },
-
-        Response = {
-            x = 290,
-            width = 90,
-            header = "Response",
-        },
-
-        ItemLevel = {
-            x = 390,
-            width = 110,
-            header = "iLvl",
-        },
-
-        Votes = {
-            x = 510,
-            width = 120,
-            header = "Votes",
-        },
-
-        Award = {
-            x = 640,
-            width = 70,
-            header = "Award",
-        },
-    }
+    Player    = { x = 26,  width = 160, header = "Player" },
+    Equipped  = { x = 130, width = 90,  header = "Equipped" },
+    Response  = { x = 190, width = 90,  header = "Response" },
+    ItemLevel = { x = 260, width = 130, header = "iLvl" },
+    Votes     = { x = 370, width = 120, header = "Votes" },
+    Award     = { x = 450, width = 70,  header = "Award" },
+}
 
     ---------------------------------------------------
     -- Header
@@ -235,7 +205,7 @@ function widget:Create(parent)
             "LEFT",
             playerCell,
             "LEFT",
-            -26,
+            -20,
             0
         )
         row.classIcon:Hide()
