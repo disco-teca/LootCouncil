@@ -732,6 +732,57 @@ function view:CreateUIPanel()
         -10
     )
 
+    ---------------------------------------------------
+    -- Scale Label
+    ---------------------------------------------------
+
+    self.scaleLabel =
+        LootCouncil.UI.Widgets:CreateLabel(
+            self.uiPanel,
+            {
+                font = "GameFontNormalLarge",
+                point = "TOPLEFT",
+                relativeTo = self.themeDropdown,
+                relativePoint = "BOTTOMLEFT",
+                x = 0,
+                y = -20,
+                text = "Window Scale"
+            }
+        )
+
+    ---------------------------------------------------
+    -- Scale Dropdown
+    ---------------------------------------------------
+
+    self.scaleDropdown =
+        LootCouncil.UI.Widgets.Dropdown:Create(
+            self.uiPanel,
+            {
+                width = 150,
+                height = 22,
+                items = {
+                    { text = "80%",  value = 0.8 },
+                    { text = "90%",  value = 0.9 },
+                    { text = "100%", value = 1.0 },
+                    { text = "110%", value = 1.1 },
+                    { text = "120%", value = 1.2 },
+                    { text = "130%", value = 1.3 },
+                },
+                default = LootCouncilDB.MainWindowScale or 1.0,
+                func = function(value)
+                    LootCouncil.UI.SettingsTab:SetScale(value)
+                end,
+            }
+        )
+
+    self.scaleDropdown:SetPoint(
+        "TOPLEFT",
+        self.scaleLabel,
+        "BOTTOMLEFT",
+        0,
+        -10
+    )
+
 end
 
 ---------------------------------------------------
@@ -757,6 +808,26 @@ function view:SetTheme(themeName)
     LootCouncil.UI.SettingsTab:Refresh()
 
     self:ApplyThemeToAllUI()
+
+end
+
+---------------------------------------------------
+-- Set Scale
+---------------------------------------------------
+
+function view:SetScale(scale)
+
+    if not scale then
+        return
+    end
+
+    LootCouncilDB.MainWindowScale = scale
+
+    if LootCouncil.UI.frame then
+        LootCouncil.UI.frame:SetScale(scale)
+    end
+
+    LootCouncil:Print("Window scale set to " .. tostring(scale) .. ".")
 
 end
 

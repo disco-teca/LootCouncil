@@ -210,6 +210,7 @@ function popup:Create()
     frame:SetSize(350, 450)
     frame:SetPoint("CENTER")
     frame:SetClampedToScreen(true)
+    frame:SetScale(LootCouncilDB.LootPopupScale or 1.0)
     frame:EnableMouse(true)
     frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton")
@@ -304,6 +305,37 @@ function popup:Create()
         end
     end)
 
+    ---------------------------------------------------
+    -- Scale Dropdown
+    ---------------------------------------------------
+
+    local scaleDropdown =
+        LootCouncil.UI.Widgets.Dropdown:Create(
+            frame,
+            {
+                width = 80,
+                height = 22,
+                items = {
+                    { text = "80%",  value = 0.8 },
+                    { text = "90%",  value = 0.9 },
+                    { text = "100%", value = 1.0 },
+                    { text = "110%", value = 1.1 },
+                    { text = "120%", value = 1.2 },
+                    { text = "130%", value = 1.3 },
+                },
+                default = LootCouncilDB.LootPopupScale or 1.0,
+                func = function(value)
+                    popup:SetScale(value)
+                end,
+            }
+        )
+
+    scaleDropdown:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -5)
+
+    scaleDropdown:SetFrameLevel(frame:GetFrameLevel() + 10)
+
+    popup.scaleDropdown = scaleDropdown
+
     -- Scroll Frame
     scrollFrame = LootCouncil.UI.Widgets.ScrollFrame:Create(
         frame,
@@ -327,6 +359,24 @@ function popup:Create()
 
     frame:Hide()
     return frame
+end
+
+---------------------------------------------------
+-- Set Scale
+---------------------------------------------------
+
+function popup:SetScale(scale)
+
+    if not scale then
+        return
+    end
+
+    LootCouncilDB.LootPopupScale = scale
+
+    if frame then
+        frame:SetScale(scale)
+    end
+
 end
 
 ---------------------------------------------------

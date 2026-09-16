@@ -70,6 +70,8 @@ local frame = CreateFrame("Frame", "LootCouncilMainWindow", UIParent)
 frame:SetSize(800, 560)
 frame:SetPoint("CENTER")
 
+frame:SetScale(LootCouncilDB.MainWindowScale or 1.0)
+
 LootCouncil.UI.Widgets:ApplyThemeBackdrop(frame, false)
 
 frame:EnableMouse(true)
@@ -104,7 +106,7 @@ end)
 local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 
 title:SetPoint("CENTER", titleBar, "CENTER", 0, 0)
-title:SetText("I did it bitch")
+title:SetText("Loot Council")
 
 ---------------------------------------------------
 -- Refresh Button

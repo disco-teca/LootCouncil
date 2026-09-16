@@ -16,6 +16,9 @@ function LootCouncil.Database:Initialize()
     LootCouncilDB.GuildRoster = LootCouncilDB.GuildRoster or {}
     LootCouncilDB.PreSessionCouncil = LootCouncilDB.PreSessionCouncil or {}
 
+    LootCouncilDB.MainWindowScale = LootCouncilDB.MainWindowScale or 1.0
+    LootCouncilDB.LootPopupScale = LootCouncilDB.LootPopupScale or 1.0
+
     LootCouncil:Print("Database initialized.")
 
 end
